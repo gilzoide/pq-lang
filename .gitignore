@@ -5,3 +5,7 @@
 # tags
 *ctags*
 *cscope*
+
+# builds
+build/
+*.o

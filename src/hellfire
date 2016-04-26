@@ -1,0 +1,14 @@
+exe = 'main'
+
+cpp {
+	input = utils.glob '*.cpp',
+	includes = '../include',
+	flags = '-Wall -g',
+	std = 'c++11',
+	output = exe,
+}
+
+exclusiveTarget ('run', command {
+	command = utils.makePath (hell.outdir, exe),
+	args = arg
+})
