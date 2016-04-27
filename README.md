@@ -3,14 +3,14 @@ pq-lang
 Uma linguagem de programação manerona
 
 Mas gilzoide, pq PQ?
-====================
+--------------------
 - PQ sim!
 - PQ não?
 - Porque eu Quis!
 - adoro Pão de Queijo!
 
 Mah que diabos? (features)
-==========================
+--------------------------
 - muito funcional
 - tudo são funções (mesmo que funções constantes)
 - permite programação estruturada (sequência de ações, xupa puridade)
@@ -25,3 +25,7 @@ Mah que diabos? (features)
 - __algum dia__ funções que memoizam sozinho (_memoize_)
 - __talvez__ funções com _lazy evaluation_
 - containers padrão: listas e arrays (yup, C arrays, com direito a aritmética estilo de ponteiro)
+
+Quero saber mais!
+-----------------
+Leia os documentos da pasta [design](design/influencias.md)
