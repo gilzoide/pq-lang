@@ -19,24 +19,44 @@
 
 #pragma once
 
-#include "Scope.hpp"
+#include "Symbol.hpp"
 
-#include <vector>
+#include <unordered_map>
+
+using namespace std;
 
 /**
- * PQ environment, with all definitions, scopes...
+ * 'symbol -> Func' map/table
  */
-class Env {
-public:
+using symTable = unordered_map<symbol, AtomPtr>;
 
-private:
+/**
+ * 'symbol -> Func' hash table
+ */
+class Scope {
+public:
 	/**
-	 * Our scope stack
+	 * Insert an Atom in key 'sym'
 	 *
-	 * @note This is a vector for easy front (global scope) and back (local
-	 * scope) access, and direct scope access (which is nice for debugging)
+	 * @param sym Key symbol
+	 * @param atom Value
 	 *
-	 * Default initialization of global scope
+	 * @return If insertion was possible or not
 	 */
-	vector<Scope> scopeStack {1};
+	bool insert (const string& sym, AtomPtr atom);
+
+	/**
+	 * GETTER for symbol
+	 *
+	 * @param Symbol for lookup
+	 *
+	 * @return Atom corresponding to symbol, if it exists
+	 * @return Null pointer (nullptr) otherwise
+	 */
+	AtomPtr operator[] (const string& sym);
+
+protected:
+	/// The inner symbol/value table
+	symTable table;
 };
+

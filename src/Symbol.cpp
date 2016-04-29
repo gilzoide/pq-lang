@@ -19,7 +19,7 @@
 
 #include "Symbol.hpp"
 
-Symbol::Symbol (const string& sym) : sym (getSymbol (sym)) {}
+Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
 
 
 Symbol::~Symbol () {}
@@ -35,7 +35,7 @@ symbol Symbol::getSym () {
 }
 
 
-symbol Symbol::getSymbol (const string& sym) {
+symbol Symbol::getCanonic (const string& sym) {
 	// insert string if needed, and return it's C str
 	return internSymbols.insert (sym).first->c_str ();
 }

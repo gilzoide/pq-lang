@@ -17,26 +17,25 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#pragma once
-
 #include "Scope.hpp"
 
-#include <vector>
+bool Scope::insert (const string& sym, AtomPtr atom) {
+	// get canonical symbol
+	auto canonicSym = Symbol::getCanonic (sym);
+	// see if there's already a value there
+	auto insertRet = table.insert ({canonicSym, atom});
+	// there wasn't, so 'atom' was inserted nicely
+	if (insertRet.second) {
+		return true;
+	}
+	else {
 
-/**
- * PQ environment, with all definitions, scopes...
- */
-class Env {
-public:
+		return insertRet.second;
+	}
+}
 
-private:
-	/**
-	 * Our scope stack
-	 *
-	 * @note This is a vector for easy front (global scope) and back (local
-	 * scope) access, and direct scope access (which is nice for debugging)
-	 *
-	 * Default initialization of global scope
-	 */
-	vector<Scope> scopeStack {1};
-};
+
+AtomPtr Scope::operator[] (const string& sym) {
+	auto search = table.find (Symbol::getCanonic (sym));
+	return search == table.end () ? move (AtomPtr (nullptr)) : search->second;
+}

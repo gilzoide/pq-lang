@@ -18,3 +18,9 @@
  */
 
 #include "Table.hpp"
+
+Atom *Table::clone () {
+	auto newTable = new Table ();
+	newTable->table = this->table;
+	return newTable;
+}

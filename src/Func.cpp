@@ -17,26 +17,14 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#pragma once
+#include "Func.hpp"
 
-#include "Scope.hpp"
+int Func::getExpectedArgs () {
+	return expectedArgs;
+}
 
-#include <vector>
 
-/**
- * PQ environment, with all definitions, scopes...
- */
-class Env {
-public:
+Atom *Func::clone () {
+	return nullptr;
+}
 
-private:
-	/**
-	 * Our scope stack
-	 *
-	 * @note This is a vector for easy front (global scope) and back (local
-	 * scope) access, and direct scope access (which is nice for debugging)
-	 *
-	 * Default initialization of global scope
-	 */
-	vector<Scope> scopeStack {1};
-};

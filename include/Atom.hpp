@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include <memory>
+
+using namespace std;
+
 /**
  * Atom, the abstract class for PQ values
  *
@@ -33,9 +37,29 @@ public:
 	virtual ~Atom ();
 
 	/**
-	 * Virtual clone method, needed for passing by value semantics
+	 * Clone method, needed for passing by value semantics
+	 *
+	 * @note Children must implement this, so our system works
 	 */
 	virtual Atom *clone () = 0;
 
+	/**
+	 * Method that returns how many arguments are expected by Atom
+	 *
+	 * When the value returned is positive (say, +N), function expects exactly
+	 * N arguments. When negative (say, -N), function expects __at least__ N
+	 * arguments (more are allowed)
+	 *
+	 * @note As everything is a function in PQ, even simple values need this
+	 * function implemented. Default implementation just returns 0 though, so
+	 * don't worry.
+	 *
+	 * @return Number of expected arguments. 0 by default
+	 */
+	virtual int getExpectedArgs ();
+
 protected:
 };
+
+/// Atom pointers used by the backend, reference counted
+using AtomPtr = shared_ptr<Atom>;

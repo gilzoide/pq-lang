@@ -19,25 +19,22 @@
 
 #pragma once
 
-#include "Symbol.hpp"
+#include "Atom.hpp"
+#include "Scope.hpp"
 
 #include <unordered_map>
-#include <memory>
 
 using namespace std;
 
 /**
- * 'symbol -> Func' map/table
+ * Scope as PQ Atoms, for use as objects and stuff
  */
-using symTable = unordered_map<symbol, shared_ptr<Atom>>;
-
-/**
- * 'symbol -> Func' Hash Table, used as objects, and as our Scopes
- */
-class Table {
+class Table : public Scope, public Atom {
 public:
+	/**
+	 * Clone function override
+	 */
+	Atom *clone () override;
 
 private:
-	/// The inner symbol/value table
-	symTable table;
 };

@@ -19,24 +19,37 @@
 
 #pragma once
 
-#include "Scope.hpp"
+#include "Atom.hpp"
 
-#include <vector>
+using namespace std;
 
 /**
- * PQ environment, with all definitions, scopes...
+ * Callable Functions!
+ *
+ * Functions that are callable, expecting N (or more) arguments.
+ * Any ways of calling these functions are accepted, so we can add
+ * functionality to functions, like memoizing, or making them lazy.
+ *
+ * Function call protocol:
+ * 		Receive a List of the arguments passed. If the arguments are not enough,
+ * 		returns a proxy of the function with partial application (currying)
  */
-class Env {
+class Func : public Atom {
 public:
-
-private:
 	/**
-	 * Our scope stack
-	 *
-	 * @note This is a vector for easy front (global scope) and back (local
-	 * scope) access, and direct scope access (which is nice for debugging)
-	 *
-	 * Default initialization of global scope
+	 * Clone function override
 	 */
-	vector<Scope> scopeStack {1};
+	virtual Atom *clone () override;
+
+	/**
+	 * getExpectedArgs method override
+	 *
+	 * @return Number of expected arguments
+	 */
+	virtual int getExpectedArgs () override;
+
+protected:
+	/// How many arguments should we expect?
+	int expectedArgs;
 };
+

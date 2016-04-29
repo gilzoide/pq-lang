@@ -62,7 +62,7 @@ public:
 	Atom *clone () override;
 
 	/**
-	 * GETTER for the symbol
+	 * GETTER for the underneath symbol
 	 */
 	symbol getSym ();
 
@@ -71,7 +71,7 @@ public:
 	 *
 	 * @param sym Symbol string
 	 */
-	static symbol getSymbol (const string& sym);
+	static symbol getCanonic (const string& sym);
 
 
 private:

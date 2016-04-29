@@ -24,5 +24,9 @@
 using namespace std;
 
 int main (int argc, char **argv) {
+	Symbol s {"oie"};
+	Symbol s2 {"oise"};
+	auto sym = s.getSym ();
+	cout << sym << endl;
 	return 0;
 }

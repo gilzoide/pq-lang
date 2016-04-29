@@ -20,3 +20,8 @@
 #include "Atom.hpp"
 
 Atom::~Atom () {}
+
+
+int Atom::getExpectedArgs () {
+	return 0;
+}

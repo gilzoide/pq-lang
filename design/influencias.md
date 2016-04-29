@@ -1,7 +1,6 @@
 Déjà vu?
 ========
-_"Tava vendo o _[README](../README.md)_, já vi muitas dessas features aí. De onde você tirou essas
-ideias?"_
+_"Tava vendo o README, já vi muitas dessas features aí. De onde você tirou essas ideias?"_
 
 Bom, muitas das ideias tive de linguagens de programação que usei por aí. Dentre
 elas, citaria como influências (features que gosto e motivam):
