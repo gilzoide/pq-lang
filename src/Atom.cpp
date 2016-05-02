@@ -21,7 +21,3 @@
 
 Atom::~Atom () {}
 
-
-int Atom::getExpectedArgs () {
-	return 0;
-}

@@ -28,8 +28,35 @@
  */
 class Env {
 public:
+	/**
+	 * Push an integer to the call vector
+	 *
+	 * @param value Int value
+	 */
+	void pushInt (int value);
+
+	/**
+	 * Get arguments[index] as an int
+	 */
+	int getInt (int index);
 
 private:
+	/**
+	 * GETTER for a argument pointer, already `dynamic_cast` to right type
+	 *
+	 * @note This is useful to unify the arguments vector access and error
+	 * handling
+	 */
+	template<typename T>
+	T *getArg (int index);
+
+	/**
+	 * Arguments used for function calling, and for result passing
+	 *
+	 * This 
+	 */
+	vector<AtomPtr> arguments;
+
 	/**
 	 * Our scope stack
 	 *

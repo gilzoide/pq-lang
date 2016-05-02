@@ -5,6 +5,7 @@ cpp {
 	includes = '../include',
 	flags = '-Wall -g',
 	std = 'c++11',
+	skipDepCheck = true,
 	output = exe,
 }
 

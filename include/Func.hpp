@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Atom.hpp"
+#include "Env.hpp"
 
 using namespace std;
 
@@ -31,25 +32,54 @@ using namespace std;
  * functionality to functions, like memoizing, or making them lazy.
  *
  * Function call protocol:
- * 		Receive a List of the arguments passed. If the arguments are not enough,
- * 		returns a proxy of the function with partial application (currying)
+ * 		Receive a List of the arguments passed from Env. If the arguments are
+ * 		not enough, returns a proxy of the function with partial application
+ * 		(currying)
  */
 class Func : public Atom {
 public:
+	/**
+	 * Ctor
+	 *
+	 * @param Number of expected arguments
+	 */
+	Func (int numArgs);
+
+	/**
+	 * Dtor
+	 */
+	virtual ~Func ();
+
 	/**
 	 * Clone function override
 	 */
 	virtual Atom *clone () override;
 
 	/**
-	 * getExpectedArgs method override
+	 * Method that returns how many arguments are expected by a function
+	 *
+	 * When the value returned is positive (say, +N), function expects exactly
+	 * N arguments. When negative (say, -N), function expects __at least__ N
+	 * arguments (more are allowed)
 	 *
 	 * @return Number of expected arguments
 	 */
-	virtual int getExpectedArgs () override;
+	virtual int getExpectedArgs ();
+
+	/**
+	 * Call function, receiving arguments from Env, and sending results to
+	 * the same
+	 *
+	 * @note This method is _final_ so that it curries the function if there
+	 *  wasn't sufficient arguments, calling the virtual Func::_body function with
+	 *  Env as parameter, so that it is actually called
+	 */
+	virtual void call (Env& env) final;
 
 protected:
 	/// How many arguments should we expect?
 	int expectedArgs;
+
+	virtual void body (Env& env) = 0;
 };
 

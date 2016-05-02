@@ -17,38 +17,19 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Env.hpp"
-#include "Int.hpp"
+#include "CppFunc.hpp"
 
-#include <sstream>
+CppFunc::CppFunc (int numArgs, function<void (Env&)> f) : Func (numArgs),
+		_body (f) {}
 
-void Env::pushInt (int value) {
-	arguments.push_back (make_shared<Int> (value));
+
+Atom *CppFunc::clone () {
+	return nullptr;
 }
 
 
-int Env::getInt (int index) {
-	auto ptr = getArg<Int> (index);
-	return (int) *ptr;
+void CppFunc::body (Env& env) {
+	_body (env);
 }
 
 
-template<typename T>
-T *Env::getArg (int index) {
-	// allow negative indexing
-	// @note that out_of_range exception may occur
-	if (index < 0) {
-		index = arguments.size () + index;
-	}
-
-	// get the raw pointer at index and try to cast it
-	auto ptr = arguments.at (index).get ();
-	if (auto castPtr = dynamic_cast<T *> (ptr)) {
-		return castPtr;
-	}
-	else {
-		stringstream str;
-		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
-		throw runtime_error (str.str ());
-	}
-}

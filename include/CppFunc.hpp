@@ -17,38 +17,36 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Env.hpp"
-#include "Int.hpp"
+#pragma once
 
-#include <sstream>
+#include "Func.hpp"
 
-void Env::pushInt (int value) {
-	arguments.push_back (make_shared<Int> (value));
-}
+#include <functional>
 
+using namespace std;
 
-int Env::getInt (int index) {
-	auto ptr = getArg<Int> (index);
-	return (int) *ptr;
-}
+/**
+ * C++ functions, registered by any means std::function accepts
+ */
+class CppFunc : public Func {
+public:
+	/**
+	 * Ctor, must give the function, and number of expected arguments
+	 */
+	CppFunc (int numArgs, function<void (Env&)> f);
 
+	/**
+	 * Clone function override
+	 */
+	virtual Atom *clone () override;
 
-template<typename T>
-T *Env::getArg (int index) {
-	// allow negative indexing
-	// @note that out_of_range exception may occur
-	if (index < 0) {
-		index = arguments.size () + index;
-	}
+protected:
+	/**
+	 * Calls the internal _body function
+	 */
+	virtual void body (Env& env) override;
 
-	// get the raw pointer at index and try to cast it
-	auto ptr = arguments.at (index).get ();
-	if (auto castPtr = dynamic_cast<T *> (ptr)) {
-		return castPtr;
-	}
-	else {
-		stringstream str;
-		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
-		throw runtime_error (str.str ());
-	}
-}
+	/// Actual function
+	function<void (Env&)> _body;
+};
+

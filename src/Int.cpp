@@ -17,38 +17,21 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Env.hpp"
 #include "Int.hpp"
 
-#include <sstream>
+Int::Int (int value) : value (value) {}
 
-void Env::pushInt (int value) {
-	arguments.push_back (make_shared<Int> (value));
+
+int Int::getValue () {
+	return value;
 }
 
 
-int Env::getInt (int index) {
-	auto ptr = getArg<Int> (index);
-	return (int) *ptr;
+Int::operator int () {
+	return value;
 }
 
 
-template<typename T>
-T *Env::getArg (int index) {
-	// allow negative indexing
-	// @note that out_of_range exception may occur
-	if (index < 0) {
-		index = arguments.size () + index;
-	}
-
-	// get the raw pointer at index and try to cast it
-	auto ptr = arguments.at (index).get ();
-	if (auto castPtr = dynamic_cast<T *> (ptr)) {
-		return castPtr;
-	}
-	else {
-		stringstream str;
-		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
-		throw runtime_error (str.str ());
-	}
+Atom *Int::clone () {
+	return new Int (value);
 }

@@ -17,38 +17,39 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Env.hpp"
-#include "Int.hpp"
+#pragma once
 
-#include <sstream>
+#include "Atom.hpp"
 
-void Env::pushInt (int value) {
-	arguments.push_back (make_shared<Int> (value));
-}
+using namespace std;
 
+/**
+ * Int, the abstract class for PQ integer values
+ */
+class Int : public Atom {
+public:
+	/**
+	 * Ctor, with value parameter
+	 */
+	Int (int value);
+	/**
+	 * Clone method, needed for passing by value semantics
+	 *
+	 * @note Children must implement this, so our system works
+	 */
+	virtual Atom *clone () override;
 
-int Env::getInt (int index) {
-	auto ptr = getArg<Int> (index);
-	return (int) *ptr;
-}
+	/**
+	 * GETTER for the inner value
+	 */
+	int getValue ();
 
+	/**
+	 * Implicit/explicit conversion to int
+	 */
+	operator int ();
 
-template<typename T>
-T *Env::getArg (int index) {
-	// allow negative indexing
-	// @note that out_of_range exception may occur
-	if (index < 0) {
-		index = arguments.size () + index;
-	}
+protected:
+	int value;
+};
 
-	// get the raw pointer at index and try to cast it
-	auto ptr = arguments.at (index).get ();
-	if (auto castPtr = dynamic_cast<T *> (ptr)) {
-		return castPtr;
-	}
-	else {
-		stringstream str;
-		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
-		throw runtime_error (str.str ());
-	}
-}

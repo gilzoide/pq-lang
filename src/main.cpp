@@ -17,16 +17,24 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Env.hpp"
+#include "pq.hpp"
 
 #include <iostream>
 
 using namespace std;
 
 int main (int argc, char **argv) {
-	Symbol s {"oie"};
-	Symbol s2 {"oise"};
-	auto sym = s.getSym ();
-	cout << sym << endl;
+	Env e;
+	CppFunc soma (2, [] (Env& env) {
+				auto a = env.getInt (0);
+				auto b = env.getInt (1);
+				env.pushInt (a + b);
+			});
+
+	e.pushInt (1);
+	e.pushInt (3);
+	soma.call (e);
+	cout << e.getInt (-1) << endl;
+
 	return 0;
 }

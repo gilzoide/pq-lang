@@ -17,38 +17,15 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+#pragma once
+
+/** @file pq.hpp
+ * Needed headers in one place!
+ */
+
 #include "Env.hpp"
+#include "Atom.hpp"
+#include "Symbol.hpp"
 #include "Int.hpp"
-
-#include <sstream>
-
-void Env::pushInt (int value) {
-	arguments.push_back (make_shared<Int> (value));
-}
-
-
-int Env::getInt (int index) {
-	auto ptr = getArg<Int> (index);
-	return (int) *ptr;
-}
-
-
-template<typename T>
-T *Env::getArg (int index) {
-	// allow negative indexing
-	// @note that out_of_range exception may occur
-	if (index < 0) {
-		index = arguments.size () + index;
-	}
-
-	// get the raw pointer at index and try to cast it
-	auto ptr = arguments.at (index).get ();
-	if (auto castPtr = dynamic_cast<T *> (ptr)) {
-		return castPtr;
-	}
-	else {
-		stringstream str;
-		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
-		throw runtime_error (str.str ());
-	}
-}
+#include "Func.hpp"
+#include "CppFunc.hpp"

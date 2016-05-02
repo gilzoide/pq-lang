@@ -19,6 +19,12 @@
 
 #include "Func.hpp"
 
+Func::Func (int numArgs) : expectedArgs (numArgs) {}
+
+
+Func::~Func () {}
+
+
 int Func::getExpectedArgs () {
 	return expectedArgs;
 }
@@ -26,5 +32,10 @@ int Func::getExpectedArgs () {
 
 Atom *Func::clone () {
 	return nullptr;
+}
+
+
+void Func::call (Env& env) {
+	body (env);
 }
 
