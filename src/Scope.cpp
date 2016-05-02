@@ -19,6 +19,8 @@
 
 #include "Scope.hpp"
 
+namespace pq {
+
 bool Scope::insert (const string& sym, AtomPtr atom) {
 	// get canonical symbol
 	auto canonicSym = Symbol::getCanonic (sym);
@@ -38,4 +40,6 @@ bool Scope::insert (const string& sym, AtomPtr atom) {
 AtomPtr Scope::operator[] (const string& sym) {
 	auto search = table.find (Symbol::getCanonic (sym));
 	return search == table.end () ? move (AtomPtr (nullptr)) : search->second;
+}
+
 }

@@ -24,6 +24,8 @@
 
 using namespace std;
 
+namespace pq {
+
 /**
  * Callable Functions!
  *
@@ -51,9 +53,9 @@ public:
 	virtual ~Func ();
 
 	/**
-	 * Clone function override
+	 * Clone function, which children must implement
 	 */
-	virtual Atom *clone () override;
+	virtual Atom *clone () = 0;
 
 	/**
 	 * Method that returns how many arguments are expected by a function
@@ -80,6 +82,14 @@ protected:
 	/// How many arguments should we expect?
 	int expectedArgs;
 
-	virtual void body (Env& env) = 0;
+	/**
+	 * Proper function body
+	 *
+	 * This is the function called by @ref call, and it __must__ return how
+	 * many arguments should be popped. PQ will automatically do it for its
+	 * functions, but you __must__ do it with yours too!
+	 */
+	virtual int body (Env& env) = 0;
 };
 
+}

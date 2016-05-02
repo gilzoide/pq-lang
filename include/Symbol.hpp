@@ -20,23 +20,16 @@
 #pragma once
 
 #include "Atom.hpp"
-
-#include <string>
-#include <unordered_set>
+#include "StringPool.hpp"
 
 using namespace std;
+
+namespace pq {
 
 /**
  * Symbol representation, plain old C strings
  */
 using symbol = const char *;
-/**
- * Symbol set, the interned symbols
- *
- * @note We store the string versions of symbols because they have a builtin
- * hash function, used for storing in the set
- */
-using symbolSet = unordered_set<string>;
 
 /**
  * Symbol wrapper for Func OO
@@ -79,5 +72,7 @@ private:
 	symbol sym;
 
 	/// Interned symbols, for canonical representation
-	static symbolSet internSymbols;
+	static StringPool internSymbols;
 };
+
+}

@@ -23,6 +23,8 @@
 
 #include <vector>
 
+namespace pq {
+
 /**
  * PQ environment, with all definitions, scopes...
  */
@@ -39,6 +41,11 @@ public:
 	 * Get arguments[index] as an int
 	 */
 	int getInt (int index);
+
+	/**
+	 * Pop a number of arguments, returning them
+	 */
+	vector<AtomPtr> popArgs (unsigned int number);
 
 private:
 	/**
@@ -67,3 +74,5 @@ private:
 	 */
 	vector<Scope> scopeStack {1};
 };
+
+}

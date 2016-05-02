@@ -17,32 +17,19 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Symbol.hpp"
+#pragma once
 
-namespace pq {
+#include "Exception.hpp"
 
-Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
+#include <sstream>
 
-
-Symbol::~Symbol () {}
-
-
-Atom *Symbol::clone () {
-	return new Symbol (sym);
-}
-
-
-symbol Symbol::getSym () {
-	return sym;
-}
-
-
-symbol Symbol::getCanonic (const string& sym) {
-	return internSymbols.get (sym);
-}
-
-
-// Declare static attributes
-StringPool Symbol::internSymbols;
-
-}
+/**
+ * API exception, that tells us where problem occurred and why
+ */
+#define PQ_API_EXCEPTION(funcName, what) \
+	[&] () { \
+		ostringstream os; \
+		os << "[pq::" << funcName << " @ " << __FILE__ << ':' << __LINE__ \
+				<< "] " << what; \
+		return move (Exception (move (os.str ()))); \
+	} ();

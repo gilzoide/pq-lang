@@ -23,6 +23,8 @@
 
 using namespace std;
 
+namespace pq {
+
 /**
  * Int, the abstract class for PQ integer values
  */
@@ -53,3 +55,4 @@ protected:
 	int value;
 };
 
+}

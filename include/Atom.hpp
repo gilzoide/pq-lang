@@ -23,6 +23,8 @@
 
 using namespace std;
 
+namespace pq {
+
 /**
  * Atom, the abstract class for PQ values
  *
@@ -48,3 +50,5 @@ protected:
 
 /// Atom pointers used by the backend, reference counted
 using AtomPtr = shared_ptr<Atom>;
+
+}

@@ -17,32 +17,37 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Symbol.hpp"
+#pragma once
+
+#include <string>
+#include <unordered_set>
+
+using namespace std;
 
 namespace pq {
 
-Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
+/**
+ * A string pool!
+ *
+ * String interning tool, for diferent uses across PQ (symbols, function
+ * descriptions, maybe strings even!)
+ *
+ * @note As strings have destructors, and their canonical representations are
+ * const ptrs, and sets destroys it's contents, don't worry, it's all freed =]
+ */
+class StringPool {
+public:
+	/**
+	 * Get the canonical representation of string s
+	 *
+	 * @warning The canonical representation is only valid for a single object,
+	 * don't mix different StringPools for same usage
+	 */
+	const char *get (const string& s);
 
-
-Symbol::~Symbol () {}
-
-
-Atom *Symbol::clone () {
-	return new Symbol (sym);
-}
-
-
-symbol Symbol::getSym () {
-	return sym;
-}
-
-
-symbol Symbol::getCanonic (const string& sym) {
-	return internSymbols.get (sym);
-}
-
-
-// Declare static attributes
-StringPool Symbol::internSymbols;
+private:
+	/// The pool itself
+	unordered_set<string> pool;
+};
 
 }

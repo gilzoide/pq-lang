@@ -19,5 +19,8 @@
 
 #include "Atom.hpp"
 
+namespace pq {
+
 Atom::~Atom () {}
 
+}

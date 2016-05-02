@@ -19,17 +19,19 @@
 
 #include "CppFunc.hpp"
 
-CppFunc::CppFunc (int numArgs, function<void (Env&)> f) : Func (numArgs),
+namespace pq {
+
+CppFunc::CppFunc (int numArgs, function<int (Env&)> f) : Func (numArgs),
 		_body (f) {}
 
 
 Atom *CppFunc::clone () {
-	return nullptr;
+	return new CppFunc (expectedArgs, _body);
 }
 
 
-void CppFunc::body (Env& env) {
-	_body (env);
+int CppFunc::body (Env& env) {
+	return _body (env);
 }
 
-
+}

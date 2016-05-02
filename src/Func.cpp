@@ -19,6 +19,8 @@
 
 #include "Func.hpp"
 
+namespace pq {
+
 Func::Func (int numArgs) : expectedArgs (numArgs) {}
 
 
@@ -30,12 +32,8 @@ int Func::getExpectedArgs () {
 }
 
 
-Atom *Func::clone () {
-	return nullptr;
-}
-
-
 void Func::call (Env& env) {
-	body (env);
+	env.popArgs (body (env));
 }
 
+}

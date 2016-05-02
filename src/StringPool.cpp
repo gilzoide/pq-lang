@@ -17,32 +17,13 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Symbol.hpp"
+#include "StringPool.hpp"
 
 namespace pq {
 
-Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
-
-
-Symbol::~Symbol () {}
-
-
-Atom *Symbol::clone () {
-	return new Symbol (sym);
+const char *StringPool::get (const string& s) {
+	// insert string if needed, and return it's C str
+	return pool.insert (s).first->c_str ();
 }
-
-
-symbol Symbol::getSym () {
-	return sym;
-}
-
-
-symbol Symbol::getCanonic (const string& sym) {
-	return internSymbols.get (sym);
-}
-
-
-// Declare static attributes
-StringPool Symbol::internSymbols;
 
 }

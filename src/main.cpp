@@ -22,6 +22,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace pq;
 
 int main (int argc, char **argv) {
 	Env e;
@@ -29,12 +30,13 @@ int main (int argc, char **argv) {
 				auto a = env.getInt (0);
 				auto b = env.getInt (1);
 				env.pushInt (a + b);
+				return 2;
 			});
 
 	e.pushInt (1);
 	e.pushInt (3);
 	soma.call (e);
-	cout << e.getInt (-1) << endl;
+	cout << e.getInt (0) << endl;
 
 	return 0;
 }

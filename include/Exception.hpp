@@ -17,32 +17,40 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Symbol.hpp"
+#pragma once
+
+#include <string>
+#include <exception>
+
+using namespace std;
 
 namespace pq {
 
-Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
+class Exception : public exception {
+public:
+	/**
+	 * Ctor
+	 *
+	 * @param what_arg Explanatory string
+	 */
+	Exception (const string& what_arg);
+	/**
+	 * Ctor overload with C strings
+	 *
+	 * @param what_arg Explanatory string
+	 */
+	Exception (const char *what_arg);
 
+	/**
+	 * Returns the explanatory string
+	 *
+	 * @return Explanatory string
+	 */
+	const char *what () const noexcept override;
 
-Symbol::~Symbol () {}
-
-
-Atom *Symbol::clone () {
-	return new Symbol (sym);
-}
-
-
-symbol Symbol::getSym () {
-	return sym;
-}
-
-
-symbol Symbol::getCanonic (const string& sym) {
-	return internSymbols.get (sym);
-}
-
-
-// Declare static attributes
-StringPool Symbol::internSymbols;
+private:
+	/// The explanatory string
+	string what_arg;
+};
 
 }

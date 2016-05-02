@@ -25,6 +25,8 @@
 
 using namespace std;
 
+namespace pq {
+
 /**
  * C++ functions, registered by any means std::function accepts
  */
@@ -33,7 +35,7 @@ public:
 	/**
 	 * Ctor, must give the function, and number of expected arguments
 	 */
-	CppFunc (int numArgs, function<void (Env&)> f);
+	CppFunc (int numArgs, function<int (Env&)> f);
 
 	/**
 	 * Clone function override
@@ -44,9 +46,10 @@ protected:
 	/**
 	 * Calls the internal _body function
 	 */
-	virtual void body (Env& env) override;
+	virtual int body (Env& env) override;
 
 	/// Actual function
-	function<void (Env&)> _body;
+	function<int (Env&)> _body;
 };
 
+}

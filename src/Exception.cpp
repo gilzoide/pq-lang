@@ -17,32 +17,18 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Symbol.hpp"
+#include "Exception.hpp"
 
 namespace pq {
 
-Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
+Exception::Exception (const string& what_arg) : what_arg (what_arg) {}
 
 
-Symbol::~Symbol () {}
+Exception::Exception (const char *what_arg) : what_arg (what_arg) {}
 
 
-Atom *Symbol::clone () {
-	return new Symbol (sym);
+const char *Exception::what () const noexcept {
+	return what_arg.c_str ();
 }
-
-
-symbol Symbol::getSym () {
-	return sym;
-}
-
-
-symbol Symbol::getCanonic (const string& sym) {
-	return internSymbols.get (sym);
-}
-
-
-// Declare static attributes
-StringPool Symbol::internSymbols;
 
 }

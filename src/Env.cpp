@@ -19,8 +19,11 @@
 
 #include "Env.hpp"
 #include "Int.hpp"
+#include "debug.hpp"
 
 #include <sstream>
+
+namespace pq {
 
 void Env::pushInt (int value) {
 	arguments.push_back (make_shared<Int> (value));
@@ -51,4 +54,21 @@ T *Env::getArg (int index) {
 		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
 		throw runtime_error (str.str ());
 	}
+}
+
+
+vector<AtomPtr> Env::popArgs (unsigned int number) {
+	if (number > arguments.size ()) {
+		throw PQ_API_EXCEPTION ("Env::popArgs", "Not enough arguments to be popped");
+	}
+	// output vector, already constructed with the values
+	// @note that there's no way we access wrong elements, as the size was
+	// already checked
+	vector<AtomPtr> ret (arguments.begin (), arguments.begin () + number);
+	// now pop!
+	arguments.erase (arguments.begin (), arguments.begin () + number);
+
+	return move (ret);
+}
+
 }

@@ -25,6 +25,8 @@
 
 using namespace std;
 
+namespace pq {
+
 /**
  * 'symbol -> Func' map/table
  */
@@ -60,3 +62,4 @@ protected:
 	symTable table;
 };
 
+}

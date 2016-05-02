@@ -26,6 +26,8 @@
 
 using namespace std;
 
+namespace pq {
+
 /**
  * Scope as PQ Atoms, for use as objects and stuff
  */
@@ -38,3 +40,5 @@ public:
 
 private:
 };
+
+}

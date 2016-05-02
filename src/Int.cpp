@@ -19,6 +19,8 @@
 
 #include "Int.hpp"
 
+namespace pq {
+
 Int::Int (int value) : value (value) {}
 
 
@@ -34,4 +36,6 @@ Int::operator int () {
 
 Atom *Int::clone () {
 	return new Int (value);
+}
+
 }
