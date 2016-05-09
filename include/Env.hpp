@@ -31,7 +31,7 @@ namespace pq {
 class Env {
 public:
 	/**
-	 * Push an integer to the call vector
+	 * Push an integer to the Atom stack
 	 *
 	 * @param value Int value
 	 */
@@ -39,30 +39,37 @@ public:
 
 	/**
 	 * Get arguments[index] as an int
+	 *
+	 * @note Negative values are also allowed, and index from the end
+	 *
+	 * @param index Index of Int to be get
+	 *
+	 * @return int
 	 */
 	int getInt (int index);
 
 	/**
 	 * Pop a number of arguments, returning them
+	 *
+	 * @param number Number of arguments to be popped
+	 *
+	 * @return Vector with popped args
 	 */
 	vector<AtomPtr> popArgs (unsigned int number);
 
 private:
 	/**
-	 * GETTER for a argument pointer, already `dynamic_cast` to right type
+	 * GETTER for a argument pointer, already `dynamic_cast` to right (T) type
 	 *
 	 * @note This is useful to unify the arguments vector access and error
 	 * handling
 	 */
-	template<typename T>
-	T *getArg (int index);
+	AtomPtr getArg (int index);
 
 	/**
-	 * Arguments used for function calling, and for result passing
-	 *
-	 * This 
+	 * Stack that mantains Atoms for function calling, function return 
 	 */
-	vector<AtomPtr> arguments;
+	vector<AtomPtr> atomStack;
 
 	/**
 	 * Our scope stack

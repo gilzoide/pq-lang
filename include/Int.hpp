@@ -35,11 +35,9 @@ public:
 	 */
 	Int (int value);
 	/**
-	 * Clone method, needed for passing by value semantics
-	 *
-	 * @note Children must implement this, so our system works
+	 * Clone method override
 	 */
-	virtual Atom *clone () override;
+	virtual AtomPtr clone () override;
 
 	/**
 	 * GETTER for the inner value

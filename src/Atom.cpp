@@ -19,8 +19,10 @@
 
 #include "Atom.hpp"
 
+#include <sstream>
+
 namespace pq {
 
-Atom::~Atom () {}
+Atom::~Atom () = default;
 
 }

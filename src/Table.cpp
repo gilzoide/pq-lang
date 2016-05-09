@@ -21,7 +21,7 @@
 
 namespace pq {
 
-Atom *Table::clone () {
+AtomPtr Table::clone () {
 	auto newTable = new Table ();
 	newTable->table = this->table;
 	return newTable;

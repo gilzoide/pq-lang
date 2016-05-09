@@ -40,7 +40,7 @@ public:
 	/**
 	 * Clone function override
 	 */
-	virtual Atom *clone () override;
+	virtual AtomPtr clone () override;
 
 protected:
 	/**

@@ -17,31 +17,25 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-/** @file Table.hpp
- * Scope as an Atom
- */
-#pragma once
-
-#include "Atom.hpp"
-#include "Scope.hpp"
-
-#include <unordered_map>
-
-using namespace std;
+#include "Cons.hpp"
 
 namespace pq {
 
-/**
- * Scope as PQ Atoms, for use as objects and stuff
- */
-class Table : public Scope, public Atom {
-public:
-	/**
-	 * Clone function override
-	 */
-	AtomPtr clone () override;
+Cons::Cons (AtomPtr first, AtomPtr second) : first (first), second (second) {}
 
-private:
-};
+
+Cons::~Cons () = default;
+
+
+AtomPtr Cons::clone () {
+	return new Cons (first, second);
+}
+
+
+Cons *Cons::append (AtomPtr value) {
+	auto newCell = new Cons (value, this->second);
+	this->second = newCell;
+	return newCell;
+}
 
 }

@@ -34,7 +34,7 @@ Int::operator int () {
 }
 
 
-Atom *Int::clone () {
+AtomPtr Int::clone () {
 	return new Int (value);
 }
 

@@ -17,6 +17,9 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file Exception.hpp
+ * Exception, for error handling (dâ)
+ */
 #pragma once
 
 #include <string>
@@ -26,6 +29,9 @@ using namespace std;
 
 namespace pq {
 
+/**
+ * Exception, for error handling (dâ)
+ */
 class Exception : public exception {
 public:
 	/**

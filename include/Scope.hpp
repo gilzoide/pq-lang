@@ -17,8 +17,12 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file Scope.hpp
+ * 'symbol -> Atom' map
+ */
 #pragma once
 
+#include "Atom.hpp"
 #include "Symbol.hpp"
 
 #include <unordered_map>
@@ -28,12 +32,12 @@ using namespace std;
 namespace pq {
 
 /**
- * 'symbol -> Func' map/table
+ * 'symbol -> Atom' map/table
  */
 using symTable = unordered_map<symbol, AtomPtr>;
 
 /**
- * 'symbol -> Func' hash table
+ * 'symbol -> Atom' hash table
  */
 class Scope {
 public:

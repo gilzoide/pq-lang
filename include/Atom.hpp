@@ -17,13 +17,25 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file Atom.hpp
+ * Atom, abstraction for all PQ values
+ */
 #pragma once
 
+#include "Exception.hpp"
+#include "debug.hpp"
+
 #include <memory>
+#include <sstream>
 
 using namespace std;
 
 namespace pq {
+
+class Atom;
+
+/// Atom pointer, used in PQ
+using AtomPtr = Atom *;
 
 /**
  * Atom, the abstract class for PQ values
@@ -42,13 +54,47 @@ public:
 	 * Clone method, needed for passing by value semantics
 	 *
 	 * @note Children must implement this, so our system works
+	 *
+	 * @return Atom clone
 	 */
-	virtual Atom *clone () = 0;
+	virtual AtomPtr clone () = 0;
 
-protected:
+	/**
+	 * Cast stored pointer as of pointer to type T, nullptr version
+	 *
+	 * @return Pointer cast to T *
+	 * @return nullptr if cast is impossible
+	 */
+	template<typename T>
+	T *as () noexcept {
+		return dynamic_cast<T *> (this);
+	}
+	/**
+	 * Cast stored pointer as of pointer to type T, exception version
+	 *
+	 * @return Pointer cast to T *
+	 *
+	 * @throw pq::Exception if T isn't a valid Atom type
+	 */
+	template<typename T>
+	T *assert () {
+		if (auto ptr = this->as<T> ()) {
+			return ptr;
+		}
+		else {
+			throw PQ_API_EXCEPTION ("Atom::assert",
+					"Invalid type for conversion from Atom");
+		}
+	}
+
+private:
+	/**
+	 * Index of which scope owns this Atom
+	 *
+	 * This is used for memory management, so that Atoms get released as the
+	 * scope dies, as described in [Memory](design/memoria.md)
+	 */
+	uint16_t fatherScope {0};
 };
-
-/// Atom pointers used by the backend, reference counted
-using AtomPtr = shared_ptr<Atom>;
 
 }

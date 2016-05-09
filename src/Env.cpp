@@ -21,52 +21,41 @@
 #include "Int.hpp"
 #include "debug.hpp"
 
-#include <sstream>
-
 namespace pq {
 
 void Env::pushInt (int value) {
-	arguments.push_back (make_shared<Int> (value));
+	atomStack.push_back (new Int (value));
 }
 
 
 int Env::getInt (int index) {
-	auto ptr = getArg<Int> (index);
-	return (int) *ptr;
+	auto ptr = getArg (index)->as<Int> ();
+	return ptr->getValue ();
 }
 
 
-template<typename T>
-T *Env::getArg (int index) {
+AtomPtr Env::getArg (int index) {
 	// allow negative indexing
 	// @note that out_of_range exception may occur
 	if (index < 0) {
-		index = arguments.size () + index;
+		index = atomStack.size () + index;
 	}
 
-	// get the raw pointer at index and try to cast it
-	auto ptr = arguments.at (index).get ();
-	if (auto castPtr = dynamic_cast<T *> (ptr)) {
-		return castPtr;
-	}
-	else {
-		stringstream str;
-		str << "Invalid value for conversion to \"" << typeid (T).name () << '"';
-		throw runtime_error (str.str ());
-	}
+	// return the raw pointer at index
+	return atomStack.at (index);
 }
 
 
 vector<AtomPtr> Env::popArgs (unsigned int number) {
-	if (number > arguments.size ()) {
+	if (number > atomStack.size ()) {
 		throw PQ_API_EXCEPTION ("Env::popArgs", "Not enough arguments to be popped");
 	}
 	// output vector, already constructed with the values
 	// @note that there's no way we access wrong elements, as the size was
 	// already checked
-	vector<AtomPtr> ret (arguments.begin (), arguments.begin () + number);
+	vector<AtomPtr> ret (atomStack.begin (), atomStack.begin () + number);
 	// now pop!
-	arguments.erase (arguments.begin (), arguments.begin () + number);
+	atomStack.erase (atomStack.begin (), atomStack.begin () + number);
 
 	return move (ret);
 }

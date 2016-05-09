@@ -25,7 +25,7 @@ CppFunc::CppFunc (int numArgs, function<int (Env&)> f) : Func (numArgs),
 		_body (f) {}
 
 
-Atom *CppFunc::clone () {
+AtomPtr CppFunc::clone () {
 	return new CppFunc (expectedArgs, _body);
 }
 

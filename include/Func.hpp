@@ -55,7 +55,7 @@ public:
 	/**
 	 * Clone function, which children must implement
 	 */
-	virtual Atom *clone () = 0;
+	virtual AtomPtr clone () = 0;
 
 	/**
 	 * Method that returns how many arguments are expected by a function

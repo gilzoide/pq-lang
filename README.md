@@ -28,4 +28,4 @@ Mah que diabos? (features)
 
 Quero saber mais!
 -----------------
-Leia os documentos da pasta [design](design/influencias.md)
+Leia os documentos da pasta [design](design/index.md)
