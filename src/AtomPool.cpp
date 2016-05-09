@@ -17,65 +17,41 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Atom.hpp"
-
-#include <sstream>
+#include "AtomPool.hpp"
 
 namespace pq {
 
-Atom::Atom () = default;
+AtomPool::~AtomPool () {
+	// delete Ints
+	for (auto & i : IntPool) {
+		delete i;
+	}
+}
 
 
-void Atom::setActive (bool active) {
-	if (active) {
-		flags |= ACTIVE;
+Int *AtomPool::requestInt () {
+	if (!availableInts.empty ()) {
+		auto ret = availableInts.top ();
+		availableInts.pop ();
+		ret->setActive ();
+		return ret;
 	}
 	else {
-		flags &= ~ACTIVE;
+		auto ret = new Int;
+		IntPool.insert (ret);
+		return ret;
 	}
 }
 
 
-bool Atom::isActive () {
-	return flags & ACTIVE;
-}
-
-
-void Atom::setVariable (bool variable) {
-	if (variable) {
-		flags |= VARIABLE;
-	}
-	else {
-		flags &= ~VARIABLE;
+void AtomPool::disposeInt (Int *ptr) {
+	// only dispose if ptr is active, as it may have been disposed before
+	if (ptr->isActive ()) {
+		// clear flags, including ACTIVE, which will be the only one set after
+		// a request for an object
+		ptr->clearFlags ();
+		availableInts.push (ptr);
 	}
 }
-
-
-bool Atom::isVariable () {
-	return flags & VARIABLE;
-}
-
-
-void Atom::setDefined (bool defined) {
-	if (defined) {
-		flags |= DEFINED;
-	}
-	else {
-		flags &= ~DEFINED;
-	}
-}
-
-
-bool Atom::isDefined () {
-	return flags & DEFINED;
-}
-
-
-void Atom::clearFlags () {
-	flags = 0;
-}
-
-
-Atom::~Atom () = default;
 
 }

@@ -42,6 +42,10 @@ public:
 	 *
 	 * @warning The canonical representation is only valid for a single object,
 	 * don't mix different StringPools for same usage
+	 *
+	 * @param s String of the wanted canonical representation
+	 *
+	 * @return Canonical representation of string s
 	 */
 	const char *get (const string& s);
 

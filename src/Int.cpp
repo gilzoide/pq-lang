@@ -21,11 +21,28 @@
 
 namespace pq {
 
-Int::Int (int value) : value (value) {}
+Int::Int () : Atom () {}
+
+
+Int::Int (int value) : value (value) {
+	setDefined ();
+}
 
 
 int Int::getValue () {
 	return value;
+}
+
+
+void Int::setValue (int value) {
+	if (isVariable () || !isDefined ()) {
+		this->value = value;
+		// set as defined, so that immutable Ints can't have their value reset
+		setDefined ();
+	}
+	else {
+		throw Exception ("Can't set value on an immutable Int");
+	}
 }
 
 

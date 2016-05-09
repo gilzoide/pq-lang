@@ -18,13 +18,14 @@
  */
 
 #include "Env.hpp"
-#include "Int.hpp"
 #include "debug.hpp"
 
 namespace pq {
 
 void Env::pushInt (int value) {
-	atomStack.push_back (new Int (value));
+	auto x = pool.requestInt ();
+	x->setValue (value);
+	atomStack.push_back (x);
 }
 
 

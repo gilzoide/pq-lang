@@ -37,6 +37,12 @@ class Atom;
 /// Atom pointer, used in PQ
 using AtomPtr = Atom *;
 
+enum AtomFlags : uint8_t {
+	ACTIVE = 0x01,
+	VARIABLE = 0x02,
+	DEFINED = 0x04,
+};
+
 /**
  * Atom, the abstract class for PQ values
  *
@@ -45,6 +51,10 @@ using AtomPtr = Atom *;
  */
 class Atom {
 public:
+	/**
+	 * Ctor
+	 */
+	Atom ();
 	/**
 	 * Virtual Dtor, we must have one
 	 */
@@ -87,6 +97,41 @@ public:
 		}
 	}
 
+	/**
+	 * GETTER for @ref fatherScope
+	 */
+	uint16_t getFatherScope ();
+
+	/**
+	 * SETTER for ACTIVE flag
+	 */
+	void setActive (bool active = true);
+	/**
+	 * GETTER for ACTIVE flag
+	 */
+	bool isActive ();
+	/**
+	 * SETTER for VARIABLE flag
+	 */
+	void setVariable (bool variable = true);
+	/**
+	 * GETTER for VARIABLE flag
+	 */
+	bool isVariable ();
+	/**
+	 * SETTER for DEFINED flag
+	 */
+	void setDefined (bool defined = true);
+	/**
+	 * GETTER for DEFINED flag
+	 */
+	bool isDefined ();
+
+	/**
+	 * Set every flag as false, somewhat resetting Atom
+	 */
+	void clearFlags ();
+
 private:
 	/**
 	 * Index of which scope owns this Atom
@@ -95,6 +140,20 @@ private:
 	 * scope dies, as described in [Memory](design/memoria.md)
 	 */
 	uint16_t fatherScope {0};
+
+	/**
+	 * Flags, 8 bits is better than 8 bytes (bitset)
+	 *
+	 * - Active: is Atom active? (is it live, or waiting for a new oportunity
+	 *   in the AtomPoll?
+	 * - Variable: is it variable (or immutable) ?
+	 * - Defined: is Atom defined / does it have a value?
+	 *
+	 * Please, use the methods rather than this variable directly
+	 *
+	 * @sa AtomFlags
+	 */
+	uint8_t flags {ACTIVE};
 };
 
 }

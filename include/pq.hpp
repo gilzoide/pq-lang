@@ -17,16 +17,19 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#pragma once
-
 /** @file pq.hpp
  * Needed headers in one place!
  */
+#pragma once
 
-#include "Env.hpp"
+/** @namespace pq
+ * PQ backend namespace
+ */
+
 #include "Atom.hpp"
 #include "Symbol.hpp"
 #include "Int.hpp"
 #include "Func.hpp"
 #include "CppFunc.hpp"
 #include "Cons.hpp"
+#include "Env.hpp"

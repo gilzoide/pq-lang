@@ -31,7 +31,11 @@ namespace pq {
 class Int : public Atom {
 public:
 	/**
-	 * Ctor, with value parameter
+	 * Default ctor
+	 */
+	Int ();
+	/**
+	 * Ctor, with value parameter, sets flags to (ACTIVE | DEFINED)
 	 */
 	Int (int value);
 	/**
@@ -43,6 +47,13 @@ public:
 	 * GETTER for the inner value
 	 */
 	int getValue ();
+
+	/**
+	 * SETTER for inner value
+	 *
+	 * @throw pq::Exception if Atom is not a VARIABLE
+	 */
+	void setValue (int value);
 
 	/**
 	 * Implicit/explicit conversion to int

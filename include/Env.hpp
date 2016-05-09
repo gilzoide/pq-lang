@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Scope.hpp"
+#include "AtomPool.hpp"
 
 #include <vector>
 
@@ -80,6 +81,11 @@ private:
 	 * Default initialization of global scope
 	 */
 	vector<Scope> scopeStack {1};
+
+	/**
+	 * AtomPool, for object and memory managing
+	 */
+	AtomPool pool;
 };
 
 }

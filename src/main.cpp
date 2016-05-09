@@ -25,32 +25,38 @@ using namespace std;
 using namespace pq;
 
 int main (int argc, char **argv) {
-	Env e;
-	CppFunc soma (2, [] (Env& env) {
-		auto a = env.getInt (0);
-		auto b = env.getInt (1);
-		env.pushInt (a + b);
-		return 2;
-	});
+	//Env e;
+	//CppFunc soma (2, [] (Env& env) {
+		//auto a = env.getInt (0);
+		//auto b = env.getInt (1);
+		//env.pushInt (a + b);
+		//return 2;
+	//});
 
 	//e.getLocal ("print");
 	//e.call (2);
 	//e.call ("print", 2);
 
-	auto list = new Cons (new Int (1), nullptr);
-	auto aux = list->append (new Int (2));
-	aux = aux->append (new Int (3));
-	aux = aux->append (new Int (4));
+	//auto list = new Cons (new Int (1), nullptr);
+	//auto aux = list->append (new Int (2));
+	//aux = aux->append (new Int (3));
+	//aux = aux->append (new Int (4));
 
-	for (aux = list; aux; aux = aux->second->as<Cons> ()) {
-		cout << aux->first->as<Int> ()->getValue () << ' ';
-	}
-	cout << endl;
+	//for (aux = list; aux; aux = aux->second->as<Cons> ()) {
+		//cout << aux->first->as<Int> ()->getValue () << ' ';
+	//}
+	//cout << endl;
 
-	e.pushInt (1);
-	e.pushInt (3);
-	soma.call (e);
-	cout << e.getInt (0) << endl;
+	//e.pushInt (1);
+	//e.pushInt (3);
+	//soma.call (e);
+	//cout << e.getInt (0) << endl;
+	
+	AtomPool pool;
+	auto i = pool.requestInt ();
+	i->setValue (3);
+
+	cout << (int) *i << endl;
 
 	return 0;
 }
