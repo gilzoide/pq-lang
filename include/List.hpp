@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Atom.hpp"
+#include "Cons.hpp"
 
 namespace pq {
 
@@ -31,6 +32,10 @@ class List : public Atom {
 public:
 	
 private:
+	/// First Cons cell in List, which will have the first element
+	Cons *front {nullptr};
+	/// Last Cons cell in List, which will have the last element
+	Cons *back {nullptr};
 };
 
 }

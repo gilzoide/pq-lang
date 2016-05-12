@@ -19,6 +19,8 @@
 
 #include "AtomPool.hpp"
 
+#include <sstream>
+
 namespace pq {
 
 AtomPool::~AtomPool () {
@@ -29,10 +31,42 @@ AtomPool::~AtomPool () {
 }
 
 
+//----    Type get/dispose/delete methods    ----//
+
+//----    Any type (Atom *)    ----//
+
+void AtomPool::dispose (Atom *ptr) {
+#define checkTypeAndDispose(type) \
+	if (auto castPtr = ptr->as<type> ()) \
+		dispose (castPtr)
+
+	checkTypeAndDispose (Int);
+	// type not found: delete pointer!
+	else {
+		delete ptr;
+	}
+#undef checkTypeAndDispose
+}
+
+
+void AtomPool::destroy (Atom *ptr) {
+#define checkTypeAndDestroy(type) \
+	if (auto castPtr = ptr->as<type> ()) \
+		destroy (castPtr)
+
+	checkTypeAndDestroy (Int);
+	// type not found: delete pointer!
+	else {
+		delete ptr;
+	}
+}
+
+
+//----    Ints    ----//
+
 Int *AtomPool::requestInt () {
 	if (!availableInts.empty ()) {
-		auto ret = availableInts.top ();
-		availableInts.pop ();
+		auto ret = availableInts.pop ();
 		ret->setActive ();
 		return ret;
 	}
@@ -44,7 +78,7 @@ Int *AtomPool::requestInt () {
 }
 
 
-void AtomPool::disposeInt (Int *ptr) {
+void AtomPool::dispose (Int *ptr) {
 	// only dispose if ptr is active, as it may have been disposed before
 	if (ptr->isActive ()) {
 		// clear flags, including ACTIVE, which will be the only one set after
@@ -52,6 +86,32 @@ void AtomPool::disposeInt (Int *ptr) {
 		ptr->clearFlags ();
 		availableInts.push (ptr);
 	}
+}
+
+
+void AtomPool::destroy (Int *ptr) {
+	// find ptr in availableInts and remove it. This is expensive, dude, think
+	// twice. I'll
+	if (!ptr->isActive ()) {
+		availableInts.remove (ptr);
+	}
+	// erase ptr from the pool
+	IntPool.erase (ptr);
+	delete ptr;
+}
+
+
+//----    End of Type specific methods    ----//
+
+void AtomPool::dispose (nullptr_t ptr) {/*yup, actually don't do anything =P */}
+
+
+string AtomPool::getMemoryStats () {
+	ostringstream os;
+	os << "Int - total: " << IntPool.size () << "; Inactive: " <<
+			availableInts.size () << endl;
+
+	return os.str ();
 }
 
 }

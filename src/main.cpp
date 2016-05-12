@@ -37,15 +37,15 @@ int main (int argc, char **argv) {
 	//e.call (2);
 	//e.call ("print", 2);
 
-	//auto list = new Cons (new Int (1), nullptr);
-	//auto aux = list->append (new Int (2));
-	//aux = aux->append (new Int (3));
-	//aux = aux->append (new Int (4));
+	auto list = new Cons (new Int (1), nullptr);
+	auto aux = list->append (new Int (2));
+	aux = aux->append (new Int (3));
+	aux = aux->append (new Int (4));
 
-	//for (aux = list; aux; aux = aux->second->as<Cons> ()) {
-		//cout << aux->first->as<Int> ()->getValue () << ' ';
-	//}
-	//cout << endl;
+	for (auto it : *list) {
+		cout << it->as<Int> ()->getValue () << ' ';
+	}
+	cout << endl;
 
 	//e.pushInt (1);
 	//e.pushInt (3);
@@ -56,7 +56,14 @@ int main (int argc, char **argv) {
 	auto i = pool.requestInt ();
 	i->setValue (3);
 
-	cout << (int) *i << endl;
+	cout << i << " -> " << (int) *i << endl;
+
+	pool.dispose (i);
+	i = pool.requestInt ();
+
+	cout << i << " -> " << (int) *i << endl;
+
+	cout << pool.getMemoryStats ();
 
 	return 0;
 }

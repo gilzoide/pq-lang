@@ -38,4 +38,36 @@ Cons *Cons::append (AtomPtr value) {
 	return newCell;
 }
 
+
+ConsListIterator Cons::begin () {
+	return ConsListIterator (this);
+}
+
+
+ConsListIterator Cons::end () {
+	return ConsListIterator (nullptr);
+}
+
+
+//----    Cons list Iterator    ----//
+
+ConsListIterator::ConsListIterator (Cons *initial) : it (initial) {}
+
+
+bool ConsListIterator::operator!= (const ConsListIterator& other) const {
+	return this->it != other.it;
+}
+
+
+const ConsListIterator& ConsListIterator::operator++ () {
+	it = it->second->as<Cons> ();
+	return *this;
+}
+
+
+AtomPtr ConsListIterator::operator* () const {
+	return it->first;
+}
+
+
 }

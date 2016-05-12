@@ -26,6 +26,9 @@
 
 namespace pq {
 
+// Forward declaration
+class ConsListIterator;
+
 /**
  * Cons cells, an atom and another Cons cell as continuation
  *
@@ -75,10 +78,60 @@ public:
 	 */
 	Cons *append (AtomPtr value);
 
+	/**
+	 * Create begin iterator, for iterating in a `for`
+	 */
+	ConsListIterator begin ();
+	/**
+	 * Create end iterator (nullptr), for iterating in a `for`
+	 */
+	ConsListIterator end ();
+
 	/// First element (also called CAR)
 	AtomPtr first;
 	/// Second element (also called CDR)
 	AtomPtr second;
+};
+
+
+/**
+ * Cons list iterator, so we can iterate a Cons with a `for`
+ */
+class ConsListIterator {
+public:
+	/**
+	 * Ctor
+	 *
+	 * @param initial Initial Cons cell
+	 */
+	ConsListIterator (Cons *initial);
+
+	/**
+	 * Verify if iterators are different
+	 *
+	 * @param other Other iterator
+	 *
+	 * @return If `this.it != other.it`
+	 */
+	bool operator!= (const ConsListIterator& other) const;
+
+	/**
+	 * Advance iterator, next Cons cell
+	 *
+	 * @return New iterator (actually same iterator, but advanced)
+	 */
+	const ConsListIterator& operator++ ();
+
+	/**
+	 * Derreference iterator
+	 *
+	 * @return Atom in Cons cell (CAR)
+	 */
+	AtomPtr operator* () const;
+
+private:
+	/// Inner iterator
+	Cons *it;
 };
 
 }
