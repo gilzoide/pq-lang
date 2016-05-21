@@ -25,25 +25,37 @@ using namespace std;
 using namespace pq;
 
 int main (int argc, char **argv) {
-	//Env e;
-	//CppFunc soma (2, [] (Env& env) {
-		//auto a = env.getInt (0);
-		//auto b = env.getInt (1);
-		//env.pushInt (a + b);
-		//return 2;
-	//});
+	Env e;
+	CppFunc soma (2, [] (Env& env, Cons *args) {
+		auto a = env.popArg (args)->assert<Int> ();
+		auto b = env.popArg (args)->assert<Int> ();
+		return new Int (a->getValue () + b->getValue ());
+	});
+
+	e.setLocal ("printa", new CppFunc (1, [] (Env& env, Cons *args) {
+		auto s = env.popArg (args)->assert<Symbol> ();
+		cout << "[printa] " << s->getSym () << endl;
+		return nullptr;
+	}));
 
 	//e.getLocal ("print");
 	//e.call (2);
 	//e.call ("print", 2);
 
-	auto list = new Cons (new Int (1), nullptr);
-	auto aux = list->append (new Int (2));
-	aux = aux->append (new Int (3));
-	aux = aux->append (new Int (4));
+	AtomPool pool;
 
-	for (auto it : *list) {
-		cout << it->as<Int> ()->getValue () << ' ';
+	Code C;
+	C << "printa" << "Como vão vocês?";
+	e.eval (C);
+
+	List list;
+	list.append (pool.requestInt (1));
+	list.append (pool.requestInt (2));
+	list.prepend (pool.requestInt (3));
+	list.append (pool.requestInt (4));
+
+	for (auto it : list) {
+		cout << it->assert<Int> ()->getValue () << ' ';
 	}
 	cout << endl;
 
@@ -52,17 +64,17 @@ int main (int argc, char **argv) {
 	//soma.call (e);
 	//cout << e.getInt (0) << endl;
 	
-	AtomPool pool;
-	auto i = pool.requestInt ();
+	auto i = pool.requestInt (true);
 	i->setValue (3);
+	i->setValue (4);
 
 	cout << i << " -> " << (int) *i << endl;
 
-	pool.dispose (i);
 	i = pool.requestInt ();
 
-	cout << i << " -> " << (int) *i << endl;
+	cout << i << " -> " << i->getValue () << endl;
 
+	pool.dispose (i);
 	cout << pool.getMemoryStats ();
 
 	return 0;

@@ -37,6 +37,7 @@ class Atom;
 /// Atom pointer, used in PQ
 using AtomPtr = Atom *;
 
+/// Atom possible flags, OR them to apply more than one
 enum AtomFlags : uint8_t {
 	ACTIVE = 0x01,
 	VARIABLE = 0x02,
@@ -99,31 +100,71 @@ public:
 
 	/**
 	 * GETTER for @ref fatherScope
+	 *
+	 * @return fatherScope
 	 */
 	uint16_t getFatherScope ();
+	/**
+	 * Update `this->fatherScope` with `other` if needed
+	 *
+	 * fatherScope should (and will) be the one with minimum index between
+	 * `this` and `other`. If `this->fatherScope` is less than `other` one,
+	 * just ignore it
+	 *
+	 * @param other Other fatherScope index
+	 */
+	void updateFatherScope (uint16_t other);
+	/**
+	 * Update fatherScope based on another Atom's one
+	 *
+	 * @param other Other AtomPtr, for reference
+	 */
+	void updateFatherScope (AtomPtr other);
 
 	/**
+	 * SETTER for flags, all of them
+	 *
+	 * Use bit-or `|` or `+` to concat wanted flags
+	 *
+	 * @param flags New flags
+	 *
+	 * @sa AtomFlags
+	 */
+	void setFlags (uint8_t flags);
+	/**
 	 * SETTER for ACTIVE flag
+	 *
+	 * @param active New ACTIVE flag value
 	 */
 	void setActive (bool active = true);
 	/**
 	 * GETTER for ACTIVE flag
+	 *
+	 * @return ACTIVE flag value
 	 */
 	bool isActive ();
 	/**
 	 * SETTER for VARIABLE flag
+	 *
+	 * @param active New VARIABLE flag value
 	 */
 	void setVariable (bool variable = true);
 	/**
 	 * GETTER for VARIABLE flag
+	 *
+	 * @return VARIABLE flag value
 	 */
 	bool isVariable ();
 	/**
 	 * SETTER for DEFINED flag
+	 *
+	 * @param active New DEFINED flag value
 	 */
 	void setDefined (bool defined = true);
 	/**
 	 * GETTER for DEFINED flag
+	 *
+	 * @return DEFINED flag value
 	 */
 	bool isDefined ();
 
@@ -132,20 +173,26 @@ public:
 	 */
 	void clearFlags ();
 
+	/// Constant that means an Atom is not defined in any scope
+	constexpr static uint16_t notScoped = (uint16_t) -1;
+
 private:
 	/**
 	 * Index of which scope owns this Atom
 	 *
 	 * This is used for memory management, so that Atoms get released as the
 	 * scope dies, as described in [Memory](design/memoria.md)
+	 *
+	 * @note Default value is @ref notScoped, so that if you don't set Atom's
+	 * fatherScope, any other managed Atom will dispose this object immediately
 	 */
-	uint16_t fatherScope {0};
+	uint16_t fatherScope {notScoped};
 
 	/**
 	 * Flags, 8 bits is better than 8 bytes (bitset)
 	 *
-	 * - Active: is Atom active? (is it live, or waiting for a new oportunity
-	 *   in the AtomPoll?
+	 * - Active: is Atom active? (is it live, or is it waiting for a new
+	 *   oportunity in the AtomPoll?
 	 * - Variable: is it variable (or immutable) ?
 	 * - Defined: is Atom defined / does it have a value?
 	 *

@@ -33,3 +33,5 @@
 #include "CppFunc.hpp"
 #include "Cons.hpp"
 #include "Env.hpp"
+#include "Code.hpp"
+#include "AtomFactory.hpp"

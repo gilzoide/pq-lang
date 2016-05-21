@@ -17,39 +17,16 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#pragma once
-
-#include "Func.hpp"
-
-#include <functional>
-
-using namespace std;
+#include "AtomFactory.hpp"
 
 namespace pq {
 
-/**
- * C++ functions, registered by any means std::function accepts
- */
-class CppFunc : public Func {
-public:
-	/**
-	 * Ctor, must give the function, and number of expected arguments
-	 */
-	CppFunc (int numArgs, function<AtomPtr (Env&, Cons *)> f);
+namespace Factory {
 
-	/**
-	 * Clone function override
-	 */
-	virtual AtomPtr clone () override;
+Int *make (int value) {
+	return new Int (value);
+}
 
-protected:
-	/**
-	 * Calls the internal _body function
-	 */
-	virtual AtomPtr body (Env& env, Cons *args) override;
-
-	/// Actual function
-	function<AtomPtr (Env&, Cons *)> _body;
-};
+}
 
 }

@@ -31,7 +31,7 @@ bool Scope::insert (const string& sym, AtomPtr atom) {
 		return true;
 	}
 	else {
-
+		// TODO verify variable
 		return insertRet.second;
 	}
 }

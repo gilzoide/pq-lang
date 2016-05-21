@@ -39,17 +39,23 @@ class ConsListIterator;
 class Cons : public Atom {
 public:
 	/**
+	 * Ctor
+	 */
+	Cons ();
+	/**
 	 * Ctor, with both parameters required
+	 *
+	 * Sets DEFINED in AtomFlags
 	 *
 	 * Use nullptr in second to make a single element Cons list
 	 *
 	 * @param first First element
-	 * @param second Second element
+	 * @param second Cons continuation
 	 */
-	Cons (AtomPtr first, AtomPtr second);
+	Cons (AtomPtr elem, Cons *next = nullptr);
 
 	/**
-	 * Ctor
+	 * Dtor
 	 */
 	~Cons ();
 
@@ -61,22 +67,41 @@ public:
 	AtomPtr clone () override;
 
 	/**
-	 * Make a new Cons cell with value and append it as second, and return
-	 * it's reference
+	 * Make a new Cons cell with elen, append it as next, and return it's
+	 * reference
 	 *
 	 * Imagine you have a cons list with (1 2 3). If you call `append` on it
 	 * with 4, it will create a Cons (4 nil), append it to the first Cons cell
 	 * (1 (1 2 3)) and set it's second as the old value, so the new Cons list
 	 * will be (1 4 2 3).
 	 *
-	 * @note This doesn't add the newSecond param at the end of a Cons list
+	 * @note This doesn't add the newSecond param at the end of a Cons list,
+	 * but rather inserts a cell in `this`
 	 *
-	 * @param value New value to be appended
+	 * @warning Cons' destructor doesn't `delete` its values, so you __must__
+	 * take care of the memory allocated and returned by this method
+	 *
+	 * @param elem New element to be appended
 	 *
 	 * @return New Cons cell reference, so it's easy to create a Cons list
 	 * without iterating over it repeatedly
 	 */
-	Cons *append (AtomPtr value);
+	Cons *append (AtomPtr elem);
+
+	/**
+	 * Make a new Cons cell with value, append it as next, and return it's
+	 * reference
+	 *
+	 * @param elem New element to be preppended
+	 *
+	 * @return New Cons cell reference, so it's easy to create a stack
+	 */
+	Cons *prepend (AtomPtr elem);
+
+	/**
+	 * Reset Cons cell, making both `elem` and `next` as nullptr
+	 */
+	void reset ();
 
 	/**
 	 * Create begin iterator, for iterating in a `for`
@@ -87,10 +112,10 @@ public:
 	 */
 	ConsListIterator end ();
 
-	/// First element (also called CAR)
-	AtomPtr first;
-	/// Second element (also called CDR)
-	AtomPtr second;
+	/// Cell element (also called CAR)
+	AtomPtr elem {nullptr};
+	/// Next cell (also called CDR)
+	Cons *next {nullptr};
 };
 
 

@@ -21,6 +21,7 @@
 
 #include "Scope.hpp"
 #include "AtomPool.hpp"
+#include "Code.hpp"
 
 #include <vector>
 
@@ -36,7 +37,7 @@ public:
 	 *
 	 * @param value Int value
 	 */
-	void pushInt (int value);
+	void push (int value);
 
 	/**
 	 * Get arguments[index] as an int
@@ -57,6 +58,48 @@ public:
 	 * @return Vector with popped args
 	 */
 	vector<AtomPtr> popArgs (unsigned int number);
+
+	/**
+	 * Get local Atom associated with symbol `sym`
+	 *
+	 * Search will be made from last to first scope. Remember that `nullptr` is
+	 * a valid Atom, with `nil` value
+	 *
+	 * @param sym Symbol to be searched
+	 *
+	 * @return Atom associated with `sym`
+	 */
+	AtomPtr getLocal (const string& sym);
+
+	/**
+	 * Set a local symbol to value `value`
+	 *
+	 * @param sym Symbol to be associated
+	 * @param value Value to be associated to `sym`
+	 */
+	void setLocal (const string& sym, AtomPtr value);
+
+	/**
+	 * Pop an argument value
+	 *
+	 * @note Args will be modified by this method, being advanced to its `next`
+	 *
+	 * @param args Cons list of arguments, used in a stack way
+	 *
+	 * @return Argument value
+	 */
+	AtomPtr popArg (Cons *& args);
+
+	/**
+	 * Evaluate a Code, calling its Func with provided arguments
+	 *
+	 * @param code Code to be evaluated
+	 *
+	 * @return Function return
+	 *
+	 * @throw pq::Exception if first symbol isn't associated to a function
+	 */
+	AtomPtr eval (const Code& code);
 
 private:
 	/**

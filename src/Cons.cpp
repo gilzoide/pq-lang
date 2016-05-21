@@ -21,21 +21,37 @@
 
 namespace pq {
 
-Cons::Cons (AtomPtr first, AtomPtr second) : first (first), second (second) {}
+Cons::Cons () = default;
+
+
+Cons::Cons (AtomPtr elem, Cons *next) : elem (elem), next (next) {}
 
 
 Cons::~Cons () = default;
 
 
 AtomPtr Cons::clone () {
-	return new Cons (first, second);
+	return new Cons (*this);
 }
 
 
-Cons *Cons::append (AtomPtr value) {
-	auto newCell = new Cons (value, this->second);
-	this->second = newCell;
+Cons *Cons::append (AtomPtr elem) {
+	auto newCell = new Cons (elem, this->next);
+	newCell->updateFatherScope (this);
+	this->next = newCell;
 	return newCell;
+}
+
+
+Cons *Cons::prepend (AtomPtr elem) {
+	auto newCell = new Cons (elem, this);
+	newCell->updateFatherScope (this);
+	return newCell;
+}
+
+
+void Cons::reset () {
+	elem = next = nullptr;
 }
 
 
@@ -60,13 +76,13 @@ bool ConsListIterator::operator!= (const ConsListIterator& other) const {
 
 
 const ConsListIterator& ConsListIterator::operator++ () {
-	it = it->second->as<Cons> ();
+	it = it->next;
 	return *this;
 }
 
 
 AtomPtr ConsListIterator::operator* () const {
-	return it->first;
+	return it->elem;
 }
 
 

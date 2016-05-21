@@ -31,5 +31,5 @@
 		ostringstream os; \
 		os << "[pq::" << funcName << " @ " << __FILE__ << ':' << __LINE__ \
 				<< "] " << what; \
-		return move (Exception (move (os.str ()))); \
+		return Exception (move (os.str ())); \
 	} ();

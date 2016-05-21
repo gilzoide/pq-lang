@@ -41,7 +41,7 @@ void Int::setValue (int value) {
 		setDefined ();
 	}
 	else {
-		throw Exception ("Can't set value on an immutable Int");
+		throw Exception ("Can't set value on a defined immutable Int");
 	}
 }
 

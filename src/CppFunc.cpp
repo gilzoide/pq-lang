@@ -21,7 +21,7 @@
 
 namespace pq {
 
-CppFunc::CppFunc (int numArgs, function<int (Env&)> f) : Func (numArgs),
+CppFunc::CppFunc (int numArgs, function<AtomPtr (Env&, Cons *)> f) : Func (numArgs),
 		_body (f) {}
 
 
@@ -30,8 +30,8 @@ AtomPtr CppFunc::clone () {
 }
 
 
-int CppFunc::body (Env& env) {
-	return _body (env);
+AtomPtr CppFunc::body (Env& env, Cons *args) {
+	return _body (env, args);
 }
 
 }

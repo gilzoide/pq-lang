@@ -17,39 +17,24 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file AtomFactory.hpp
+ * Static functions that make Atoms, overloads to easy everyone's life
+ */
 #pragma once
 
-#include "Func.hpp"
-
-#include <functional>
-
-using namespace std;
+#include "Int.hpp"
 
 namespace pq {
 
+namespace Factory {
+
 /**
- * C++ functions, registered by any means std::function accepts
+ * Int factory, with value
+ *
+ * @param value Value
  */
-class CppFunc : public Func {
-public:
-	/**
-	 * Ctor, must give the function, and number of expected arguments
-	 */
-	CppFunc (int numArgs, function<AtomPtr (Env&, Cons *)> f);
+Int *make (int value);
 
-	/**
-	 * Clone function override
-	 */
-	virtual AtomPtr clone () override;
-
-protected:
-	/**
-	 * Calls the internal _body function
-	 */
-	virtual AtomPtr body (Env& env, Cons *args) override;
-
-	/// Actual function
-	function<AtomPtr (Env&, Cons *)> _body;
-};
+}
 
 }

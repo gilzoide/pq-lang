@@ -20,10 +20,31 @@
 #include "Atom.hpp"
 
 #include <sstream>
+#include <algorithm>
 
 namespace pq {
 
 Atom::Atom () = default;
+
+
+Atom::~Atom () = default;
+
+
+void Atom::updateFatherScope (uint16_t other) {
+	this->fatherScope = min (this->fatherScope, other);
+}
+
+
+void Atom::updateFatherScope (AtomPtr other) {
+	updateFatherScope (other->fatherScope);
+}
+
+
+//----    Flags    ----//
+
+void Atom::setFlags (uint8_t flags) {
+	this->flags = flags;
+}
 
 
 void Atom::setActive (bool active) {
@@ -74,8 +95,5 @@ bool Atom::isDefined () {
 void Atom::clearFlags () {
 	flags = 0;
 }
-
-
-Atom::~Atom () = default;
 
 }

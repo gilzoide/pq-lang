@@ -34,7 +34,7 @@ namespace pq {
  * functionality to functions, like memoizing, or making them lazy.
  *
  * Function call protocol:
- * 		Receive a List of the arguments passed from Env. If the arguments are
+ * 		Receive the Env and a Cons List of the arguments. If the arguments are
  * 		not enough, returns a proxy of the function with partial application
  * 		(currying)
  */
@@ -76,7 +76,7 @@ public:
 	 *  wasn't sufficient arguments, calling the virtual Func::_body function with
 	 *  Env as parameter, so that it is actually called
 	 */
-	virtual void call (Env& env) final;
+	virtual AtomPtr call (Env& env, Cons *args) final;
 
 protected:
 	/// How many arguments should we expect?
@@ -89,7 +89,7 @@ protected:
 	 * many arguments should be popped. PQ will automatically do it for its
 	 * functions, but you __must__ do it with yours too!
 	 */
-	virtual int body (Env& env) = 0;
+	virtual AtomPtr body (Env& env, Cons *args) = 0;
 };
 
 }

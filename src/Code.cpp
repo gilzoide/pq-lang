@@ -17,39 +17,32 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#pragma once
-
-#include "Func.hpp"
-
-#include <functional>
-
-using namespace std;
+#include "Code.hpp"
+#include "Symbol.hpp"
 
 namespace pq {
 
-/**
- * C++ functions, registered by any means std::function accepts
- */
-class CppFunc : public Func {
-public:
-	/**
-	 * Ctor, must give the function, and number of expected arguments
-	 */
-	CppFunc (int numArgs, function<AtomPtr (Env&, Cons *)> f);
+Code::~Code () {
+	for (auto sym : code) {
+		delete sym;
+	}
+}
 
-	/**
-	 * Clone function override
-	 */
-	virtual AtomPtr clone () override;
 
-protected:
-	/**
-	 * Calls the internal _body function
-	 */
-	virtual AtomPtr body (Env& env, Cons *args) override;
+Code& Code::operator<< (const string& sym) {
+	code.append (new Symbol (sym));
 
-	/// Actual function
-	function<AtomPtr (Env&, Cons *)> _body;
-};
+	return *this;
+}
+
+
+Symbol *Code::getFuncSym () const {
+	return code.getFirst ()->as<Symbol> ();
+}
+
+
+Cons *Code::getArguments () const {
+	return code.front ()->next;
+}
 
 }

@@ -30,12 +30,80 @@ namespace pq {
  */
 class List : public Atom {
 public:
+	/**
+	 * Ctor
+	 */
+	List ();
+	/**
+	 * Ctor with list parameter
+	 *
+	 * @note This method's complexity is O(n), as we need the list's last cell
+	 *
+	 * @param Inner Cons list
+	 */
+	List (Cons *innerList);
+
+	/**
+	 * Clone method override
+	 *
+	 * @return List clone
+	 */
+	AtomPtr clone () override;
+
+	/**
+	 * GETTER for first element in list
+	 */
+	AtomPtr getFirst () const;
+	/**
+	 * GETTER for last element in list
+	 */
+	AtomPtr getLast () const;
+
+	/**
+	 * GETTER for first Cons cell
+	 */
+	Cons *front () const;
+	/**
+	 * GETTER for last Cons cell
+	 */
+	Cons *back () const;
+
+	/**
+	 * Append element in the end of the list, creating the necessary Cons cell
+	 *
+	 * @param elem New element, which will be placed in the end of the list
+	 *
+	 * @return Newly created Cons cell
+	 */
+	Cons *append (AtomPtr elem);
+	/**
+	 * Prepend element as the head of the list, creating the necessary Cons cell
+	 *
+	 * @param elem New element, which will be placed in the head of the list
+	 *
+	 * @return Newly created Cons cell
+	 */
+	Cons *prepend (AtomPtr elem);
+
+	/**
+	 * Reset List, making both `first` and `last` as nullptr
+	 */
+	void reset ();
+
+	/**
+	 * Create begin iterator, for iterating in a `for`
+	 */
+	ConsListIterator begin ();
+	/**
+	 * Create end iterator (nullptr), for iterating in a `for`
+	 */
+	ConsListIterator end ();
 	
 private:
 	/// First Cons cell in List, which will have the first element
-	Cons *front {nullptr};
+	Cons *first {nullptr};
 	/// Last Cons cell in List, which will have the last element
-	Cons *back {nullptr};
+	Cons *last {nullptr};
 };
 
 }

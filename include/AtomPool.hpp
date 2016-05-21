@@ -23,12 +23,13 @@
 #pragma once
 
 #include "Atom.hpp"
+#include "ForwardStack.hpp"
 #include "Int.hpp"
 #include "Symbol.hpp"
 #include "Table.hpp"
 #include "Cons.hpp"
 #include "List.hpp"
-#include "ForwardStack.hpp"
+#include "Exception.hpp"
 
 #include <unordered_set>
 
@@ -48,7 +49,23 @@ public:
 	 */
 	~AtomPool ();
 
-
+	//----    Type request/track/dispose/delete methods    ----//
+	
+	//----    Any type (Atom *)    ----//
+	/**
+	 * Keep track (insert in pool) of Atom pointer, letting AtomPool manage its
+	 * memory
+	 *
+	 * If ptr is not a type pooled by AtomPool, this function throws Exception
+	 *
+	 * @warning By letting AtomPool track your pointer, one __must not__ delete
+	 * the pointer by hand, avoiding 'double free'
+	 *
+	 * @param ptr Pointer to be tracked
+	 *
+	 * @throw Exception if ptr is not of a trackable Atom type
+	 */
+	void track (Atom *ptr) throw (Exception);
 	/**
 	 * Delete an Atom, taking care of if it is a pooled Atom type
 	 */
@@ -72,15 +89,32 @@ public:
 	 */
 	void dispose (Atom *ptr);
 
+	//----    Ints    ----//
 	/**
 	 * Returns a usable Int
 	 *
 	 * If there are disposed Ints, this function will pop the first one,
 	 * activate and return it. Otherwise, it creates a new one and returns it.
 	 *
+	 * @note ACTIVE flag will __always__ be on
+	 *
+	 * @param variable Set Int's VARIABLE flag?
+	 *
 	 * @return Usable Int
 	 */
-	Int *requestInt ();
+	Int *requestInt (bool variable = false);
+	/**
+	 * Returns a usable Int with value `value`
+	 */
+	Int *requestInt (int value, bool variable = false);
+	/**
+	 * Track Int, adding it to Int pool
+	 *
+	 * @note If Int is already tracked, doesn't do a thing
+	 *
+	 * @param ptr Pointer to be tracked
+	 */
+	void track (Int *ptr);
 	/**
 	 * Dispose of an Int, returning it to the pool
 	 *
@@ -91,13 +125,84 @@ public:
 	 * Delete an Int, taking it out of the pool and actually deleting it's memory
 	 *
 	 * @note If ptr is an inactive Int (`ptr->isActive () == false`), it will
-	 * have to be searched for and erased from availableInts. TL;DR: Don't
+	 * have to be searched for and erased from availableInts. TL;DR: avoid
 	 * `AtomPool.destroy (inactiveIntPtr);` =P
 	 *
 	 * @param ptr Int pointer that will be OBLITERATED
 	 */
 	void destroy (Int *ptr);
 
+	//----    Cons    ----//
+	/**
+	 * Returns a usable Cons
+	 *
+	 * If there are disposed Cons, this function will pop the first one,
+	 * activate and return it. Otherwise, it creates a new one and returns it.
+	 *
+	 * @note ACTIVE flag will __always__ be on
+	 *
+	 * @param variable Set Cons' VARIABLE flag?
+	 *
+	 * @return Usable Cons
+	 */
+	Cons *requestCons (bool variable = false);
+	/**
+	 * Returns a usable Cons with element `elem`
+	 *
+	 * @param elem Element inserted into returned Cons
+	 * @param variable Set Cons' VARIABLE flag?
+	 *
+	 * @return Usable Cons
+	 */
+	Cons *requestCons (AtomPtr elem, bool variable = false);
+	/**
+	 * Track Cons, adding it to Cons pool
+	 *
+	 * @note If Cons is already tracked, doesn't do a thing
+	 *
+	 * @param ptr Pointer to be tracked
+	 */
+	void track (Cons *ptr);
+	/**
+	 * Dispose of an Cons, returning it to the pool
+	 *
+	 * @param ptr Cons pointer to be disposed
+	 */
+	void dispose (Cons *ptr);
+	/**
+	 * Delete a Cons, taking it out of the pool and actually deleting it's memory
+	 *
+	 * @note If ptr is an inactive Cons (`ptr->isActive () == false`), it will
+	 * have to be searched for and erased from availableCons. TL;DR: avoid
+	 * `AtomPool.destroy (inactiveConsPtr);` =P
+	 *
+	 * @param ptr Int pointer that will be OBLITERATED
+	 */
+	void destroy (Cons *ptr);
+
+	//----    List    ----//
+	/**
+	 * Returns a usable List
+	 *
+	 * @return Usable List
+	 */
+	List *requestList ();
+	/**
+	 * Track List, adding it to List pool
+	 *
+	 * @note If List is already tracked, doesn't do a thing
+	 *
+	 * @param ptr Pointer to be tracked
+	 */
+	void track (List *ptr);
+	/**
+	 * Dispose of a List, returning it to the pool
+	 *
+	 * @param ptr List pointer to be disposed
+	 */
+	void dispose (List *ptr);
+
+	//----    nullptr    ----//
 	/**
 	 * Dispose overload for `nullptr`
 	 *
@@ -115,6 +220,8 @@ public:
 	 */
 	void dispose (nullptr_t ptr);
 
+	//----    End of Type specific methods    ----//
+
 	/**
 	 * Returns a string with the memory stats, including how many objects are
 	 * instantiated and how many are inactive
@@ -124,8 +231,18 @@ public:
 private:
 	/// Int Pool
 	unordered_set<Int *> IntPool;
-	/// Stack (don't get fooled by forward_list) of available (inactive) Ints
+	/// Stack of available (inactive) Ints
 	ForwardStack<Int *> availableInts;
+
+	/// Cons Pool
+	unordered_set<Cons *> ConsPool;
+	/// Stack of available (inactive) Cons
+	ForwardStack<Cons *> availableCons;
+
+	/// Cons Pool
+	unordered_set<List *> ListPool;
+	/// Stack of available (inactive) List
+	ForwardStack<List *> availableList;
 };
 
 }

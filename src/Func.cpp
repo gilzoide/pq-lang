@@ -32,8 +32,9 @@ int Func::getExpectedArgs () {
 }
 
 
-void Func::call (Env& env) {
-	env.popArgs (body (env));
+AtomPtr Func::call (Env& env, Cons *args) {
+	/// TODO curry
+	return body (env, args);
 }
 
 }

@@ -6,6 +6,9 @@
 *ctags*
 *cscope*
 
+# YouCompleteMe plugin stuff
+.ycm*
+
 # doxygen output
 html/
 

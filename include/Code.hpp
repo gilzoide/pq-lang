@@ -17,39 +17,46 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file Code.hpp
+ * Code lists, to be used in code storage and functions defined in PQ
+ */
 #pragma once
 
-#include "Func.hpp"
-
-#include <functional>
-
-using namespace std;
+#include "List.hpp"
+#include "Symbol.hpp"
+#include "Cons.hpp"
 
 namespace pq {
 
 /**
- * C++ functions, registered by any means std::function accepts
+ * PQ lispy code, a List with Symbols or other Lists
  */
-class CppFunc : public Func {
+class Code {
 public:
 	/**
-	 * Ctor, must give the function, and number of expected arguments
+	 * Dtor, destroys Symbols
 	 */
-	CppFunc (int numArgs, function<AtomPtr (Env&, Cons *)> f);
-
+	~Code ();
 	/**
-	 * Clone function override
+	 * Append Symbol into code
+	 *
+	 * @param sym Symbol to be appended
+	 *
+	 * @return Code itself, for a stream like operation
 	 */
-	virtual AtomPtr clone () override;
-
-protected:
+	Code& operator<< (const string& sym);
 	/**
-	 * Calls the internal _body function
+	 * GETTER for the Function symbol, which is the first in the code List
 	 */
-	virtual AtomPtr body (Env& env, Cons *args) override;
+	Symbol *getFuncSym () const;
+	/**
+	 * GETTER for the arguments Cons list
+	 */
+	Cons *getArguments () const;
 
-	/// Actual function
-	function<AtomPtr (Env&, Cons *)> _body;
+private:
+	/// Inner code
+	List code;
 };
 
 }

@@ -18,19 +18,19 @@
  */
 
 #include "Env.hpp"
+#include "Func.hpp"
 #include "debug.hpp"
 
 namespace pq {
 
-void Env::pushInt (int value) {
-	auto x = pool.requestInt ();
-	x->setValue (value);
+void Env::push (int value) {
+	auto x = pool.requestInt (value);
 	atomStack.push_back (x);
 }
 
 
 int Env::getInt (int index) {
-	auto ptr = getArg (index)->as<Int> ();
+	auto ptr = getArg (index)->assert<Int> ();
 	return ptr->getValue ();
 }
 
@@ -44,6 +44,56 @@ AtomPtr Env::getArg (int index) {
 
 	// return the raw pointer at index
 	return atomStack.at (index);
+}
+
+
+AtomPtr Env::getLocal (const string& sym) {
+	for (auto it = scopeStack.rbegin (); it != scopeStack.rend (); it++) {
+		if (auto ret = (*it)[sym]) {
+			return ret;
+		}
+	}
+
+	return nullptr;
+}
+
+
+void Env::setLocal (const string& sym, AtomPtr value) {
+	value->updateFatherScope (scopeStack.size ());
+	scopeStack.back ().insert (sym, value);
+}
+
+
+AtomPtr Env::eval (const Code& code) {
+	string funcSym = code.getFuncSym ()->getSym ();
+	auto func = getLocal (funcSym)->as<Func> ();
+	if (func) {
+		return func->call (*this, code.getArguments ());
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Env::eval", "Symbol \"" + funcSym + "\" ain't a function");
+	}
+}
+
+
+AtomPtr Env::popArg (Cons *& args) {
+	if (args) {
+		auto ret = args->elem;
+		// save first Cons cell, so we can dispose of it
+		auto garbage = args;
+		// advance args
+		args = args->next;
+
+		// reset first, so that we don't yet dispose of `ret` nor `args`
+		garbage->reset ();
+		pool.dispose (garbage);
+
+		return ret;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Env::popArg",
+				"Empty argument list. Maybe you popped more args than you asked for?");
+	}
 }
 
 
