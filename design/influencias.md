@@ -6,8 +6,8 @@ Bom, muitas das ideias tive de linguagens de programação que usei por aí. Den
 elas, citaria como influências (features que gosto e motivam):
 
 - __Haskell__: programação muito funcional, currying implícito, criação de
-operadores infixos à vontade, imutabilidade por padrão, _lazy evaluation_,
-funções que memoizam sozinho
+operadores infixos à vontade, imutabilidade por padrão, _lazy evaluation_ e
+funções que memoizam sozinho opcionais
 - __C++__: overload de funções e operadores, herança múltipla, arrays (acesso
 direto às posições e aritmética de ponteiros)
 - __Lua__: tipos criados são objetos como todos outros, funções como tipos

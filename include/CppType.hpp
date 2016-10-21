@@ -17,42 +17,23 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Int.hpp"
+/** @file CppType.hpp
+ * Type with a C++ class as custom data, binds constructor and destructor
+ * automagically
+ */
+#pragma once
+
+#include "Type.hpp"
 
 namespace pq {
 
-Int::Int () : Atom () {}
+template<typename T>
+class CppType : public Type {
+public:
+	void constructData (void *& data) override;
+	void destroyData (void *data) override;
 
-
-Int::Int (int value) : value (value) {
-	setDefined ();
-}
-
-
-int Int::getValue () {
-	return value;
-}
-
-
-void Int::setValue (int value) {
-	if (isVariable () || !isDefined ()) {
-		this->value = value;
-		// set as defined, so that immutable Ints can't have their value reset
-		setDefined ();
-	}
-	else {
-		throw Exception ("Can't set value on a defined immutable Int");
-	}
-}
-
-
-Int::operator int () {
-	return value;
-}
-
-
-AtomPtr Int::clone () {
-	return new Int (value);
-}
+private:
+};
 
 }

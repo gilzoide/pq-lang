@@ -19,16 +19,18 @@
 
 #pragma once
 
-#include "Atom.hpp"
 #include "Cons.hpp"
 
 namespace pq {
 
 /**
  * List, a singly linked list with front/back access and easy insertion/removal,
- * constructed from Cons structures
+ * constructed from Cons cells
+ *
+ * Uses Atom::value.data as a Cons** with 2 positions, one for first Cons cell
+ * and another for the last one
  */
-class List : public Atom {
+class List {
 public:
 	/**
 	 * Ctor
@@ -39,16 +41,14 @@ public:
 	 *
 	 * @note This method's complexity is O(n), as we need the list's last cell
 	 *
-	 * @param Inner Cons list
+	 * @param innerList Inner Cons list
 	 */
 	List (Cons *innerList);
 
 	/**
-	 * Clone method override
-	 *
-	 * @return List clone
+	 * Dtor
 	 */
-	AtomPtr clone () override;
+	~List ();
 
 	/**
 	 * GETTER for first element in list
@@ -77,6 +77,17 @@ public:
 	 */
 	Cons *append (AtomPtr elem);
 	/**
+	 * Append existing Cons cell as new `last`
+	 *
+	 * @note We use this so we can pool Cons cells
+	 *
+	 * @param cell Cons cell to be appended as List's last
+	 *
+	 * @return cell, the Cons cell that was just appended
+	 */
+	Cons *append (Cons *cell);
+
+	/**
 	 * Prepend element as the head of the list, creating the necessary Cons cell
 	 *
 	 * @param elem New element, which will be placed in the head of the list
@@ -84,11 +95,26 @@ public:
 	 * @return Newly created Cons cell
 	 */
 	Cons *prepend (AtomPtr elem);
+	/**
+	 * Prepend existing Cons cell as new `first`
+	 *
+	 * @note We use this so we can pool Cons cells
+	 *
+	 * @param cell Cons cell to be appended as List's first
+	 *
+	 * @return cell, the Cons cell that was just appended
+	 */
+	Cons *prepend (Cons *cell);
 
 	/**
-	 * Reset List, making both `first` and `last` as nullptr
+	 * Reset List, making both `first` and `last` as nullptr, returning `first`
+	 *
+	 * @warning This method don't take care of previous variables in pointers
+	 * `first` nor `last`
+	 *
+	 * @return Old inner Cons list
 	 */
-	void reset ();
+	Cons *reset ();
 
 	/**
 	 * Create begin iterator, for iterating in a `for`
@@ -100,10 +126,10 @@ public:
 	ConsListIterator end ();
 	
 private:
-	/// First Cons cell in List, which will have the first element
-	Cons *first {nullptr};
-	/// Last Cons cell in List, which will have the last element
-	Cons *last {nullptr};
+	// First Cons cell in list, the Cons list itself
+	Cons *first;
+	// Last Cons cell in List, for easy append
+	Cons *last;
 };
 
 }

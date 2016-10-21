@@ -28,10 +28,8 @@
 
 #include "Atom.hpp"
 #include "Symbol.hpp"
-#include "Int.hpp"
 #include "Func.hpp"
 #include "CppFunc.hpp"
 #include "Cons.hpp"
 #include "Env.hpp"
 #include "Code.hpp"
-#include "AtomFactory.hpp"

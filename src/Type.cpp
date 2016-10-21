@@ -17,24 +17,43 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-/** @file AtomFactory.hpp
- * Static functions that make Atoms, overloads to easy everyone's life
- */
-#pragma once
-
-#include "Int.hpp"
+#include "Type.hpp"
 
 namespace pq {
 
-namespace Factory {
+Type::Type (const string& name) : Type (name, dummyCreateData, dummyDestroyData) {}
 
-/**
- * Int factory, with value
- *
- * @param value Value
- */
-Int *make (int value);
 
+Type::Type (const string& name, DataConstructor ctor, DataDestructor dtor)
+		: name (Symbol::getCanonic (name)), ctor (ctor), dtor (dtor) {}
+
+
+Type::~Type () = default;
+
+
+void Type::constructData (void *& data) {
+	ctor (data);
 }
+
+
+void Type::destroyData (void *data) {
+	dtor (data);
+}
+
+
+bool Type::is (const string& name) {
+	return name == this->name;
+}
+
+
+string Type::getName () {
+	return name;
+}
+
+
+void dummyDestroyData (void *) {}
+
+
+void dummyCreateData (void *&) {}
 
 }

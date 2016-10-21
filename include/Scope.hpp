@@ -22,7 +22,6 @@
  */
 #pragma once
 
-#include "Atom.hpp"
 #include "Symbol.hpp"
 
 #include <unordered_map>
@@ -30,6 +29,9 @@
 using namespace std;
 
 namespace pq {
+
+class Atom;
+using AtomPtr = Atom *;
 
 /**
  * 'symbol -> Atom' map/table

@@ -24,58 +24,19 @@
 using namespace std;
 using namespace pq;
 
+struct Oi {
+	int a;
+
+	int somaA (int b) {
+		return a + b;
+	}
+};
+
 int main (int argc, char **argv) {
 	Env e;
-	CppFunc soma (2, [] (Env& env, Cons *args) {
-		auto a = env.popArg (args)->assert<Int> ();
-		auto b = env.popArg (args)->assert<Int> ();
-		return new Int (a->getValue () + b->getValue ());
-	});
 
-	e.setLocal ("printa", new CppFunc (1, [] (Env& env, Cons *args) {
-		auto s = env.popArg (args)->assert<Symbol> ();
-		cout << "[printa] " << s->getSym () << endl;
-		return nullptr;
-	}));
-
-	//e.getLocal ("print");
-	//e.call (2);
-	//e.call ("print", 2);
-
-	AtomPool pool;
-
-	Code C;
-	C << "printa" << "Como vão vocês?";
-	e.eval (C);
-
-	List list;
-	list.append (pool.requestInt (1));
-	list.append (pool.requestInt (2));
-	list.prepend (pool.requestInt (3));
-	list.append (pool.requestInt (4));
-
-	for (auto it : list) {
-		cout << it->assert<Int> ()->getValue () << ' ';
-	}
-	cout << endl;
-
-	//e.pushInt (1);
-	//e.pushInt (3);
-	//soma.call (e);
-	//cout << e.getInt (0) << endl;
+	auto T = e.bindType<Oi> ("oi");
+	//T->method ("somaA", 1, 
 	
-	auto i = pool.requestInt (true);
-	i->setValue (3);
-	i->setValue (4);
-
-	cout << i << " -> " << (int) *i << endl;
-
-	i = pool.requestInt ();
-
-	cout << i << " -> " << i->getValue () << endl;
-
-	pool.dispose (i);
-	cout << pool.getMemoryStats ();
-
 	return 0;
 }

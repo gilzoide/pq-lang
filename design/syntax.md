@@ -4,25 +4,39 @@ Depois vos conto.
 
 
 ```lisp
-; como definir uma variável no escopo local
-(set a 1)
+; como definir um valor no escopo local
+(let a 1)
+; dá também pra definir valores através de listas, útil pra funções que
+; retornam mais de um valor
+(let (x y) (ponto2D.getCoords))
 
 ; por padrão, em PQ, valores são imutáveis
-; se você precisar de variáveis, use "setvar"
-(setvar a 1)
+; se você precisar de variáveis, use "var"
+(var a 1)
+; do mesmo jeito, definição de variáveis através de listas
+(var (x y) (ponto2D.getCoords))
+
+; 'let' e 'var' criam bindings pra valores/variáveis. Se quiser trocar o valor
+; de uma variável já existente anteriormente (em um escopo de fora) use 'set'
+(set a 3)
 
 
 ; funções, passa também o nome das variáveis a dar bind
-(setf oi ()
+(letf oi ()
 	(print "oi mundo"))
 
 ; claro, parâmetros
-(setf oi (nome sobrenome)
+(letf oi-pessoa (nome sobrenome)
 	(print "oi " sobrenome ", " nome))
 
-; e também parâmetros variáveis!
-(setf oi (...)
+; e também parâmetros variáveis! Lembre-se que parâmetros variáveis vêm em lista
+(letf oi-params (...)
 	(print ...))
+
+; funções, assim como valores, podem ser variáveis. Manda 'varf' xD
+(varf saudacao)
+(set saudacao oi)
+(set saudacao oi-pessoa)
 
 
 ; criação de tipos
@@ -42,11 +56,17 @@ Depois vos conto.
 		; todo implementae
 		"implemente-me"
 	))
+	; função estática, cria um ponto
+	(new :: (int int Point) (_ (x y)
+		({} :x x :y y)
+	))
 )
+(var p (Point 1 2))
+(set (p.x) 5)
 ; Para chamar um metodo, pode se usar a função do tipo (estática), ...
 (Point.dist p)
 ; ... usando a função do próprio objeto (que provavelmente será a mesma do tipo), ...
 (p.dist p)
-; ... ou usando a notação de metodo ':' (que expande pra `(p.dist p)`)
+; ... ou usando a notação de metodo ':' (que expande pra `(p.dist p)`). TODO trocar a notação de metodo, já que ':' usa bastante no lisp
 (p:dist)
 ```

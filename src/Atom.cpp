@@ -18,6 +18,9 @@
  */
 
 #include "Atom.hpp"
+#include "Type.hpp"
+#include "Symbol.hpp"
+#include "debug.hpp"
 
 #include <sstream>
 #include <algorithm>
@@ -27,7 +30,9 @@ namespace pq {
 Atom::Atom () = default;
 
 
-Atom::~Atom () = default;
+Atom::~Atom () {
+	type->destroyData (value.data);
+}
 
 
 void Atom::updateFatherScope (uint16_t other) {
@@ -37,6 +42,84 @@ void Atom::updateFatherScope (uint16_t other) {
 
 void Atom::updateFatherScope (AtomPtr other) {
 	updateFatherScope (other->fatherScope);
+}
+
+
+//----    Value SETTERS    ----//
+
+void Atom::setValue (Int i) {
+	if (isVariable () || !isDefined () ) {
+		value.i = i;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Atom::setValue",
+				"Can't set immutable Atom as Integer");
+	}
+}
+
+
+void Atom::setValue (symbol sym) {
+	if (isVariable () || !isDefined () ) {
+		value.sym = sym;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Atom::setValue",
+				"Can't set immutable Atom as Symbol");
+	}
+}
+
+
+void Atom::setValue (Type *type) {
+	if (isVariable () || !isDefined () ) {
+		value.type = type;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Atom::setValue",
+				"Can't set immutable Atom as Type");
+	}
+}
+
+
+void Atom::setValue (void *customData) {
+	if (isVariable () || !isDefined () ) {
+		value.data = customData;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Atom::setValue",
+				"Can't set immutable Atom with Custom Data");
+	}
+}
+
+
+//----    Value GETTERS    ----//
+
+Int Atom::asInt () throw (Exception) {
+	if (type->is ("Int")) {
+		return value.i;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Atom::asInt",
+				"Atom is not an \"Int\", but rather a \""
+				+ type->getName () + "\"");
+	}
+}
+
+
+symbol Atom::asSymbol () throw (Exception) {
+	if (type->is ("Symbol")) {
+		return value.sym;
+	}
+	else {
+		throw PQ_API_EXCEPTION ("Atom::asSymbol",
+				"Atom is not a \"Symbol\", but rather a \""
+				+ type->getName () + "\"");
+	}
+}
+
+//----    Type    ----//
+
+Type *Atom::getType () {
+	return type;
 }
 
 

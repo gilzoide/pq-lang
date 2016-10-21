@@ -2,6 +2,14 @@ Log de ideias de implementação que surgem
 =========================================
 Malz demorar pra começar...
 
+- 2016-10-08: Fazer um interpretador em Lua, JIT compilando as coisas
+  estaticamente tipadas pelo LLVM, daí as informações de tipo, expansão de
+  macros e resolução de chamadas (MRO ou overload) fica a cargo do
+  interpretador. Módulos feitos com tipagem estática podem ter seu bitcode
+  compilado pra .ll ou .bc, ou mesmo compilado pra código nativo.
+- Há um tempo: Usar LLVM pra JIT compilar os rolê, pra ficar rápido e poder
+  facilmente rodar coisas compiladas em outras linguagens (a partir do LLVM
+  também).
 - 2016-05-06: Outra ideia pra gerenciamento de memória é cada objeto manter
   qual o primeiro escopo que o referencia, que daí quando sair desse escopo,
   destruir o objeto. Pode rolar até diferentes Allocator/Deallocator, pra quem

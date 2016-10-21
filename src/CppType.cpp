@@ -17,31 +17,19 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-/** @file Table.hpp
- * Scope as an Atom
- */
-#pragma once
-
-#include "Atom.hpp"
-#include "Scope.hpp"
-
-#include <unordered_map>
-
-using namespace std;
+#include "CppType.hpp"
 
 namespace pq {
 
-/**
- * Scope as PQ Atoms, for use as objects and stuff
- */
-class Table : public Scope, public Atom {
-public:
-	/**
-	 * Clone function override
-	 */
-	AtomPtr clone () override;
+template<typename T>
+void CppType<T>::constructData (void *& data) {
+	data = new T ();
+}
 
-private:
-};
+
+template<typename T>
+void CppType<T>::destroyData (void *data) {
+	delete data;
+}
 
 }

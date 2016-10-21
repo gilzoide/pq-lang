@@ -18,17 +18,14 @@
  */
 
 /** @file AtomPool.hpp
- * Atom pool, an Object Pool for PQ Atoms
+ * Atom pool, an Object Pool for PQ Atoms and stuff
  */
 #pragma once
 
 #include "Atom.hpp"
 #include "ForwardStack.hpp"
-#include "Int.hpp"
 #include "Symbol.hpp"
-#include "Table.hpp"
 #include "Cons.hpp"
-#include "List.hpp"
 #include "Exception.hpp"
 
 #include <unordered_set>
@@ -65,7 +62,11 @@ public:
 	 *
 	 * @throw Exception if ptr is not of a trackable Atom type
 	 */
-	void track (Atom *ptr) throw (Exception);
+	void track (Atom *ptr);
+	/**
+	 * Request an Atom, with ACTIVE flag set
+	 */
+	Atom *requestAtom ();
 	/**
 	 * Delete an Atom, taking care of if it is a pooled Atom type
 	 */
@@ -102,35 +103,11 @@ public:
 	 *
 	 * @return Usable Int
 	 */
-	Int *requestInt (bool variable = false);
+	Atom *requestInt (bool variable = false);
 	/**
 	 * Returns a usable Int with value `value`
 	 */
-	Int *requestInt (int value, bool variable = false);
-	/**
-	 * Track Int, adding it to Int pool
-	 *
-	 * @note If Int is already tracked, doesn't do a thing
-	 *
-	 * @param ptr Pointer to be tracked
-	 */
-	void track (Int *ptr);
-	/**
-	 * Dispose of an Int, returning it to the pool
-	 *
-	 * @param ptr Int pointer to be disposed
-	 */
-	void dispose (Int *ptr);
-	/**
-	 * Delete an Int, taking it out of the pool and actually deleting it's memory
-	 *
-	 * @note If ptr is an inactive Int (`ptr->isActive () == false`), it will
-	 * have to be searched for and erased from availableInts. TL;DR: avoid
-	 * `AtomPool.destroy (inactiveIntPtr);` =P
-	 *
-	 * @param ptr Int pointer that will be OBLITERATED
-	 */
-	void destroy (Int *ptr);
+	Atom *requestInt (Int value, bool variable = false);
 
 	//----    Cons    ----//
 	/**
@@ -139,22 +116,17 @@ public:
 	 * If there are disposed Cons, this function will pop the first one,
 	 * activate and return it. Otherwise, it creates a new one and returns it.
 	 *
-	 * @note ACTIVE flag will __always__ be on
-	 *
-	 * @param variable Set Cons' VARIABLE flag?
-	 *
 	 * @return Usable Cons
 	 */
-	Cons *requestCons (bool variable = false);
+	Cons *requestCons ();
 	/**
 	 * Returns a usable Cons with element `elem`
 	 *
 	 * @param elem Element inserted into returned Cons
-	 * @param variable Set Cons' VARIABLE flag?
 	 *
 	 * @return Usable Cons
 	 */
-	Cons *requestCons (AtomPtr elem, bool variable = false);
+	Cons *requestCons (AtomPtr elem);
 	/**
 	 * Track Cons, adding it to Cons pool
 	 *
@@ -180,46 +152,6 @@ public:
 	 */
 	void destroy (Cons *ptr);
 
-	//----    List    ----//
-	/**
-	 * Returns a usable List
-	 *
-	 * @return Usable List
-	 */
-	List *requestList ();
-	/**
-	 * Track List, adding it to List pool
-	 *
-	 * @note If List is already tracked, doesn't do a thing
-	 *
-	 * @param ptr Pointer to be tracked
-	 */
-	void track (List *ptr);
-	/**
-	 * Dispose of a List, returning it to the pool
-	 *
-	 * @param ptr List pointer to be disposed
-	 */
-	void dispose (List *ptr);
-
-	//----    nullptr    ----//
-	/**
-	 * Dispose overload for `nullptr`
-	 *
-	 * This is defined so that one can call `AtomPool.dispose (atomPtr->as<some_Atom_type> ())`
-	 * and it doesn't put the pointer in the wrong place (if it was not of the
-	 * right type).
-	 *
-	 * It actually doesn't do anything. This isn't necessarily bad, as memory
-	 * will be claimed after AtomPool's destructor (AtomPool::~AtomPool).
-	 *
-	 * @note If you are not sure which type your pointer is and really want
-	 * memory to be claimed, use the 'Atom *' overload instead
-	 *
-	 * @param ptr A `nullptr`
-	 */
-	void dispose (nullptr_t ptr);
-
 	//----    End of Type specific methods    ----//
 
 	/**
@@ -229,20 +161,15 @@ public:
 	string getMemoryStats ();
 
 private:
-	/// Int Pool
-	unordered_set<Int *> IntPool;
+	/// Atom Pool
+	unordered_set<Atom *> pool;
 	/// Stack of available (inactive) Ints
-	ForwardStack<Int *> availableInts;
+	ForwardStack<Atom *> availableAtoms;
 
 	/// Cons Pool
 	unordered_set<Cons *> ConsPool;
 	/// Stack of available (inactive) Cons
 	ForwardStack<Cons *> availableCons;
-
-	/// Cons Pool
-	unordered_set<List *> ListPool;
-	/// Stack of available (inactive) List
-	ForwardStack<List *> availableList;
 };
 
 }

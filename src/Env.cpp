@@ -23,27 +23,34 @@
 
 namespace pq {
 
-void Env::push (int value) {
+Env::Env () {
+	scopeStack.front ().insert ("nil", nullptr);
+	// first of all, the Type type ;]
+	TypeType = new Type ("Type");
+	registerType ("Type", TypeType);
+	// native types (ones without heap data)
+	IntType = newType ("Int");
+	SymbolType = newType ("Symbol");
+	RealType = newType ("Real");
+}
+
+
+Env::~Env () {
+	delete IntType;
+	delete SymbolType;
+}
+
+
+void Env::push (Int value) {
 	auto x = pool.requestInt (value);
 	atomStack.push_back (x);
 }
 
 
-int Env::getInt (int index) {
-	auto ptr = getArg (index)->assert<Int> ();
-	return ptr->getValue ();
-}
-
-
-AtomPtr Env::getArg (int index) {
-	// allow negative indexing
-	// @note that out_of_range exception may occur
-	if (index < 0) {
-		index = atomStack.size () + index;
-	}
-
-	// return the raw pointer at index
-	return atomStack.at (index);
+AtomPtr Env::requestInt (Int value, bool variable) {
+	auto ret = pool.requestInt (value, variable);
+	ret->updateFatherScope (scopeStack.size ());
+	return ret;
 }
 
 
@@ -58,20 +65,32 @@ AtomPtr Env::getLocal (const string& sym) {
 }
 
 
+AtomPtr Env::getGlobal (const string& sym) {
+	return scopeStack.front ()[sym];
+}
+
+
 void Env::setLocal (const string& sym, AtomPtr value) {
 	value->updateFatherScope (scopeStack.size ());
 	scopeStack.back ().insert (sym, value);
 }
 
 
+void Env::setGlobal (const string& sym, AtomPtr value) {
+	value->updateFatherScope ((uint16_t) 0);
+	scopeStack.front ().insert (sym, value);
+}
+
+
 AtomPtr Env::eval (const Code& code) {
-	string funcSym = code.getFuncSym ()->getSym ();
-	auto func = getLocal (funcSym)->as<Func> ();
-	if (func) {
+	auto funcSym = code.getFuncSym ();
+	auto funcAtom = getLocal (funcSym);
+	if (auto func = dynamic_cast<Func *> (funcAtom)) {
 		return func->call (*this, code.getArguments ());
 	}
 	else {
-		throw PQ_API_EXCEPTION ("Env::eval", "Symbol \"" + funcSym + "\" ain't a function");
+		throw PQ_API_EXCEPTION ("Env::eval", "Symbol \"" + string (funcSym)
+				+ "\" ain't a function");
 	}
 }
 
@@ -97,18 +116,26 @@ AtomPtr Env::popArg (Cons *& args) {
 }
 
 
-vector<AtomPtr> Env::popArgs (unsigned int number) {
-	if (number > atomStack.size ()) {
-		throw PQ_API_EXCEPTION ("Env::popArgs", "Not enough arguments to be popped");
-	}
-	// output vector, already constructed with the values
-	// @note that there's no way we access wrong elements, as the size was
-	// already checked
-	vector<AtomPtr> ret (atomStack.begin (), atomStack.begin () + number);
-	// now pop!
-	atomStack.erase (atomStack.begin (), atomStack.begin () + number);
+Type *Env::newType (const string& name) {
+	auto t = new Type (name);
+	registerType (name, t);
+	return t;
+}
 
-	return move (ret);
+
+Type *Env::newType (const string& name, DataConstructor ctor,
+		DataDestructor dtor) {
+	auto t = new Type (name, ctor, dtor);
+	registerType (name, t);
+	return t;
+}
+
+
+void Env::registerType (const string& name, Type *t) {
+	auto atom = pool.requestAtom ();
+	atom->type = TypeType;
+	atom->setValue (t);
+	setLocal (name, atom);
 }
 
 }

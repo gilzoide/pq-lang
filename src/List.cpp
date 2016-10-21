@@ -18,10 +18,12 @@
  */
 
 #include "List.hpp"
+#include "Symbol.hpp"
+#include "Int.hpp"
 
 namespace pq {
 
-List::List () = default;
+List::List () : List (nullptr) {}
 
 
 List::List (Cons *innerList) {
@@ -37,9 +39,7 @@ List::List (Cons *innerList) {
 }
 
 
-AtomPtr List::clone () {
-	return new List (*this);
-}
+List::~List () = default;
 
 
 AtomPtr List::getFirst () const {
@@ -75,6 +75,19 @@ Cons *List::append (AtomPtr elem) {
 }
 
 
+Cons *List::append (Cons *cell) {
+	// first element in list
+	if (last == nullptr) {
+		first = last = cell;
+	}
+	else {
+		last = last->append (cell);
+	}
+
+	return last;
+}
+
+
 Cons *List::prepend (AtomPtr elem) {
 	// first element in list
 	if (last == nullptr) {
@@ -88,10 +101,27 @@ Cons *List::prepend (AtomPtr elem) {
 }
 
 
-void List::reset () {
-	first = last = nullptr;
+Cons *List::prepend (Cons *cell) {
+	// first element in list
+	if (last == nullptr) {
+		first = last = cell;
+	}
+	else {
+		first = first->prepend (cell);
+	}
+
+	return first;
 }
 
+
+Cons *List::reset () {
+	// save current Cons list
+	auto previousCons = first;
+	// and erase it
+	first = last = nullptr;
+
+	return previousCons;
+}
 
 //----    Iterator    ----//
 

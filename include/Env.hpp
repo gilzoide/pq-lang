@@ -21,6 +21,7 @@
 
 #include "Scope.hpp"
 #include "AtomPool.hpp"
+#include "Type.hpp"
 #include "Code.hpp"
 
 #include <vector>
@@ -33,31 +34,27 @@ namespace pq {
 class Env {
 public:
 	/**
+	 * Ctor, initializes all
+	 */
+	Env ();
+	/**
+	 * Dtor
+	 */
+	~Env ();
+
+	/**
 	 * Push an integer to the Atom stack
 	 *
 	 * @param value Int value
 	 */
-	void push (int value);
+	void push (Int value);
 
 	/**
-	 * Get arguments[index] as an int
+	 * Request an Int from pool
 	 *
-	 * @note Negative values are also allowed, and index from the end
-	 *
-	 * @param index Index of Int to be get
-	 *
-	 * @return int
+	 * @sa AtomPool::requestInt
 	 */
-	int getInt (int index);
-
-	/**
-	 * Pop a number of arguments, returning them
-	 *
-	 * @param number Number of arguments to be popped
-	 *
-	 * @return Vector with popped args
-	 */
-	vector<AtomPtr> popArgs (unsigned int number);
+	AtomPtr requestInt (Int value, bool variable = false);
 
 	/**
 	 * Get local Atom associated with symbol `sym`
@@ -70,6 +67,17 @@ public:
 	 * @return Atom associated with `sym`
 	 */
 	AtomPtr getLocal (const string& sym);
+	/**
+	 * Get global Atom associated with symbol `sym`
+	 *
+	 * Search will be made only on first scope. Remember that `nullptr` is
+	 * a valid Atom, with `nil` value
+	 *
+	 * @param sym Symbol to be searched
+	 *
+	 * @return Atom associated with `sym`
+	 */
+	AtomPtr getGlobal (const string& sym);
 
 	/**
 	 * Set a local symbol to value `value`
@@ -78,6 +86,13 @@ public:
 	 * @param value Value to be associated to `sym`
 	 */
 	void setLocal (const string& sym, AtomPtr value);
+	/**
+	 * Set a global symbol to value `value`
+	 *
+	 * @param sym Symbol to be associated
+	 * @param value Value to be associated to `sym`
+	 */
+	void setGlobal (const string& sym, AtomPtr value);
 
 	/**
 	 * Pop an argument value
@@ -101,15 +116,17 @@ public:
 	 */
 	AtomPtr eval (const Code& code);
 
-private:
 	/**
-	 * GETTER for a argument pointer, already `dynamic_cast` to right (T) type
-	 *
-	 * @note This is useful to unify the arguments vector access and error
-	 * handling
+	 * Create a new type and associate it in the local scope
 	 */
-	AtomPtr getArg (int index);
+	Type *newType (const string& name);
+	/**
+	 * Create a new type with custom data and associate it in the local scope
+	 */
+	Type *newType (const string& name, DataConstructor ctor,
+			DataDestructor dtor);
 
+private:
 	/**
 	 * Stack that mantains Atoms for function calling, function return 
 	 */
@@ -129,6 +146,15 @@ private:
 	 * AtomPool, for object and memory managing
 	 */
 	AtomPool pool;
+
+	//----    Builtin Types    ----//
+	Type *TypeType;
+	Type *IntType;
+	Type *SymbolType;
+	Type *RealType;
+
+	/// Auxiliary function to register newTypes in the local scope
+	void registerType (const string& name, Type *t);
 };
 
 }

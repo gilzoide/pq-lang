@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "Atom.hpp"
 #include "StringPool.hpp"
 
 using namespace std;
@@ -32,47 +31,15 @@ namespace pq {
 using symbol = const char *;
 
 /**
- * Symbol wrapper for Func OO
- *
- * This class is also responsible for interning the symbols, which will be used
- * as the Table keys
+ * Symbol namespace, with Symbol facilities
  */
-class Symbol : public Atom {
-public:
-	/**
-	 * Ctor, with Symbol
-	 */
-	Symbol (const string& sym);
-
-	/**
-	 * Dtor
-	 */
-	~Symbol ();
-
-	/**
-	 * Clone function override
-	 */
-	Atom *clone () override;
-
-	/**
-	 * GETTER for the underneath symbol
-	 */
-	symbol getSym ();
-
+namespace Symbol {
 	/**
 	 * Function to get the canonical symbol
 	 *
 	 * @param sym Symbol string
 	 */
-	static symbol getCanonic (const string& sym);
-
-
-private:
-	/// Our symbol
-	symbol sym;
-
-	/// Interned symbols, for canonical representation
-	static StringPool internSymbols;
-};
+	symbol getCanonic (const string& sym);
+}
 
 }

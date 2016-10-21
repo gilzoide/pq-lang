@@ -36,7 +36,7 @@ class ConsListIterator;
  * access to the last element (as well as methods for accessing any element),
  * use List instead.
  */
-class Cons : public Atom {
+class Cons {
 public:
 	/**
 	 * Ctor
@@ -60,11 +60,9 @@ public:
 	~Cons ();
 
 	/**
-	 * Clone method override
-	 *
-	 * @return Cons clone
+	 * Clone a Cons list (entire list, O(N) ), for pass by Value semantics
 	 */
-	AtomPtr clone () override;
+	Cons *clone ();
 
 	/**
 	 * Make a new Cons cell with elen, append it as next, and return it's
@@ -87,19 +85,46 @@ public:
 	 * without iterating over it repeatedly
 	 */
 	Cons *append (AtomPtr elem);
+	/**
+	 * Append existing Cons cell as `next`, setting `cell.next` as old `next`
+	 *
+	 * @note We use this so we can pool Cons cells
+	 *
+	 * @warning This method overrides `cell.next` field
+	 *
+	 * @param cell Cons cell to be appended
+	 *
+	 * @return cell, the Cons cell that was just appended
+	 */
+	Cons *append (Cons *cell);
 
 	/**
 	 * Make a new Cons cell with value, append it as next, and return it's
 	 * reference
 	 *
-	 * @param elem New element to be preppended
+	 * @param elem New element to be prepended
 	 *
 	 * @return New Cons cell reference, so it's easy to create a stack
 	 */
 	Cons *prepend (AtomPtr elem);
+	/**
+	 * Prepend existing Cons cell as `this.next`, setting `cell.next` as `this`
+	 *
+	 * @note We use this so we can pool Cons cells
+	 *
+	 * @warning This method overrides `cell.next` field
+	 *
+	 * @param elem Cons cell to be preppended
+	 *
+	 * @return cell, the Cons cell that was just prepended
+	 */
+	Cons *prepend (Cons *cell);
 
 	/**
 	 * Reset Cons cell, making both `elem` and `next` as nullptr
+	 *
+	 * @warning This method don't take care of previous variables in pointers
+	 * `elem` nor `next`
 	 */
 	void reset ();
 

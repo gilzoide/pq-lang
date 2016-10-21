@@ -17,14 +17,17 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include "Table.hpp"
+/** @file Real.hpp
+ * Real number definitions, typedef for now
+ */
+#pragma once
+
+#include <cstdint>
 
 namespace pq {
 
-AtomPtr Table::clone () {
-	auto newTable = new Table ();
-	newTable->table = this->table;
-	return newTable;
-}
+/// Real number type used by PQ
+using Real = double;
 
 }
+

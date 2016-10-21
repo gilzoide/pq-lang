@@ -23,16 +23,23 @@
 #pragma once
 
 #include "Exception.hpp"
+#include "Int.hpp"
+#include "Real.hpp"
+#include "Symbol.hpp"
+#include "Type.hpp"
 #include "debug.hpp"
 
 #include <memory>
 #include <sstream>
+#include <type_traits>
 
 using namespace std;
 
 namespace pq {
 
 class Atom;
+class List;
+class Env;
 
 /// Atom pointer, used in PQ
 using AtomPtr = Atom *;
@@ -42,6 +49,7 @@ enum AtomFlags : uint8_t {
 	ACTIVE = 0x01,
 	VARIABLE = 0x02,
 	DEFINED = 0x04,
+	SUBLIST = 0x08,
 };
 
 /**
@@ -51,13 +59,15 @@ enum AtomFlags : uint8_t {
  * smooth and easily
  */
 class Atom {
+	/// Env can mess with atom "à vonts"
+	friend class Env;
 public:
 	/**
-	 * Ctor
+	 * Default Ctor, no type, no value, useless in this state
 	 */
 	Atom ();
 	/**
-	 * Virtual Dtor, we must have one
+	 * Dtor, calls Type destruction on value
 	 */
 	virtual ~Atom ();
 
@@ -68,35 +78,7 @@ public:
 	 *
 	 * @return Atom clone
 	 */
-	virtual AtomPtr clone () = 0;
-
-	/**
-	 * Cast stored pointer as of pointer to type T, nullptr version
-	 *
-	 * @return Pointer cast to T *
-	 * @return nullptr if cast is impossible
-	 */
-	template<typename T>
-	T *as () noexcept {
-		return dynamic_cast<T *> (this);
-	}
-	/**
-	 * Cast stored pointer as of pointer to type T, exception version
-	 *
-	 * @return Pointer cast to T *
-	 *
-	 * @throw pq::Exception if T isn't a valid Atom type
-	 */
-	template<typename T>
-	T *assert () {
-		if (auto ptr = this->as<T> ()) {
-			return ptr;
-		}
-		else {
-			throw PQ_API_EXCEPTION ("Atom::assert",
-					"Invalid type for conversion from Atom");
-		}
-	}
+	AtomPtr clone ();
 
 	/**
 	 * GETTER for @ref fatherScope
@@ -121,6 +103,60 @@ public:
 	 */
 	void updateFatherScope (AtomPtr other);
 
+	//----    Value SETTERS   ----//
+	/**
+	 * Set value as Integer
+	 *
+	 * @param i New value as an Integer
+	 */
+	void setValue (Int i);
+	/**
+	 * Set value as Symbol
+	 *
+	 * @param sym New value as a symbol
+	 */
+	void setValue (symbol sym);
+	/**
+	 * Set value as Type
+	 *
+	 * @param type New value as a Type
+	 */
+	void setValue (Type *type);
+	/**
+	 * Set value as custom data
+	 *
+	 * Atom's Type must have the corresponding @ref destroyData to destroy this
+	 * pointer
+	 *
+	 * @param customData New value as custom data, as a void *
+	 */
+	void setValue (void *customData);
+
+	//----    Value GETTERS    ----//
+	/**
+	 * Get Integer method that throws exceptions if Atom ain't Int
+	 */
+	Int asInt () throw (Exception);
+	/**
+	 * Get symbol method that throws exceptions if Atom ain't Symbol
+	 */
+	symbol asSymbol () throw (Exception);
+
+	/**
+	 * Get custom data pointer method that throws exception if Atom ain't of type
+	 */
+	template<typename T>
+	T *asData () throw (Exception) {
+		return dynamic_cast<T *> (value.data);
+	}
+
+	//----    Type    ----//
+	/**
+	 * GETTER for the type
+	 */
+	Type *getType ();
+
+	//----    Flags    ----//
 	/**
 	 * SETTER for flags, all of them
 	 *
@@ -176,7 +212,21 @@ public:
 	/// Constant that means an Atom is not defined in any scope
 	constexpr static uint16_t notScoped = (uint16_t) -1;
 
-private:
+protected:
+	/// Atom's type
+	Type *type;
+
+	/// Atom value, which may be a simple/builtin one, or anything else you
+	/// like / need
+	union {
+		Int i;
+		Real d;
+		symbol sym;
+		List *list;
+		Type *type;
+		void *data;
+	} value;
+
 	/**
 	 * Index of which scope owns this Atom
 	 *

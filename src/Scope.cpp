@@ -18,6 +18,7 @@
  */
 
 #include "Scope.hpp"
+#include "Atom.hpp"
 
 namespace pq {
 

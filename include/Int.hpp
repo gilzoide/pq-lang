@@ -17,51 +17,16 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file Int.hpp
+ * Integer definitions, typedef for now
+ */
 #pragma once
 
-#include "Atom.hpp"
-
-using namespace std;
+#include <cstdint>
 
 namespace pq {
 
-/**
- * Int, the abstract class for PQ integer values
- */
-class Int : public Atom {
-public:
-	/**
-	 * Default ctor
-	 */
-	Int ();
-	/**
-	 * Ctor, with value parameter, sets flags to (ACTIVE | DEFINED)
-	 */
-	Int (int value);
-	/**
-	 * Clone method override
-	 */
-	virtual AtomPtr clone () override;
-
-	/**
-	 * GETTER for the inner value
-	 */
-	int getValue ();
-
-	/**
-	 * SETTER for inner value
-	 *
-	 * @throw pq::Exception if Atom is not a VARIABLE
-	 */
-	void setValue (int value);
-
-	/**
-	 * Implicit/explicit conversion to int
-	 */
-	operator int ();
-
-protected:
-	int value;
-};
+/// Integer type used by PQ
+using Int = intmax_t;
 
 }

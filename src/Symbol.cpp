@@ -21,28 +21,9 @@
 
 namespace pq {
 
-Symbol::Symbol (const string& sym) : sym (getCanonic (sym)) {}
-
-
-Symbol::~Symbol () {}
-
-
-Atom *Symbol::clone () {
-	return new Symbol (sym);
-}
-
-
-symbol Symbol::getSym () {
-	return sym;
-}
-
-
 symbol Symbol::getCanonic (const string& sym) {
+	static StringPool internSymbols;
 	return internSymbols.get (sym);
 }
-
-
-// Declare static attributes
-StringPool Symbol::internSymbols;
 
 }

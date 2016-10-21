@@ -31,32 +31,20 @@ namespace pq {
 /**
  * PQ lispy code, a List with Symbols or other Lists
  */
-class Code {
+class Code : public List {
 public:
 	/**
 	 * Dtor, destroys Symbols
 	 */
 	~Code ();
 	/**
-	 * Append Symbol into code
-	 *
-	 * @param sym Symbol to be appended
-	 *
-	 * @return Code itself, for a stream like operation
-	 */
-	Code& operator<< (const string& sym);
-	/**
 	 * GETTER for the Function symbol, which is the first in the code List
 	 */
-	Symbol *getFuncSym () const;
+	symbol getFuncSym () const;
 	/**
 	 * GETTER for the arguments Cons list
 	 */
 	Cons *getArguments () const;
-
-private:
-	/// Inner code
-	List code;
 };
 
 }

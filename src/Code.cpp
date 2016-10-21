@@ -23,26 +23,19 @@
 namespace pq {
 
 Code::~Code () {
-	for (auto sym : code) {
+	for (auto sym : *this) {
 		delete sym;
 	}
 }
 
 
-Code& Code::operator<< (const string& sym) {
-	code.append (new Symbol (sym));
-
-	return *this;
-}
-
-
-Symbol *Code::getFuncSym () const {
-	return code.getFirst ()->as<Symbol> ();
+symbol Code::getFuncSym () const {
+	return getFirst ()->asSymbol ();
 }
 
 
 Cons *Code::getArguments () const {
-	return code.front ()->next;
+	return front ()->next;
 }
 
 }

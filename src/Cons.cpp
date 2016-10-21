@@ -30,28 +30,32 @@ Cons::Cons (AtomPtr elem, Cons *next) : elem (elem), next (next) {}
 Cons::~Cons () = default;
 
 
-AtomPtr Cons::clone () {
-	return new Cons (*this);
+Cons *Cons::append (AtomPtr elem) {
+	return append (new Cons (elem));
 }
 
 
-Cons *Cons::append (AtomPtr elem) {
-	auto newCell = new Cons (elem, this->next);
-	newCell->updateFatherScope (this);
-	this->next = newCell;
-	return newCell;
+Cons *Cons::append (Cons *cell) {
+	cell->next = this->next;
+	this->next = cell;
+	return cell;
+}
+
+
+Cons *Cons::prepend (Cons *cell) {
+	cell->next = this;
+	return cell;
 }
 
 
 Cons *Cons::prepend (AtomPtr elem) {
-	auto newCell = new Cons (elem, this);
-	newCell->updateFatherScope (this);
-	return newCell;
+	return prepend (new Cons (elem));
 }
 
 
 void Cons::reset () {
-	elem = next = nullptr;
+	elem = nullptr;
+	next = nullptr;
 }
 
 
