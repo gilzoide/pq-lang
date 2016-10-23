@@ -1,3 +1,8 @@
+hell.help = [[
+Bem vindo ao PQ!
+================
+PQ é atualmente interpretado em Lua, com algumas funcionalidades em C.]]
+
 hell.outdir = 'build'
 
-feedHellFire ('src/hellfire')
+feedHellFire 'src/hellfire'

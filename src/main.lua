@@ -21,4 +21,4 @@
 
 local parser = require 'pq.parser'
 
-parser.printNested (parser.parseFile (assert (arg[1], 'Favor, pede um arquivo pra parsear')))
+parser.printNested (assert (parser.parseFile (assert (arg[1], 'Favor, dê-me um arquivo pra parsear'))))
