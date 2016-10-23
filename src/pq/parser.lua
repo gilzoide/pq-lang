@@ -63,13 +63,15 @@ local function addError (label, msg)
 	table.insert (parseErrors, msg)
 	parseErrors[label] = #parseErrors
 end
-addError ('ParenErr', 'falta parênteses')
-addError ('MuchParenErr', 'tem parênteses sobrando')
+addError ('ParenErr', 'falta fechar parênteses')
+addError ('MuchParenErr', 'falta abrir parênteses')
+addError ('StructErr', 'falta chaves fechando struct')
+addError ('ArrayErr', 'falta colchetes fechando array')
 addError ('StringErr', 'string não fechada')
 addError ('BinErr', 'números binários só podem ser formados por 0 e 1')
 addError ('OctErr', 'números octais só podem ser formados por 0-7')
 addError ('HexErr', 'números hexadecimais só podem ser formados por 0-9, a-f e A-F')
-addError ('CharErr', 'caractere não reconhecido como inicial')
+addError ('CharErr', 'caractere não reconhecido como inicial para átomos')
 
 local function expect (patt, err)
 	local label = assert (parseErrors[err], 'Erro "' .. err .. '" não declarado')
@@ -102,7 +104,7 @@ local fullpatt = P {
 
 re.setlabels (parseErrors)
 local g = re.compile ([[
-S		<- Shebang? Sp {| (Sexpr Sp)* |} (!. / %{MuchParenErr})
+S		<- Shebang? Sp {| (Sexpr Sp)* |} (EOF / %{MuchParenErr})
 Shebang	<- '#!' AteEOL
 
 Sexpr	<- '(' Sp -> "nil" ')' / '(' Sp {| Exprs |} Sp (')' / %{ParenErr})
@@ -110,12 +112,15 @@ Exprs	<- Expr (%s+ Expr)*
 Expr	<- Sexpr / Atom
 
 -- Atomos
-Atom	<- Quote / Number / String / Keyword / Symbol / Sp / %{CharErr}
+Atom	<- Quote / Number / String / Struct / Array / Keyword / Symbol / Sp / %{CharErr}
 Quote	<- { "'" Expr } -> 1
 Symbol	<- { SymChar+ }
 SymChar	<- [^]["'\;(){}%s] -- Símbolos não podem com essas coisa especial
 String	<- { '"' ('\"' / [^"])* ('"' / %{StringErr}) }
 Keyword	<- { ':' Symbol }
+
+Array	<- { '[' Exprs (']' / %{ArrayErr}) } -> 1
+Struct	<- { '{' Exprs ('}' / %{StructErr}) } -> 1
 
 -- Números
 Number	<- { [+-]? (Float / Int) }
@@ -133,6 +138,7 @@ Dec		<- %d+
 -- Espaços a pular =P
 AteEOL	<- [^%nl]*
 Comment	<- ';' AteEOL
+EOF		<- !.
 Sp		<- (%s / Comment)*
 ]], { print = print })
 
@@ -143,18 +149,33 @@ local parser = {}
 --- Parse some text
 --
 -- @param text Text to be parsed
+-- @param[opt='chunk'] streamName Stream name, where the error might occur
 --
 -- @return Table with symbols
-function parser.parse (text)
+function parser.parse (text, streamName)
 	local res, label, suf = g:match (text)
 	if res then
 		return res
 	else
-		local lin, col = re.calcline (text, #text - #suf)
+		local whereErr = #text - #suf
+		local lin, col = re.calcline (text, whereErr)
 		local msg = parseErrors[label]
-		suf = suf ~= '' and '"' .. suf:match ('(.-)\n') .. '"' or 'EOL' 
-		return nil, table.concat { 'Erro @ ', lin, ',', col, ': ', msg
-				, ' em ', suf }
+		-- find last line
+		local i, c = whereErr + 1
+		while i > 1 and c ~= '\n' do
+			i = i - 1
+			c = text:sub (i, i)
+		end
+		suf = text:sub (i):match ('[^\n]+')
+		local errMessage = { 'Erro @ ', streamName or 'chunk', ':', lin, ','
+				, col, ' : ', msg }
+		if suf then
+			table.move ({ ' em:\n\n  ', suf, '\n  ', string.rep ('~', whereErr - i), '^' }
+					, 1, 5, #errMessage + 1, errMessage)
+		else
+			table.insert (errMessage, ' no EOF')
+		end
+		return nil, table.concat (errMessage)
 	end
 end
 
@@ -165,7 +186,7 @@ end
 --
 -- @return Table with symbols
 function parser.parseFile (fileName)
-	return parser.parse (io.open (fileName, 'r'):read ('a'))
+	return parser.parse (io.open (fileName, 'r'):read ('a'), fileName)
 end
 
 
