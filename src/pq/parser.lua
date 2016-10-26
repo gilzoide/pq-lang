@@ -20,6 +20,7 @@
 
 local lpeg = require 'lpeglabel'
 local re = require 'relabel'
+local cor = require 'ansicolors'
 
 --- Convert nested lists (code) to string, no line ski yet
 --
@@ -72,6 +73,7 @@ addError ('BinErr', 'números binários só podem ser formados por 0 e 1')
 addError ('OctErr', 'números octais só podem ser formados por 0-7')
 addError ('HexErr', 'números hexadecimais só podem ser formados por 0-9, a-f e A-F')
 addError ('CharErr', 'caractere não reconhecido como inicial para átomos')
+addError ('SymOnlyErr', 'somente símbolos podem ser usados após \'.\'')
 
 local function expect (patt, err)
 	local label = assert (parseErrors[err], 'Erro "' .. err .. '" não declarado')
@@ -109,18 +111,19 @@ Shebang	<- '#!' AteEOL
 
 Sexpr	<- '(' Sp -> "nil" ')' / '(' Sp {| Exprs |} Sp (')' / %{ParenErr})
 Exprs	<- Expr (%s+ Expr)*
-Expr	<- Sexpr / Atom
+Expr	<- Sexpr / { Atom ('.' (Symbol / %{SymOnlyErr}) )* } -> 1
 
 -- Atomos
 Atom	<- Quote / Number / String / Struct / Array / Keyword / Symbol / Sp / %{CharErr}
 Quote	<- { "'" Expr } -> 1
-Symbol	<- { SymChar+ }
-SymChar	<- [^]["'\;(){}%s] -- Símbolos não podem com essas coisa especial
+Symbol	<- { SymFst SymChar* }
+SymChar	<- [^]["'\.;(){}%s] -- Símbolos não podem com essas coisa especial
+SymFst	<- [^]["'\.;(){}%s%d]
 String	<- { '"' ('\"' / [^"])* ('"' / %{StringErr}) }
 Keyword	<- { ':' Symbol }
 
-Array	<- { '[' Exprs (']' / %{ArrayErr}) } -> 1
-Struct	<- { '{' Exprs ('}' / %{StructErr}) } -> 1
+Array	<- { '[' Sp Exprs Sp (']' / %{ArrayErr}) } -> 1
+Struct	<- { '{' Sp Exprs Sp ('}' / %{StructErr}) } -> 1
 
 -- Números
 Number	<- { [+-]? (Float / Int) }
@@ -167,15 +170,21 @@ function parser.parse (text, streamName)
 			c = text:sub (i, i)
 		end
 		suf = text:sub (i):match ('[^\n]+')
-		local errMessage = { 'Erro @ ', streamName or 'chunk', ':', lin, ','
-				, col, ' : ', msg }
+		-- and make error message
+		local errMessage = {
+			'%{bright,red}erro @ %{reset,bright}', streamName or 'chunk'
+			, ':', lin, ':', col, ': ', msg, '%{reset}'
+		}
 		if suf then
-			table.move ({ ' em:\n\n  ', suf, '\n  ', string.rep ('~', whereErr - i), '^' }
-					, 1, 5, #errMessage + 1, errMessage)
+			local adds = {
+				'\n', suf, '\n', '%{bright}%{green}'
+				, string.rep (' ', whereErr - i), '^'
+			}
+			table.move (adds, 1, #adds, #errMessage + 1, errMessage)
 		else
-			table.insert (errMessage, ' no EOF')
+			table.insert (errMessage, '%{bright} no EOF')
 		end
-		return nil, table.concat (errMessage)
+		return nil, cor (table.concat (errMessage))
 	end
 end
 

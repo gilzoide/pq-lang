@@ -20,3 +20,15 @@ Claro que há alguns poréns também:
 
 
 Imagino que os pontos bons compensem, então bora lá!
+
+
+Compilação
+----------
+Compilar módulos em código intermediário LLVM (IR, arquivos .ll ou .bc) é muito
+interessante, possibilitando códigos em PQ serem usados em outras linguagens,
+como C/C++ por exemplo.
+
+Mas ali atrás falou que ia interpretar pra ser dinâmico, então vai compilar o
+quê? A resposta pra isso é simples: o que quer que não precise de dinamicidade,
+vira código LLVM IR. Sendo assim, passagens dinâmicas são ignoradas, talvez
+soltando um _warning_ que não estará no código final.
