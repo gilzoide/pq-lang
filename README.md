@@ -12,11 +12,9 @@ Mas gilzoide, pq PQ?
 Mah que diabos? (features)
 --------------------------
 - muito funcional
-- tudo são funções (mesmo que funções constantes)
 - permite programação estruturada (sequência de ações, xupa puridade)
 - currying a la haskell
 - código como listas a la Lisp (na real, o backend vai ter um Lisp correspondente)
-- ^ uso de símbolos, que serão guardados em um __string poll__
 - ^ permite macros massas
 - overload de funções
 - tipos por protótipo como hash tables e notação de chamada de método (estilo Lua)
