@@ -172,7 +172,7 @@ function parser.parse (text, streamName)
 		suf = text:sub (i):match ('[^\n]+')
 		-- and make error message
 		local errMessage = {
-			'%{bright,red}erro @ %{reset,bright}', streamName or 'chunk'
+			'%{bright}', arg[0], ': %{red}erro @ %{reset,bright}', streamName or 'chunk'
 			, ':', lin, ':', col, ': ', msg, '%{reset}'
 		}
 		if suf then

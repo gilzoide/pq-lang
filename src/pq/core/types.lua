@@ -1,4 +1,3 @@
-#!/usr/bin/env lua
 --[[ Copyright © 2016-2017 Gil Barbosa Reis
 --
 -- This file is part of PQ.
@@ -17,14 +16,26 @@
 -- along with PQ.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
---[[ PQ interpreter executable main file ]]--
+--[[ PQ core types ]]--
 
--- local parser = require 'pq.parser'
--- parser.printNested (assert (parser.parseFile (assert (arg[1], 'Favor, dê-me um arquivo pra parsear'))))
+local ll = require 'lualvm.llvm'
 
-local Environment = require 'pq.environment'
-local env = Environment.new()
+local Type = require 'pq.type'
+local Macro = require 'pq.macro'
 
--- print(env:eval(arg[1] or ""))
-print(env:eval{"let", "oi", 1})
-print(env:eval("oi"))
+--- Register core types in Environment.
+return function(env)
+	local root = env.scope[1]
+	local ctx = env.llvm
+	-- The Type type (I'm typing this too much now)
+	root.Type = Type
+	root.Macro = Macro
+	-- Ints
+	root.bool = Type.new("i1", ll.Int1TypeInContext(ctx))
+	root.i8 = Type.new("i8", ll.Int8TypeInContext(ctx))
+	root.i16 = Type.new("i16", ll.Int16TypeInContext(ctx))
+	root.i32 = Type.new("i32", ll.Int32TypeInContext(ctx))
+	root.i64 = Type.new("i64", ll.Int64TypeInContext(ctx))
+	-- The versatile Pointer
+	root.Pointer = Type.new("Pointer", ll.PointerType(root.i8.llvm, 0))
+end

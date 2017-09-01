@@ -1,4 +1,3 @@
-#!/usr/bin/env lua
 --[[ Copyright © 2016-2017 Gil Barbosa Reis
 --
 -- This file is part of PQ.
@@ -17,14 +16,17 @@
 -- along with PQ.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
---[[ PQ interpreter executable main file ]]--
+--[[ PQ type information, works for both LLVM types or not ]]--
 
--- local parser = require 'pq.parser'
--- parser.printNested (assert (parser.parseFile (assert (arg[1], 'Favor, dê-me um arquivo pra parsear'))))
+local Type = {}
+Type.__index = Type
+Type.type = Type  -- Type's type is Type itself
 
-local Environment = require 'pq.environment'
-local env = Environment.new()
+function Type.new(name, llvm)
+	return setmetatable({
+		name = name,
+		llvm = llvm,
+	}, Type)
+end
 
--- print(env:eval(arg[1] or ""))
-print(env:eval{"let", "oi", 1})
-print(env:eval("oi"))
+return Type

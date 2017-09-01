@@ -4,49 +4,46 @@ Depois vos conto.
 
 
 ```lisp
-; como definir uma variável no escopo local
-(set a 1)
+; como definir um valor no escopo local
+(let a 1)
 
 ; por padrão, em PQ, valores são imutáveis
-; se você precisar de variáveis, use "setvar"
-(setvar a 1)
-
+; se você precisar de variáveis, use "var"
+(var a 1)
+; para mudar valor de variáveis, manda um "set"
+(set a 4)
 
 ; funções, passa também o nome das variáveis a dar bind
-(setf oi ()
+(defun oi ()
 	(print "oi mundo"))
-
 ; claro, parâmetros
-(setf oi (nome sobrenome)
+(defun oi (nome sobrenome)
 	(print "oi " sobrenome ", " nome))
-
 ; e também parâmetros variáveis!
-(setf oi (...)
+(defun oi (...)
 	(print ...))
+; e também funções variáveis!
+(var dá-oi print)
+(set dá-oi oi)
 
-
-; criação de tipos
-; não são exatamente structs, nem classes, pense em protótipos
-; alguma hora a gente explica direito
-(newtype Point
-	; atributos, com possível tipagem estática
-	(x :: int)
-	(y :: int)
-	; função/metodo. Note que o próprio ponto deve estar nos argumentos
-	; note também que acessar um elemento num tipo usa notação de '.'
-	(distancia :: (Point float) (_ (P)
-		(sqrt (+ (* P.x P.x) (* P.y P.y)))
-	))
-	; todas funções são estáticas, então xupa anotação
-	(parse (_ (str :: string)
-		; todo implementae
-		"implemente-me"
-	))
+; criação de tipos: structs
+(defstruct Point
+	; campos, com tipagem estática, nome dos campos em keyword, opcional
+	:x int
+	:y int
 )
-; Para chamar um metodo, pode se usar a função do tipo (estática), ...
-(Point.dist p)
-; ... usando a função do próprio objeto (que provavelmente será a mesma do tipo), ...
-(p.dist p)
-; ... ou usando a notação de metodo ':' (que expande pra `(p.dist p)`)
-(p:dist)
+; função/metodo. Note que o próprio ponto deve estar nos argumentos
+; note também que acessar um elemento num tipo usa notação de '.'
+(defun distancia [Point float] (P)
+	(let x P.x)
+	(let y P.y)
+	(sqrt (+ (* x x) (* y y)))
+)
+
+; Para chamar uma função, pode se usar a função a partir do tipo, ...
+(Point/distancia p)
+; ... ou usando a notação de metodo '.' (que expande pra `(Point/distancia p)`)
+(p:distancia)
+; ou simplesmente chamando a função diretão, pq na real o overload é sacado de bouas
+(distancia p)
 ```

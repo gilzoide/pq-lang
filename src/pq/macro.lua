@@ -1,4 +1,3 @@
-#!/usr/bin/env lua
 --[[ Copyright © 2016-2017 Gil Barbosa Reis
 --
 -- This file is part of PQ.
@@ -17,14 +16,22 @@
 -- along with PQ.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
---[[ PQ interpreter executable main file ]]--
+--[[ PQ Macros: Environment + unread arguments ]]--
 
--- local parser = require 'pq.parser'
--- parser.printNested (assert (parser.parseFile (assert (arg[1], 'Favor, dê-me um arquivo pra parsear'))))
+local Macro = {}
+Macro.__index = Macro
+Macro.type = {
+	name = "Macro",
+}
 
-local Environment = require 'pq.environment'
-local env = Environment.new()
+--- Create a new Macro.
+function Macro.new(f)
+	return setmetatable({f = f}, Macro)
+end
 
--- print(env:eval(arg[1] or ""))
-print(env:eval{"let", "oi", 1})
-print(env:eval("oi"))
+--- Call a Macro, with the Environment and unread arguments.
+function Macro:__call(env, ...)
+	return self.f(env, ...)
+end
+
+return Macro

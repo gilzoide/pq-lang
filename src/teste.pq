@@ -11,5 +11,5 @@
 (let string
   "oie, como estão vocês? Eu to bão, só testando umas string e pá")
 (let b '(1 2))
-(let h b.1 head)
+(let h b.x1 head)
 (print (+ a b) (- a b))

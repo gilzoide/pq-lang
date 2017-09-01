@@ -4,27 +4,29 @@ Uma linguagem de programação manerona
 
 Mas gilzoide, pq PQ?
 --------------------
-- PQ sim!
-- PQ não?
+- PorQue sim!
+- Por Que não?
 - Porque eu Quis!
 - adoro Pão de Queijo!
 
 Mah que diabos? (features)
 --------------------------
 - muito funcional
-- tudo são funções (mesmo que funções constantes)
 - permite programação estruturada (sequência de ações, xupa puridade)
 - currying a la haskell
-- código como listas a la Lisp (na real, o backend vai ter um Lisp correspondente)
-- ^ uso de símbolos, que serão guardados em um __string poll__
+- código como listas a la Lisp
+- ^ uso de símbolos
 - ^ permite macros massas
 - overload de funções
-- tipos por protótipo como hash tables e notação de chamada de método (estilo Lua)
+- tipos são structs, notação de chamada de método (estilo Lua) para qualquer
+  tipo (inclusive tipos nativos)
 - tipagem de parâmetros de funções
 - imutabilidade por padrão, mas haverão variáveis (_var_)
 - __algum dia__ funções que memoizam sozinho (_memoize_)
 - __talvez__ funções com _lazy evaluation_
-- containers padrão: listas e arrays (yup, C arrays, com direito a aritmética estilo de ponteiro)
+- containers padrão: listas e arrays (yup, C arrays, com direito a aritmética
+  estilo de ponteiro)
+- interpretado/JIT compilado (scripts) ou compilado pra código de máquina
 
 Quero saber mais!
 -----------------

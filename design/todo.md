@@ -1,3 +1,5 @@
-- sistema de contagem de referências (xupa shared\_ptr), ou sistema de destruição de objeto por escopo
-- listas, e chamar call nelas
-- object pool: terminar de por as outras classes (só tem Int nesse trem...)
+- Sistema de tipos, notação de método
+- Módulos e namespaces
+- Escopos e saída no arquivo objeto
+- Lambdas e Closures
+- Tipagem estática e anotações

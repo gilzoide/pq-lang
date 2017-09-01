@@ -1,4 +1,3 @@
-#!/usr/bin/env lua
 --[[ Copyright © 2016-2017 Gil Barbosa Reis
 --
 -- This file is part of PQ.
@@ -17,14 +16,14 @@
 -- along with PQ.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
---[[ PQ interpreter executable main file ]]--
+--[[ PQ prelude: stuff we can't live without (except for sandboxes) ]]--
 
--- local parser = require 'pq.parser'
--- parser.printNested (assert (parser.parseFile (assert (arg[1], 'Favor, dê-me um arquivo pra parsear'))))
+local Macro = require 'pq.macro'
 
-local Environment = require 'pq.environment'
-local env = Environment.new()
-
--- print(env:eval(arg[1] or ""))
-print(env:eval{"let", "oi", 1})
-print(env:eval("oi"))
+return function(env)
+	env.scope[1].let = Macro.new(function(env, symbol, val)
+		val = env:eval(val)
+		env.scope:set_local(symbol, val)
+		return val
+	end)
+end

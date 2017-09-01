@@ -1,4 +1,3 @@
-#!/usr/bin/env lua
 --[[ Copyright © 2016-2017 Gil Barbosa Reis
 --
 -- This file is part of PQ.
@@ -17,14 +16,35 @@
 -- along with PQ.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
---[[ PQ interpreter executable main file ]]--
+--[[ PQ core readers, the defaults registered at Reader creation ]]--
 
--- local parser = require 'pq.parser'
--- parser.printNested (assert (parser.parseFile (assert (arg[1], 'Favor, dê-me um arquivo pra parsear'))))
+local ll = require 'lualvm.llvm'
 
-local Environment = require 'pq.environment'
-local env = Environment.new()
+local string_pattern = [['"' { ('\"' / [^"])* } '"']]
 
--- print(env:eval(arg[1] or ""))
-print(env:eval{"let", "oi", 1})
-print(env:eval("oi"))
+local core_readers = {
+	--- Quotes.
+	{[["'" {.+}]], function(env, atom)
+		return atom
+	end},
+	--- Integer.
+	{"{%d+}", function(env, atom)
+		return tonumber(atom)
+	end},
+	--- String.
+	{string_pattern, function(env, atom)
+		return atom
+	end},
+	--- String metadata.
+	{'"!" ' .. string_pattern, function(env, atom)
+		return ll.MDStringInContext(env.llvm, atom)
+	end},
+}
+
+--- Register core readers in Environment.
+return function(env)
+	local reader = env.reader
+	for _, tuple in ipairs(core_readers) do
+		reader:register_pattern(tuple[1], tuple[2])
+	end
+end
