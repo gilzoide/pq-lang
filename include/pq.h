@@ -22,7 +22,9 @@
 #define __PQ_H__
 
 #include "pq/context.h"
+#include "pq/memory_manager.h"
 #include "pq/scope.h"
+#include "pq/scope_queue.h"
 #include "pq/type.h"
 #include "pq/value.h"
 

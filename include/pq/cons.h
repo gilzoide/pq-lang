@@ -18,34 +18,19 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#ifndef __PQ_VALUE_H__
-#define __PQ_VALUE_H__
-
-#include "type.h"
-
-#include <stdint.h>
-
-/**
- * Pq Value: a value with a Type.
+/** @file cons.h
+ * Cons cells, pairs of values, the primary object that constructs pq code.
  */
-typedef struct pq_value {
-	pq_type *type;
-	void *data;
-	unsigned int parent_scope;
-} pq_value;
 
-// Forward declarations
-typedef struct pq_context pq_context;
-typedef struct pq_scope pq_scope;
+#ifndef __PQ_CONS_H__
+#define __PQ_CONS_H__
 
-pq_value *pq_value_error(pq_context *ctx, const char *msg);
+#include "value.h"
 
-pq_value *pq_value_from_type(pq_context *ctx, pq_type *t);
-pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
-
-pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits);
-pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t i, int numbits);
-pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second);
+typedef struct pq_cons_cell {
+	pq_value *first;
+	pq_value *second;
+} pq_cons_cell;
 
 #endif
 

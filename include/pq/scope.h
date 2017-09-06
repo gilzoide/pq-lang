@@ -23,11 +23,22 @@
 
 #include "value.h"
 
+#include <stdlib.h>
+
 /**
  * Pq Scopes: a table-like structure that holds value definitions in the
  * form "String -> Value".
  */
-typedef void *pq_scope;
+typedef struct pq_scope {
+	void *table;
+
+	pq_value **created_values;
+	size_t size;
+	size_t capacity;
+} pq_scope;
+
+// Forward declarations
+typedef struct pq_context pq_context;
 
 /**
  * Initialize a pq Scope.
@@ -41,7 +52,7 @@ int pq_scope_initialize(pq_scope *scope);
  *
  * @param scope Scope to be destroyed.
  */
-void pq_scope_destroy(pq_scope *scope);
+void pq_scope_destroy(pq_context *ctx, pq_scope *scope);
 
 /**
  * Get a Value in a Scope.
@@ -61,10 +72,13 @@ pq_value *pq_scope_get(const pq_scope *scope, const char *key);
  * @param scope Target Scope.
  * @param key   Value's identifier.
  * @param val   Value to be inserted.
- *
- * @return Previous Value identified by `key` (may be `NULL`).
  */
-pq_value *pq_scope_set(pq_scope *scope, const char *key, pq_value *val);
+void pq_scope_set(pq_scope *scope, const char *key, pq_value *val);
+
+/**
+ * Mark a Value as created in Scope, so it can be destroyed when time comes.
+ */
+int pq_scope_mark_value_for_destruction(pq_scope *scope, pq_value *val);
 
 #endif
 

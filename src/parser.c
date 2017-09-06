@@ -19,15 +19,24 @@
  */
 
 #include <pq/parser.h>
+#include <pq/context.h>
 
 #include <ctype.h>
+#include <stdlib.h>
+
+static pt_data pq_integer(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
+	pq_context *ctx = data;
+	return PT_NULL_DATA;
+}
 
 /* PQ Expression Grammar
  * =====================
  *
  * Expr <- Sp (SExpr / Atom)
  * SExpr <- "(" Sp (Expr Sp)* ")"
- * Atom <- [^()]+
+ * Atom <- Int / [^()]+
+ *
+ * Int <- \d+
  *
  * Comment <- ";" [^\n]*
  * Sp <- (\s / Comment)*
@@ -37,7 +46,8 @@ int pq_parser_initialize(pq_parser *parser) {
 	pt_rule rules[] = {
 		{ "Expr", SEQ(V("Sp"), OR(V("SExpr"), V("Atom"))) },
 		{ "SExpr", SEQ(L("("), V("Sp"), Q(SEQ(V("Expr"), V("Sp")), 0), L(")")) },
-		{ "Atom", Q(BUT(S("()")), 1) },
+		{ "Atom", OR(V("Int"), Q(BUT(S("()")), 1)) },
+		{ "Int", Q(F(isdigit), 1) },
 		{ "Comment", SEQ(L(";"), Q(BUT(L("\n")), 0)) },
 		{ "Sp", Q(OR(F(isspace), V("Comment")), 0) },
 		{ NULL, NULL },

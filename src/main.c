@@ -20,9 +20,15 @@
 
 #include <pq.h>
 
+#include <stdio.h>
+
 int main() {
 	pq_context ctx;
 	pq_context_initialize(&ctx);
+
+	pq_context_set(&ctx, "olar", pq_value_from_int(&ctx, 42, 32));
+	printf("%p\n", pq_context_get(&ctx, "olar"));
+
 	pq_context_destroy(&ctx);
 	return 0;
 }

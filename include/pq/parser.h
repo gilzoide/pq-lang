@@ -26,7 +26,7 @@
 /**
  * Pq Parser: a customizable parser for single expressions.
  */
-typedef struct {
+typedef struct pq_parser {
 	pt_grammar *grammar;
 } pq_parser;
 
@@ -39,6 +39,11 @@ int pq_parser_initialize(pq_parser *parser);
  * Destroy a Parser, freeing the memory used.
  */
 void pq_parser_destroy(pq_parser *parser);
+
+/**
+ * Read an expression, returning the 
+ */
+// pq_value *pq_parser_read(pq_parser *parser, const char *str);
 
 #endif
 

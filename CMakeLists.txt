@@ -36,7 +36,7 @@ add_subdirectory(src)
 # endif()
 
 # Install headers
-# file(GLOB headers "include/pq/*.h")
-# configure_file("include/pq.h" "pq.h" @ONLY)
-# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pq-lang.h" DESTINATION "include")
-# install(FILES ${headers} DESTINATION "include/${CMAKE_PROJECT_NAME}")
+file(GLOB headers "include/pq/*.h")
+configure_file("include/pq.h" "pq.h" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pq.h" DESTINATION "include")
+install(FILES ${headers} DESTINATION "include/${CMAKE_PROJECT_NAME}")

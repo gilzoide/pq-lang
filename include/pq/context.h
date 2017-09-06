@@ -18,19 +18,31 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file context.h
+ * Pq interpreter Context, the topmost know-it-all structure.
+ */
+
 #ifndef __PQ_CONTEXT_H__
 #define __PQ_CONTEXT_H__
 
 #include <llvm-c/Core.h>
 
+#include "cons.h"
+#include "memory_manager.h"
 #include "parser.h"
+#include "scope.h"
+#include "scope_queue.h"
+#include "type.h"
 
 /**
  * Pq interpreter Context, the topmost know-it-all structure.
  */
-typedef struct {
+typedef struct pq_context {
 	LLVMContextRef llvm;
 	pq_parser parser;
+	pq_scope_queue scopes;
+	pq_builtin_types builtin_types;
+	pq_memory_manager memory_manager;
 } pq_context;
 
 /**
@@ -46,6 +58,20 @@ int pq_context_initialize(pq_context *ctx);
  * @param ctx Context to be destroyed.
  */
 void pq_context_destroy(pq_context *ctx);
+
+////////////////////////////////////////////////////////////////////////////////
+//  Scope management
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Get a local Value, searching for it from local (topmost) to root Scope.
+ */
+pq_value *pq_context_get(const pq_context *ctx, const char *key);
+
+/**
+ * Set a Value in the local (topmost) Scope.
+ */
+void pq_context_set(pq_context *ctx, const char *key, pq_value *val);
 
 #endif
 
