@@ -48,6 +48,7 @@ int pq_memory_manager_initialize(pq_memory_manager *mgr);
  */
 void pq_memory_manager_destroy(pq_context *ctx, pq_memory_manager *mgr);
 
+
 /**
  * Acquire a new Value.
  *
@@ -62,6 +63,7 @@ pq_value *pq_context_new_value(pq_context *ctx);
  * memory pool, someday).
  */
 void pq_context_release_value(pq_context *ctx, pq_value *val);
+
 
 /**
  * Acquire a new Cons Cell.

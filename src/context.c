@@ -30,7 +30,7 @@ int pq_context_initialize(pq_context *ctx) {
 	    pq_memory_manager_initialize(&ctx->memory_manager) &&
 	    pq_parser_initialize(&ctx->parser) &&
 	    pq_scope_queue_initialize(&ctx->scopes, 0) &&
-		pq_register_builtin_types(ctx)) {
+		pq_register_builtin(ctx)) {
 		return 1;
 	}
 	return 0;

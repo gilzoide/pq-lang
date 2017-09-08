@@ -24,9 +24,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-static pt_data pq_integer(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
+static pt_data read_integer(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;
-	return PT_NULL_DATA;
+	return (pt_data){ .p = pq_value_from_int(ctx, atoll(str + start), 32) };
 }
 
 /* PQ Expression Grammar
@@ -36,7 +36,7 @@ static pt_data pq_integer(const char *str, size_t start, size_t end, int argc, p
  * SExpr <- "(" Sp (Expr Sp)* ")"
  * Atom <- Int / [^()]+
  *
- * Int <- \d+
+ * Int <- [+-]? \d+
  *
  * Comment <- ";" [^\n]*
  * Sp <- (\s / Comment)*
@@ -47,7 +47,7 @@ int pq_parser_initialize(pq_parser *parser) {
 		{ "Expr", SEQ(V("Sp"), OR(V("SExpr"), V("Atom"))) },
 		{ "SExpr", SEQ(L("("), V("Sp"), Q(SEQ(V("Expr"), V("Sp")), 0), L(")")) },
 		{ "Atom", OR(V("Int"), Q(BUT(S("()")), 1)) },
-		{ "Int", Q(F(isdigit), 1) },
+		{ "Int", SEQ_(&read_integer, Q(S("+-"), 0), Q(F(isdigit), 1)) },
 		{ "Comment", SEQ(L(";"), Q(BUT(L("\n")), 0)) },
 		{ "Sp", Q(OR(F(isspace), V("Comment")), 0) },
 		{ NULL, NULL },
@@ -57,6 +57,18 @@ int pq_parser_initialize(pq_parser *parser) {
 	return parser->grammar != NULL;
 }
 #include <pega-texto/macro-off.h>
+
+pq_value *pq_read(pq_context *ctx, const char *str) {
+	pt_match_options opts = { .userdata = ctx };
+	pt_match_result res = pt_match_grammar(ctx->parser.grammar, str, &opts);
+	// TODO: error handling
+	if(res.matched >= 0) {
+		return res.data.p;
+	}
+	else {
+		return NULL;
+	}
+}
 
 void pq_parser_destroy(pq_parser *parser) {
 	pt_destroy_grammar(parser->grammar);

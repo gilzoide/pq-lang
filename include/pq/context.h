@@ -27,6 +27,7 @@
 
 #include <llvm-c/Core.h>
 
+#include "builtin.h"
 #include "cons.h"
 #include "memory_manager.h"
 #include "parser.h"
@@ -42,6 +43,7 @@ typedef struct pq_context {
 	pq_parser parser;
 	pq_scope_queue scopes;
 	pq_builtin_types builtin_types;
+	pq_builtin_values builtin_values;
 	pq_memory_manager memory_manager;
 } pq_context;
 
@@ -51,7 +53,6 @@ typedef struct pq_context {
  * @param ctx Context to be initialized.
  */
 int pq_context_initialize(pq_context *ctx);
-
 /**
  * Destroy a Context, freeing the memory used.
  *
@@ -59,15 +60,11 @@ int pq_context_initialize(pq_context *ctx);
  */
 void pq_context_destroy(pq_context *ctx);
 
-////////////////////////////////////////////////////////////////////////////////
-//  Scope management
-////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Get a local Value, searching for it from local (topmost) to root Scope.
  */
 pq_value *pq_context_get(const pq_context *ctx, const char *key);
-
 /**
  * Set a Value in the local (topmost) Scope.
  */

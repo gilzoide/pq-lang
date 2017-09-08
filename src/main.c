@@ -22,12 +22,20 @@
 
 #include <stdio.h>
 
+char buffer[1024];
+
 int main() {
 	pq_context ctx;
-	pq_context_initialize(&ctx);
+	if(!pq_context_initialize(&ctx)) {
+		fprintf(stderr, "Error initializing pq context\n");
+		return -1;
+	}
 
-	pq_context_set(&ctx, "olar", pq_value_from_int(&ctx, 42, 32));
-	printf("%p\n", pq_context_get(&ctx, "olar"));
+	pq_value *res = pq_call(&ctx, pq_context_get(&ctx, "print-version"), 0, NULL);
+	if(res->type->kind == PQ_ERROR) {
+		printf("Error: %s\n", (char *) res->data);
+	}
+	printf("Result type: \"%s\"\n", res->type->name);
 
 	pq_context_destroy(&ctx);
 	return 0;

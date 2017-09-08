@@ -60,15 +60,14 @@ typedef void (*pq_destructor)(pq_context *, void *);
 /**
  * Pq Type: metadata about a Value's type.
  */
-typedef struct pq_type_t {
+typedef struct pq_type {
 	char *name;
 	pq_type_kind kind;
-	struct pq_type_t *extends;
+	struct pq_type *extends;
 	pq_destructor self_destructor;
 	pq_destructor value_destructor;
 	void *data;
 } pq_type;
-
 
 /**
  * Register a Type in Context.
@@ -78,35 +77,6 @@ typedef struct pq_type_t {
 pq_value *pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
                            pq_type *extends, pq_destructor self_destructor,
                            pq_destructor value_destructor, void *data);
-
-/**
- * Builtin pq types, important stuff to store directly in variables.
- */
-typedef struct {
-	pq_type *_type;  // The "type" type
-	pq_type *_error;  // Error type
-	pq_type *_cons_cell;  // Cons cells, including code ones
-	pq_type *_scope;  // Scopes
-
-	pq_type *_i1;
-	pq_type *_i8;
-	pq_type *_i16;
-	pq_type *_i32;
-	pq_type *_i64;
-
-	pq_type *_half;
-	pq_type *_float;
-	pq_type *_double;
-
-	pq_type *_pointer;
-	pq_type *_struct;
-	pq_type *_array;
-} pq_builtin_types;
-
-/**
- * Registers the builtin pq Types in the Context.
- */
-int pq_register_builtin_types(pq_context *ctx);
 
 #endif
 

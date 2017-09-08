@@ -43,16 +43,17 @@ typedef struct pq_context pq_context;
 /**
  * Initialize a pq Scope.
  *
- * @param scope Scope to be inicilized.
+ * @param scope Scope to be initialized.
  */
 int pq_scope_initialize(pq_scope *scope);
-
 /**
  * Destroy a Scope, freeing the memory used.
  *
+ * @param ctx   Pq Context.
  * @param scope Scope to be destroyed.
  */
 void pq_scope_destroy(pq_context *ctx, pq_scope *scope);
+
 
 /**
  * Get a Value in a Scope.
@@ -65,7 +66,6 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope);
  * @return Value related to the key, if there is one, `NULL` otherwise.
  */
 pq_value *pq_scope_get(const pq_scope *scope, const char *key);
-
 /**
  * Set a Value in a Scope.
  *
@@ -74,6 +74,7 @@ pq_value *pq_scope_get(const pq_scope *scope, const char *key);
  * @param val   Value to be inserted.
  */
 void pq_scope_set(pq_scope *scope, const char *key, pq_value *val);
+
 
 /**
  * Mark a Value as created in Scope, so it can be destroyed when time comes.

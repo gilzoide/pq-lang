@@ -23,6 +23,8 @@
 
 #include <pega-texto.h>
 
+#include "value.h"
+
 /**
  * Pq Parser: a customizable parser for single expressions.
  */
@@ -30,20 +32,23 @@ typedef struct pq_parser {
 	pt_grammar *grammar;
 } pq_parser;
 
+// Forward declarations
+typedef struct pq_context pq_context;
+
 /**
  * Initialize a pq Parser.
  */
 int pq_parser_initialize(pq_parser *parser);
-
 /**
  * Destroy a Parser, freeing the memory used.
  */
 void pq_parser_destroy(pq_parser *parser);
 
+
 /**
- * Read an expression, returning the 
+ * Read an expression, returning the parsed Value.
  */
-// pq_value *pq_parser_read(pq_parser *parser, const char *str);
+pq_value *pq_read(pq_context *ctx, const char *str);
 
 #endif
 

@@ -31,7 +31,7 @@
 typedef struct pq_value {
 	pq_type *type;
 	void *data;
-	unsigned int parent_scope;
+	uint16_t parent_scope;
 } pq_value;
 
 // Forward declarations
@@ -39,13 +39,20 @@ typedef struct pq_context pq_context;
 typedef struct pq_scope pq_scope;
 
 pq_value *pq_value_error(pq_context *ctx, const char *msg);
+pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...);
 
 pq_value *pq_value_from_type(pq_context *ctx, pq_type *t);
 pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
 
 pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits);
-pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t i, int numbits);
+pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits);
 pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second);
+
+pq_value *pq_value_nil(pq_context *ctx);
+
+/// C Function prototype.
+typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value *argv);
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argmin, uint8_t argmax);
 
 #endif
 

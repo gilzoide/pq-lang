@@ -20,8 +20,13 @@
 
 #include <pq/value.h>
 #include <pq/context.h>
+#include <pq/function.h>
 
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+#define PQ_FERROR_BUFFER_SIZE 256
 
 pq_value *pq_value_error(pq_context *ctx, const char *msg) {
 	pq_value *val;
@@ -30,6 +35,15 @@ pq_value *pq_value_error(pq_context *ctx, const char *msg) {
 		val->data = strdup(msg);
 	}
 	return val;
+}
+
+pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...) {
+	static char ferror_buffer[PQ_FERROR_BUFFER_SIZE];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(ferror_buffer, PQ_FERROR_BUFFER_SIZE, fmt, args);
+	va_end(args);
+	return pq_value_error(ctx, ferror_buffer);
 }
 
 pq_value *pq_value_from_type(pq_context *ctx, pq_type *t) {
@@ -54,16 +68,36 @@ pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits) {
 	pq_value *val;
 	pq_type *type;
 	switch(numbits) {
-		case 1: type = ctx->builtin_types._i1; break;
+		case 1: type = ctx->builtin_types._bool; break;
 		case 8: type = ctx->builtin_types._i8; break;
 		case 16: type = ctx->builtin_types._i16; break;
 		case 32: type = ctx->builtin_types._i32; break;
 		case 64: type = ctx->builtin_types._i64; break;
-		default: return pq_value_error(ctx, "Invalid number of bits for integer value: should be 1, 8, 16, 32 or 64");
+		case 128: type = ctx->builtin_types._i128; break;
+		default: return pq_value_ferror(ctx, "Invalid number of bits for integer value: expected 1, 8, 16, 32, 64 or 128; found %d", numbits);
 	}
 	if(val = pq_context_new_value(ctx)) {
 		val->type = type;
 		val->data = LLVMConstInt(type->data, i, 1);
+	}
+	return val;
+}
+
+pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits) {
+	pq_value *val;
+	pq_type *type;
+	switch(numbits) {
+		case 1: type = ctx->builtin_types._bool; break;
+		case 8: type = ctx->builtin_types._u8; break;
+		case 16: type = ctx->builtin_types._u16; break;
+		case 32: type = ctx->builtin_types._u32; break;
+		case 64: type = ctx->builtin_types._u64; break;
+		case 128: type = ctx->builtin_types._u128; break;
+		default: return pq_value_ferror(ctx, "Invalid number of bits for unsigned integer value: expected 1, 8, 16, 32, 64 or 128; found %d", numbits);
+	}
+	if(val = pq_context_new_value(ctx)) {
+		val->type = type;
+		val->data = LLVMConstInt(type->data, u, 0);
 	}
 	return val;
 }
@@ -80,6 +114,25 @@ pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second) {
 			pq_context_release_value(ctx, val);
 			val = NULL;
 		}
+	}
+	return val;
+}
+
+pq_value *pq_value_nil(pq_context *ctx) {
+	return ctx->builtin_values._nil;
+}
+
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argmin, uint8_t argmax) {
+	pq_value *val;
+	if(val = pq_context_new_value(ctx)) {
+		pq_c_function *func;
+		if(func = malloc(sizeof(pq_c_function))) {
+			func->fptr = fptr;
+			func->argmin = argmin;
+			func->argmax = argmax;
+		}
+		val->type = ctx->builtin_types._function;
+		val->data = func;
 	}
 	return val;
 }

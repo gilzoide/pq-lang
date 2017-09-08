@@ -51,7 +51,7 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
 pq_value *pq_scope_get(const pq_scope *scope, const char *key) {
 	Word_t *pvalue;
 	JSLG(pvalue, scope->table, key);
-	return (pq_value *) *pvalue;
+	return pvalue ? (pq_value *) *pvalue : NULL;
 }
 
 void pq_scope_set(pq_scope *scope, const char *key, pq_value *val) {

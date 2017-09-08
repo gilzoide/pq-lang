@@ -44,17 +44,16 @@ typedef struct pq_scope_queue {
  * @return 0 on allocation error, non-zero otherwise.
  */
 int pq_scope_queue_initialize(pq_scope_queue *q, size_t initial_capacity);
-
 /**
  * Destroy a Scope Queue, freeing the memory used.
  */
 void pq_scope_queue_destroy(pq_context *ctx, pq_scope_queue *q);
 
+
 /**
  * Get the topmost Scope on Queue.
  */
 pq_scope *pq_scope_queue_peek(pq_scope_queue *q);
-
 /**
  * Push a new initialized Scope into a Scope Queue, doubling it's capacity, if
  * necessary.
@@ -62,15 +61,21 @@ pq_scope *pq_scope_queue_peek(pq_scope_queue *q);
  * @note The original state of the Scope Queue is maintained in the case of
  *       allocation error, so you still have do `destroy` it anyway.
  *
- * @return 0 on allocation error, non-zero otherwise.
+ * @return Newly allocated scope, or `NULL` on allocation error.
  */
-int pq_scope_queue_push(pq_scope_queue *q);
+pq_scope *pq_scope_queue_push(pq_scope_queue *q);
+/**
+ * Pops a Scope from the Queue, decreasing it's size.
+ *
+ * @return Popped Scope, or `NULL` if there is none.
+ */
+pq_scope *pq_scope_queue_pop(pq_scope_queue *q);
+
 
 /**
  * Get a local Value, searching for it from local (topmost) to root Scope.
  */
 pq_value *pq_scope_queue_get(const pq_scope_queue *q, const char *key);
-
 /**
  * Set a Value in the local (topmost) Scope.
  */

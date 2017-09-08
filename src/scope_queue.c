@@ -47,7 +47,7 @@ pq_scope *pq_scope_queue_peek(pq_scope_queue *q) {
 	return q->size > 0 ? q->scopes + q->size - 1 : NULL;
 }
 
-int pq_scope_queue_push(pq_scope_queue *q) {
+pq_scope *pq_scope_queue_push(pq_scope_queue *q) {
 	pq_scope *aux;
 	if(q->size == q->capacity) {
 		size_t new_capacity = q->capacity * 2;
@@ -56,11 +56,17 @@ int pq_scope_queue_push(pq_scope_queue *q) {
 			q->capacity = new_capacity;
 		}
 		else {
-			return 0;
+			return NULL;
 		}
 	}
 	aux = q->scopes + (q->size++);
-	return pq_scope_initialize(aux);
+	pq_scope_initialize(aux);
+	return aux;
+}
+
+pq_scope *pq_scope_queue_pop(pq_scope_queue *q) {
+	q->size--;
+	return q->size >= 0 ? q->scopes + q->size : NULL;
 }
 
 pq_value *pq_scope_queue_get(const pq_scope_queue *q, const char *key) {
