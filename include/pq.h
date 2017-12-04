@@ -21,9 +21,12 @@
 #ifndef __PQ_H__
 #define __PQ_H__
 
+#include "pq/builtin.h"
+#include "pq/cons.h"
 #include "pq/context.h"
 #include "pq/function.h"
 #include "pq/memory_manager.h"
+#include "pq/parser.h"
 #include "pq/scope.h"
 #include "pq/scope_queue.h"
 #include "pq/type.h"

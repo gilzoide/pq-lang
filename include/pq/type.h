@@ -29,17 +29,24 @@
  * Kinds of types in pq.
  */
 typedef enum pq_type_kind {
+	PQ_INT,
+	PQ_FLOAT,
+	PQ_STRING,
+	PQ_STRUCT,
+	PQ_ARRAY,
+
 	PQ_NIL,
-	PQ_LLVM,
 	PQ_CONS_CELL,
 	PQ_TYPE,
 	PQ_SCOPE,
 	PQ_SYMBOL,
 	PQ_ERROR,
+
 	PQ_FUNCTION,
 	PQ_MACRO,
 	PQ_C_FUNCTION,
 	PQ_LLVM_MACRO,
+	PQ_LLVM_FUNCTION,
 
 	PQ_TYPE_KIND_END,
 } pq_type_kind;
@@ -53,7 +60,8 @@ typedef struct pq_value pq_value;
  *
  * Parameters:
  * + Pq context.
- * + Data: destroy it wisely.
+ * + Data: destroy it's contents wisely, but not itself, as this data is
+ *   in the same block of memory as the Value itself.
  */
 typedef void (*pq_destructor)(pq_context *, void *);
 
@@ -63,7 +71,6 @@ typedef void (*pq_destructor)(pq_context *, void *);
 typedef struct pq_type {
 	char *name;
 	pq_type_kind kind;
-	struct pq_type *extends;
 	pq_destructor self_destructor;
 	pq_destructor value_destructor;
 	void *data;
@@ -75,7 +82,7 @@ typedef struct pq_type {
  * This will be primarily used by the pq interpreter itself.
  */
 pq_value *pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
-                           pq_type *extends, pq_destructor self_destructor,
+                           pq_destructor self_destructor,
                            pq_destructor value_destructor, void *data);
 
 #endif

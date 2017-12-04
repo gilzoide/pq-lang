@@ -30,6 +30,8 @@
 #include "cons.h"
 #include "value.h"
 
+#include <stdlib.h>
+
 /**
  * Pq internal memory manager.
  */
@@ -50,35 +52,23 @@ void pq_memory_manager_destroy(pq_context *ctx, pq_memory_manager *mgr);
 
 
 /**
- * Acquire a new Value.
+ * Acquire a new Value, with additional `data_size` bytes for the custom data.
  *
  * This is important if Values memory management change over time (maybe a
  * memory pool, someday).
+ *
+ * @sa pq_new_value
  */
-pq_value *pq_context_new_value(pq_context *ctx);
+pq_value *pq_new_value_with_size(pq_context *ctx, size_t data_size);
+/// Facility to create a Value with the `sizeof` a C type.
+#define pq_new_value(ctx, c_type) (pq_new_value_with_size(ctx, sizeof(c_type)))
 /**
  * Release a Value.
  *
  * This is important if Values memory management change over time (maybe a
  * memory pool, someday).
  */
-void pq_context_release_value(pq_context *ctx, pq_value *val);
-
-
-/**
- * Acquire a new Cons Cell.
- *
- * This is important if Conses memory management change over time (maybe a
- * memory pool, someday).
- */
-pq_cons_cell *pq_context_new_cons_cell(pq_context *ctx);
-/**
- * Release a Cons Cell.
- *
- * This is important if Conses memory management change over time (maybe a
- * memory pool, someday).
- */
-void pq_context_release_cons_cell(pq_context *ctx, pq_cons_cell *val);
+void pq_release_value(pq_context *ctx, pq_value *val);
 
 #endif
 

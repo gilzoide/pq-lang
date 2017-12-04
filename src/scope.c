@@ -43,7 +43,7 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
 	// this is particularly true for builtin Types.
 	int i;
 	for(i = scope->size - 1; i >= 0; i--) {
-		pq_context_release_value(ctx, scope->created_values[i]);
+		pq_release_value(ctx, scope->created_values[i]);
 	}
 	free(scope->created_values);
 }

@@ -26,11 +26,11 @@ int pq_context_initialize(pq_context *ctx) {
 	// require LLVM to shutdown to avoid memory leaks
 	atexit(LLVMShutdown);
 
-	if((ctx->llvm = LLVMContextCreate()) != NULL &&
-	    pq_memory_manager_initialize(&ctx->memory_manager) &&
-	    pq_parser_initialize(&ctx->parser) &&
-	    pq_scope_queue_initialize(&ctx->scopes, 0) &&
-		pq_register_builtin(ctx)) {
+	if((ctx->llvm = LLVMContextCreate()) != NULL
+			&& pq_memory_manager_initialize(&ctx->memory_manager)
+			&& pq_parser_initialize(&ctx->parser)
+			&& pq_scope_queue_initialize(&ctx->scopes, 0)
+			&& pq_register_builtin(ctx)) {
 		return 1;
 	}
 	return 0;
@@ -44,10 +44,15 @@ void pq_context_destroy(pq_context *ctx) {
 }
 
 pq_value *pq_context_get(const pq_context *ctx, const char *key) {
-	return pq_scope_queue_get(&ctx->scopes, key);
+	pq_value *val = pq_scope_queue_get(&ctx->scopes, key);
+	return val ? val : ctx->builtin_values._nil;
 }
 
 void pq_context_set(pq_context *ctx, const char *key, pq_value *val) {
 	pq_scope_queue_set(&ctx->scopes, key, val);
+}
+
+void pq_push_scope(pq_context *ctx) {
+	pq_scope_queue_push(&ctx->scopes);
 }
 

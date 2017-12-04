@@ -27,14 +27,13 @@
 #include <string.h>
 
 pq_value *pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
-                           pq_type *extends, pq_destructor self_destructor,
+                           pq_destructor self_destructor,
                            pq_destructor value_destructor, void *data) {
 	assert(ctx && kind < PQ_TYPE_KIND_END);
 	pq_type *new_type;
 	if(new_type = malloc(sizeof(pq_type))) {
 		new_type->name = strdup(name);
 		new_type->kind = kind;
-		new_type->extends = extends;
 		new_type->self_destructor = self_destructor;
 		new_type->value_destructor = value_destructor;
 		new_type->data = data;

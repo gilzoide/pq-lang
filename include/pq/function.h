@@ -25,48 +25,75 @@
 #ifndef __PQ_FUNCTION_H__
 #define __PQ_FUNCTION_H__
 
-#include "value.h"
+// Forward declarations
+typedef struct pq_value pq_value;
+typedef struct pq_context pq_context;
 
 #include <stdint.h>
+
+enum {
+	PQ_NO_VARARGS = 0,
+	PQ_VARARGS = 1,
+};
+
+/**
+ * Function metadata, used by every Function type in pq.
+ */
+typedef struct pq_function_metadata {
+	uint8_t argnum;
+	uint8_t is_variadic : 1;
+} pq_function_metadata;
 
 /**
  * Functions defined in pq: code defined by Cons Cells.
  */
 typedef struct pq_function {
+	pq_function_metadata header;
 	pq_value *code;
-	uint8_t argmin;
-	uint8_t argmax;
 } pq_function;
+
+/**
+ * Registers a pq Function into pq Context.
+ */
+pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code, uint8_t argnum, uint8_t is_variadic);
+
+/// C Function prototype.
+typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value **argv);
 
 /**
  * Functions defined in C, receiving pq Values in the argv array.
  */
 typedef struct pq_c_function {
+	pq_function_metadata header;
 	pq_c_function_ptr fptr;
-	uint8_t argmin;
-	uint8_t argmax;
 } pq_c_function;
-
-// Forward declarations
-typedef struct pq_context pq_context;
 
 /**
  * Registers a C Function into pq Context.
  */
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argmin, uint8_t argmax);
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic);
 
 /**
  * Try to call the `func` value, which should be callable (either a function, macro or type).
  *
  * @param ctx  Pq Context.
  * @param func Function value to be called.
- * @param argc Number of arguments. If this number isn't between `func->argmin`
- *             and `func->argmax`, pq_call returns the according error.
+ * @param argc Number of arguments.
  * @param argv Array of arguments to be passed.
  *
  * @return Value returned from the function, or an Error Value if there is any.
  */
-pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value *argv);
+pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv);
+pq_value *pq_vcall(pq_context *ctx, pq_value *func, int argc, ...);
+/**
+ * Mark a value to be returned by a function.
+ *
+ * This is used on to pop the Scope pushed by `pq_call`, marking the return
+ * Value, so that previous Scope own it.
+ *
+ * @return `ret`, so you can `return pq_return(ctx, val);`
+ */
+pq_value *pq_return(pq_context *ctx, pq_value *ret);
 
 #endif
 

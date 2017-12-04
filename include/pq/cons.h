@@ -25,7 +25,8 @@
 #ifndef __PQ_CONS_H__
 #define __PQ_CONS_H__
 
-#include "value.h"
+// Forward declaration
+typedef struct pq_value pq_value;
 
 typedef struct pq_cons_cell {
 	pq_value *first;

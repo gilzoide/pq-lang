@@ -25,6 +25,7 @@
 #ifndef __PQ_BUILTIN_H__
 #define __PQ_BUILTIN_H__
 
+#include "cons.h"
 #include "function.h"
 #include "type.h"
 #include "value.h"
@@ -46,8 +47,10 @@ typedef struct pq_builtin_types {
 	pq_type *_cons_cell;  // Cons cells, including code ones
 	pq_type *_scope;  // Scopes
 	pq_type *_nil;
+	pq_type *_symbol;
 
 	pq_type *_function;
+	pq_type *_c_function;
 
 	pq_type *_bool;
 	pq_type *_i8;
@@ -60,6 +63,8 @@ typedef struct pq_builtin_types {
 	pq_type *_u32;
 	pq_type *_u64;
 	pq_type *_u128;
+
+	pq_type *_string;
 
 	pq_type *_half;
 	pq_type *_float;
@@ -80,6 +85,8 @@ int pq_register_builtin_types(pq_context *ctx);
  */
 typedef struct pq_builtin_values {
 	pq_value *_nil;
+	pq_value *_true;
+	pq_value *_false;
 } pq_builtin_values;
 /**
  * Registers the builtin pq Values in the Context.

@@ -21,29 +21,78 @@
 #include <pq/function.h>
 #include <pq/context.h>
 
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argmin, uint8_t argmax) {
+#include <stdarg.h>
+
+pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code, uint8_t argnum, uint8_t is_variadic) {
 	pq_value *func_val;
-	if(func_val = pq_value_from_c_function(ctx, func, argmin, argmax)) {
+	if(func_val = pq_value_from_code(ctx, code, argnum, is_variadic)) {
 		pq_context_set(ctx, name, func_val);
 	}
 	return func_val;
 }
 
-pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value *argv) {
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic) {
+	pq_value *func_val;
+	if(func_val = pq_value_from_c_function(ctx, func, argnum, is_variadic)) {
+		pq_context_set(ctx, name, func_val);
+	}
+	return func_val;
+}
+
+pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 	if(!func) {
 		return pq_value_error(ctx, "Can't call a null value");
 	}
+	else if(!pq_is_callable(func)) {
+		return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", func->type->name);
+	}
 	else {
+		pq_function_metadata *func_md = pq_value_get_data(func);
+		if(argc < (int) func_md->argnum || !func_md->is_variadic && argc > (int) func_md->argnum) {
+			return pq_value_ferror(ctx, "Expected %s%u arguments; found %d",
+					func_md->is_variadic ? "at least " : "", func_md->argnum, argc);
+		}
+
 		switch(func->type->kind) {
-			case PQ_FUNCTION: ;
-				pq_c_function *func_val = func->data;
-				if(argc < (int) func_val->argmin || argc > (int) func_val->argmax) {
-					return pq_value_ferror(ctx, "Expected between %u and %u arguments; found %d", func_val->argmin, func_val->argmax, argc);
-				}
+			case PQ_FUNCTION:
+				// try to compile 
+				break;
+
+			case PQ_MACRO:
+				// just run. must return code.
+				break;
+
+			case PQ_C_FUNCTION: ;
+				pq_c_function *func_val = (pq_c_function *) func_md;
+				pq_push_scope(ctx);
 				return func_val->fptr(ctx, argc, argv);
-			default:
-				return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", func->type->name);
+
+			case PQ_LLVM_MACRO:
+				// compile
+				break;
 		}
 	}
+}
+
+pq_value *pq_vcall(pq_context *ctx, pq_value *func, int argc, ...) {
+	pq_value *argv[argc];
+	va_list ap;
+	va_start(ap, argc);
+	int i;
+	for(i = 0; i < argc; i++) {
+		argv[i] = va_arg(ap, pq_value *);
+	}
+	va_end(ap);
+	return pq_call(ctx, func, argc, argv);
+}
+
+pq_value *pq_return(pq_context *ctx, pq_value *ret) {
+	pq_scope *top = pq_scope_queue_pop(&ctx->scopes);
+	if(ret && ret->parent_scope >= ctx->scopes.size) {
+		ret->parent_scope--;
+		pq_scope_mark_value_for_destruction(top - 1, ret);
+	}
+	pq_scope_destroy(ctx, top);
+	return ret;
 }
 

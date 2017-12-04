@@ -18,12 +18,8 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include <Judy.h>
-
 #include <pq/memory_manager.h>
 #include <pq/context.h>
-
-#include <stdlib.h>
 
 int pq_memory_manager_initialize(pq_memory_manager *mgr) {
 	return 1;
@@ -31,30 +27,22 @@ int pq_memory_manager_initialize(pq_memory_manager *mgr) {
 
 void pq_memory_manager_destroy(pq_context *ctx, pq_memory_manager *mgr) {}
 
-pq_value *pq_context_new_value(pq_context *ctx) {
+pq_value *pq_new_value_with_size(pq_context *ctx, size_t data_size) {
 	pq_value *val;
-	if(val = malloc(sizeof(pq_value))) {
+	if(val = malloc(sizeof(pq_value) + data_size)) {
 		size_t last_scope = val->parent_scope = ctx->scopes.size - 1;
 		pq_scope_mark_value_for_destruction(ctx->scopes.scopes + last_scope, val);
 	}
 	return val;
 }
 
-void pq_context_release_value(pq_context *ctx, pq_value *val) {
+void pq_release_value(pq_context *ctx, pq_value *val) {
 	// only destroy val if it's scope isn't yet below in the stack
 	if(val && val->parent_scope >= ctx->scopes.size - 1) {
 		if(val->type->value_destructor) {
-			val->type->value_destructor(ctx, val->data);
+			val->type->value_destructor(ctx, pq_value_get_data(val));
 		}
 		free(val);
 	}
-}
-
-pq_cons_cell *pq_context_new_cons_cell(pq_context *ctx) {
-	return malloc(sizeof(pq_cons_cell));
-}
-
-void pq_context_release_cons_cell(pq_context *ctx, pq_cons_cell *val) {
-	free(val);
 }
 

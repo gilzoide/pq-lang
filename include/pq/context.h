@@ -70,5 +70,11 @@ pq_value *pq_context_get(const pq_context *ctx, const char *key);
  */
 void pq_context_set(pq_context *ctx, const char *key, pq_value *val);
 
+
+/**
+ * Pushes a new Scope into Context.
+ */
+void pq_push_scope(pq_context *ctx);
+
 #endif
 
