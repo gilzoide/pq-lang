@@ -63,15 +63,16 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 		switch(func->type->kind) {
 			case PQ_FUNCTION:
 				_eval_args();
+				pq_push_scope(ctx);
 			case PQ_MACRO:
 				// just run. must return code.
 				break;
 
 			case PQ_C_FUNCTION:
 				_eval_args();
+				pq_push_scope(ctx);
 			case PQ_C_MACRO: {
 				pq_c_function *func_val = (pq_c_function *) func_md;
-				pq_push_scope(ctx);
 				return func_val->fptr(ctx, argc, argv);
 			}
 
@@ -79,7 +80,8 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 				// compile
 				break;
 		}
-		return pq_value_nil(ctx);
+		return pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)",
+				func->type->name);
 	}
 }
 #undef _eval_args

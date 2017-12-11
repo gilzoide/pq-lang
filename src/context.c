@@ -18,6 +18,7 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+#include <pq/assert.h>
 #include <pq/context.h>
 
 #include <stdlib.h>
@@ -65,6 +66,8 @@ pq_value *pq_eval(pq_context *ctx, pq_value *val) {
 		case PQ_CONS_CELL: {
 			pq_cons_cell *cons = pq_value_get_data(val);
 			pq_value *func = pq_eval(ctx, cons->first);
+			pq_assert_not_error(func);
+			// transform the arguments list into an array
 			int argc = 0;
 			pq_value *arg, **argv = NULL;
 			while(!pq_is_nil(arg = cons->second)) {

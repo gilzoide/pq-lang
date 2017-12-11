@@ -18,22 +18,17 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#ifndef __PQ_H__
-#define __PQ_H__
+#ifndef __PQ_ASSERT_H__
+#define __PQ_ASSERT_H__
 
-#include "pq/assert.h"
-#include "pq/builtin.h"
-#include "pq/cons.h"
-#include "pq/context.h"
-#include "pq/function.h"
-#include "pq/memory_manager.h"
-#include "pq/parser.h"
-#include "pq/scope.h"
-#include "pq/scope_queue.h"
-#include "pq/type.h"
-#include "pq/value.h"
-
-#define PQ_VERSION "@PROJECT_VERSION@"
+/**
+ * Assert that a Value is not an Error.
+ *
+ * This macro actually returns the value, so it is designed to be used only on
+ * C Functions/Macros.
+ */
+#define pq_assert_not_error(val) \
+	if(pq_is_error(val)) return val
 
 #endif
 

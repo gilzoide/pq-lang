@@ -130,7 +130,6 @@ static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
 static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	const char *sym;
 	argv[1] = pq_eval(ctx, argv[1]);
-	pq_return(ctx, argv[1]);
 	if(!pq_is_error(argv[1])) {
 		switch(argv[0]->type->kind) {
 			case PQ_SYMBOL:
@@ -145,6 +144,16 @@ static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	}
 	return argv[1];
 }
+/// Just return the evaluation of the evaluated argument.
+static pq_value *_eval(pq_context *ctx, int argc, pq_value **argv) {
+	pq_value *code = pq_eval(ctx, argv[0]);
+	return pq_eval(ctx, code);
+}
+/// Just return argument without evaluation.
+static pq_value *_quote(pq_context *ctx, int argc, pq_value **argv) {
+	return argv[0];
+}
+/// Return NULL, so the REPL quits.
 static pq_value *_quit(pq_context *ctx, int argc, pq_value **argv) {
 	return NULL;
 }
@@ -152,6 +161,8 @@ static pq_value *_quit(pq_context *ctx, int argc, pq_value **argv) {
 
 int pq_register_builtin_functions(pq_context *ctx) {
 	pq_register_c_function(ctx, "let", &_let, 2, PQ_NO_VARARGS, 1);
+	pq_register_c_function(ctx, "quote", &_quote, 1, PQ_NO_VARARGS, 1);
+	pq_register_c_function(ctx, "eval", &_eval, 1, PQ_NO_VARARGS, 1);
 	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARARGS, 0);
 	pq_register_c_function(ctx, "quit", &_quit, 0, PQ_NO_VARARGS, 1);
 }
