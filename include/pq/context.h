@@ -64,7 +64,7 @@ void pq_context_destroy(pq_context *ctx);
 /**
  * Get a local Value, searching for it from local (topmost) to root Scope.
  */
-pq_value *pq_context_get(const pq_context *ctx, const char *key);
+pq_value *pq_context_get(pq_context *ctx, const char *key);
 /**
  * Set a Value in the local (topmost) Scope.
  */
@@ -75,6 +75,13 @@ void pq_context_set(pq_context *ctx, const char *key, pq_value *val);
  * Pushes a new Scope into Context.
  */
 void pq_push_scope(pq_context *ctx);
+
+/**
+ * Evaluate a pq value.
+ *
+ * @todo: explain better, as eval is very important.
+ */
+pq_value *pq_eval(pq_context *ctx, pq_value *val);
 
 #endif
 

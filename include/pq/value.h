@@ -51,6 +51,8 @@ static inline void *pq_value_get_data(pq_value *val) {
 }
 /**
  * Facility to get a Value data section derreferenced and cast to some C type.
+ *
+ * This may also be used directly for setting the Value data.
  */
 #define pq_value_get_data_as(val, c_type) (*((c_type *) pq_value_get_data(val)))
 
@@ -73,7 +75,7 @@ pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second);
 
 pq_value *pq_value_nil(pq_context *ctx);
 
-pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro);
 pq_value *pq_value_from_code(pq_context *ctx, pq_value *code, uint8_t argnum, uint8_t is_variadic);
 
 // Value type checks

@@ -92,6 +92,7 @@ int pq_register_builtin_types(pq_context *ctx) {
 
 	register_type(_function, "function-t", PQ_FUNCTION, NULL, (pq_destructor) &_destroy_function, NULL);
 	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL, NULL);
+	register_type(_c_macro, "c-macro-t", PQ_C_MACRO, NULL, NULL, NULL);
 
 	register_type(_bool, "bool", PQ_INT, NULL, NULL, LLVMInt1TypeInContext(ctx->llvm));
 	register_type(_i8, "i8", PQ_INT, NULL, NULL, LLVMInt8TypeInContext(ctx->llvm));
@@ -117,43 +118,41 @@ int pq_register_builtin_types(pq_context *ctx) {
 ////////////////////////////////////////////////////////////////////////////////
 //  Builtin functions
 ////////////////////////////////////////////////////////////////////////////////
-static pq_value *print_version(pq_context *ctx, int argc, pq_value **argv) {
-	puts("pq version: " PQ_VERSION);
-	int i;
-	for(i = 0; i < argc; i++) {
-		if(pq_is_int(argv[i])) {
-			printf("Int arg %d: %ld\n", i + 1, pq_value_get_data_as(argv[i], intmax_t));
-		}
-	}
-	return pq_return(ctx, pq_value_nil(ctx));
-}
 static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
 	FILE *output = stdout;
 	while(argc--) {
 		pq_value *val = *(argv++);
 		pq_fprint(ctx, val, output);
 	}
+	fputc('\n', stdout);
 	return pq_return(ctx, pq_value_nil(ctx));
 }
 static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	const char *sym;
+	argv[1] = pq_eval(ctx, argv[1]);
 	pq_return(ctx, argv[1]);
-	switch(argv[0]->type->kind) {
-		case PQ_SYMBOL:
-			sym = pq_value_get_data_as(argv[0], char *);
-			pq_context_set(ctx, sym, argv[1]);
-			break;
+	if(!pq_is_error(argv[1])) {
+		switch(argv[0]->type->kind) {
+			case PQ_SYMBOL:
+				sym = pq_value_get_data_as(argv[0], char *);
+				pq_context_set(ctx, sym, argv[1]);
+				break;
 
-		default:
-			return pq_value_error(ctx, "Invalid argument 1 for let: expected symbol");
+			default:
+				return pq_value_ferror(ctx, "Invalid argument 1 for let: expected symbol, found %s",
+						argv[0]->type->name);
+		}
 	}
 	return argv[1];
+}
+static pq_value *_quit(pq_context *ctx, int argc, pq_value **argv) {
+	return NULL;
 }
 ////////////////////////////////////////////////////////////////////////////////
 
 int pq_register_builtin_functions(pq_context *ctx) {
-	pq_register_c_function(ctx, "print-version", &print_version, 0, PQ_VARARGS);
-	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARARGS);
-	pq_register_c_function(ctx, "let", &_let, 2, PQ_NO_VARARGS);
+	pq_register_c_function(ctx, "let", &_let, 2, PQ_NO_VARARGS, 1);
+	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARARGS, 0);
+	pq_register_c_function(ctx, "quit", &_quit, 0, PQ_NO_VARARGS, 1);
 }
 

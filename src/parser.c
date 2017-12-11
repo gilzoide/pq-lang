@@ -45,7 +45,8 @@ static pt_data read_list(const char *str, size_t start, size_t end, int argc, pt
 /* PQ Expression Grammar
  * =====================
  *
- * Expr <- Sp (SExpr / Atom)
+ * Axiom <- Sp (!. / Expr)
+ * Expr <- SExpr / Atom
  * SExpr <- "(" Sp (Expr Sp)* ")"
  * Atom <- Int / Symbol
  * Symbol <- [^()\s]+
@@ -58,7 +59,8 @@ static pt_data read_list(const char *str, size_t start, size_t end, int argc, pt
 #include <pega-texto/macro-on.h>
 int pq_parser_initialize(pq_parser *parser) {
 	pt_rule rules[] = {
-		{ "Expr", SEQ(V("Sp"), OR(V("SExpr"), V("Atom"))) },
+		{ "Axiom", SEQ(V("Sp"), OR(NOT(ANY), V("Expr"))) },
+		{ "Expr", OR(V("SExpr"), V("Atom")) },
 		{ "SExpr", SEQ_(&read_list, L("("), V("Sp"), Q(SEQ(V("Expr"), V("Sp")), 0), L(")")) },
 		{ "Atom", OR(V("Int"), V("Symbol")) },
 		{ "Symbol", Q_(&read_symbol, BUT(OR(S("();"), F(isspace))), 1) },
@@ -77,8 +79,8 @@ pq_value *pq_read(pq_context *ctx, const char *str) {
 	pt_match_options opts = { .userdata = ctx };
 	pt_match_result res = pt_match_grammar(ctx->parser.grammar, str, &opts);
 	// TODO: error handling
-	if(res.matched >= 0) {
-		return res.data.p;
+	if(res.matched > 0) {
+		return res.data.p ? res.data.p : pq_value_nil(ctx);
 	}
 	else {
 		return pq_value_error(ctx, "Erro no parse!");

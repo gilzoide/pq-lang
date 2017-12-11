@@ -69,9 +69,9 @@ typedef struct pq_c_function {
 } pq_c_function;
 
 /**
- * Registers a C Function into pq Context.
+ * Registers a C Function or Macro into pq Context.
  */
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro);
 
 /**
  * Try to call the `func` value, which should be callable (either a function, macro or type).

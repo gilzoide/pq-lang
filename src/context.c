@@ -43,9 +43,9 @@ void pq_context_destroy(pq_context *ctx) {
 	pq_memory_manager_destroy(ctx, &ctx->memory_manager);
 }
 
-pq_value *pq_context_get(const pq_context *ctx, const char *key) {
+pq_value *pq_context_get(pq_context *ctx, const char *key) {
 	pq_value *val = pq_scope_queue_get(&ctx->scopes, key);
-	return val ? val : ctx->builtin_values._nil;
+	return val ? val : pq_value_ferror(ctx, "couldn't find value \"%s\"", key);
 }
 
 void pq_context_set(pq_context *ctx, const char *key, pq_value *val) {
@@ -54,5 +54,32 @@ void pq_context_set(pq_context *ctx, const char *key, pq_value *val) {
 
 void pq_push_scope(pq_context *ctx) {
 	pq_scope_queue_push(&ctx->scopes);
+}
+
+pq_value *pq_eval(pq_context *ctx, pq_value *val) {
+	if(val == NULL) return pq_value_nil(ctx);
+	switch(val->type->kind) {
+		case PQ_SYMBOL:
+			return pq_context_get(ctx, pq_value_get_data_as(val, const char *));
+
+		case PQ_CONS_CELL: {
+			pq_cons_cell *cons = pq_value_get_data(val);
+			pq_value *func = pq_eval(ctx, cons->first);
+			int argc = 0;
+			pq_value *arg, **argv = NULL;
+			while(!pq_is_nil(arg = cons->second)) {
+				cons = pq_value_get_data(arg);
+				argc++;
+				argv = realloc(argv, argc * sizeof(pq_value *));
+				argv[argc - 1] = cons->first;
+			}
+			pq_value *ret = pq_call(ctx, func, argc, argv);
+			free(argv);
+			return ret;
+		}
+
+		default:
+			return val;
+	}
 }
 

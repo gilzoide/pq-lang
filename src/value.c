@@ -138,10 +138,10 @@ pq_value *pq_value_nil(pq_context *ctx) {
 	return ctx->builtin_values._nil;
 }
 
-pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, uint8_t is_variadic) {
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_c_function)) {
-		val->type = ctx->builtin_types._c_function;
+		val->type = is_macro ? ctx->builtin_types._c_macro : ctx->builtin_types._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
 		cfunc->header.argnum = argnum;
 		cfunc->header.is_variadic = is_variadic;
@@ -179,7 +179,9 @@ int pq_is_error(pq_value *val) {
 
 int pq_is_callable(pq_value *val) {
 	return val->type->kind == PQ_FUNCTION
+	       || val->type->kind == PQ_MACRO
 	       || val->type->kind == PQ_C_FUNCTION
+	       || val->type->kind == PQ_C_MACRO
 	       || val->type->kind == PQ_LLVM_MACRO
 	       || val->type->kind == PQ_LLVM_FUNCTION;
 }
@@ -198,8 +200,11 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_SYMBOL:
-		case PQ_STRING:
 			fprintf(output, "%s", pq_value_get_data_as(val, char *));
+			break;
+
+		case PQ_STRING:
+			fprintf(output, "\"%s\"", pq_value_get_data_as(val, char *));
 			break;
 
 		case PQ_INT:
@@ -226,6 +231,9 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 		case PQ_ERROR:
 			fprintf(output, "error: %s", pq_value_get_data_as(val, char *));
 			break;
+
+		default:
+			fprintf(output, "[no print for type \"%s\"]", val->type->name);
 	}
 }
 

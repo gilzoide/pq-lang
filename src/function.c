@@ -31,13 +31,19 @@ pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code
 	return func_val;
 }
 
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic) {
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro) {
 	pq_value *func_val;
-	if(func_val = pq_value_from_c_function(ctx, func, argnum, is_variadic)) {
+	if(func_val = pq_value_from_c_function(ctx, func, argnum, is_variadic, is_macro)) {
 		pq_context_set(ctx, name, func_val);
 	}
 	return func_val;
 }
+
+// Evaluate the arguments given to `pq_call`, if it is a function
+#define _eval_args() \
+	for(i = 0; i < argc; i++) \
+		if(pq_is_error(argv[i] = pq_eval(ctx, argv[i]))) \
+			return argv[i] \
 
 pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 	if(!func) {
@@ -49,30 +55,34 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 	else {
 		pq_function_metadata *func_md = pq_value_get_data(func);
 		if(argc < (int) func_md->argnum || !func_md->is_variadic && argc > (int) func_md->argnum) {
-			return pq_value_ferror(ctx, "Expected %s%u arguments; found %d",
+			return pq_value_ferror(ctx, "Expected %s%u argument(s); found %d",
 					func_md->is_variadic ? "at least " : "", func_md->argnum, argc);
 		}
 
+		int i;
 		switch(func->type->kind) {
 			case PQ_FUNCTION:
-				// try to compile 
-				break;
-
+				_eval_args();
 			case PQ_MACRO:
 				// just run. must return code.
 				break;
 
-			case PQ_C_FUNCTION: ;
+			case PQ_C_FUNCTION:
+				_eval_args();
+			case PQ_C_MACRO: {
 				pq_c_function *func_val = (pq_c_function *) func_md;
 				pq_push_scope(ctx);
 				return func_val->fptr(ctx, argc, argv);
+			}
 
 			case PQ_LLVM_MACRO:
 				// compile
 				break;
 		}
+		return pq_value_nil(ctx);
 	}
 }
+#undef _eval_args
 
 pq_value *pq_vcall(pq_context *ctx, pq_value *func, int argc, ...) {
 	pq_value *argv[argc];
@@ -88,9 +98,14 @@ pq_value *pq_vcall(pq_context *ctx, pq_value *func, int argc, ...) {
 
 pq_value *pq_return(pq_context *ctx, pq_value *ret) {
 	pq_scope *top = pq_scope_queue_pop(&ctx->scopes);
-	if(ret && ret->parent_scope >= ctx->scopes.size) {
+	if(top == NULL) {
+		return pq_value_error(ctx, "cannot pop scope from empty queue");
+	}
+	else if(ret && ret->parent_scope >= ctx->scopes.size) {
 		ret->parent_scope--;
-		pq_scope_mark_value_for_destruction(top - 1, ret);
+		if(!pq_scope_mark_value_for_destruction(top - 1, ret)) {
+			return pq_value_error(ctx, "memory error on scope destruction");
+		}
 	}
 	pq_scope_destroy(ctx, top);
 	return ret;

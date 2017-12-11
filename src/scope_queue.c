@@ -36,9 +36,9 @@ int pq_scope_queue_initialize(pq_scope_queue *q, size_t initial_capacity) {
 }
 
 void pq_scope_queue_destroy(pq_context *ctx, pq_scope_queue *q) {
-	int i;
-	for(i = q->size - 1; i >= 0; i--) {
-		pq_scope_destroy(ctx, q->scopes + i);
+	pq_scope *top;
+	while(top = pq_scope_queue_pop(q)) {
+		pq_scope_destroy(ctx, top);
 	}
 	free(q->scopes);
 }
@@ -65,8 +65,11 @@ pq_scope *pq_scope_queue_push(pq_scope_queue *q) {
 }
 
 pq_scope *pq_scope_queue_pop(pq_scope_queue *q) {
-	q->size--;
-	return q->size >= 0 ? q->scopes + q->size : NULL;
+	if(q->size > 0) {
+		q->size--;
+		return q->scopes + q->size;
+	}
+	else return NULL;
 }
 
 pq_value *pq_scope_queue_get(const pq_scope_queue *q, const char *key) {
