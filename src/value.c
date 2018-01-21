@@ -105,6 +105,15 @@ pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits) {
 	return val;
 }
 
+pq_value *pq_value_from_float(pq_context *ctx, double f) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, double)) {
+		val->type = ctx->builtin_types._float;
+		pq_value_get_data_as(val, double) = f;
+	}
+	return val;
+}
+
 pq_value *pq_value_from_string(pq_context *ctx, const char *str) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, char *)) {
@@ -138,13 +147,13 @@ pq_value *pq_value_nil(pq_context *ctx) {
 	return ctx->builtin_values._nil;
 }
 
-pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro) {
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, pq_function_flags flags) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_c_function)) {
-		val->type = is_macro ? ctx->builtin_types._c_macro : ctx->builtin_types._c_function;
+		val->type = ctx->builtin_types._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
 		cfunc->header.argnum = argnum;
-		cfunc->header.is_variadic = is_variadic;
+		cfunc->header.flags = flags;
 		cfunc->fptr = fptr;
 	}
 	return val;
@@ -156,7 +165,7 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_value *code, uint8_t argnum, ui
 		val->type = ctx->builtin_types._function;
 		pq_function *func = pq_value_get_data(val);
 		func->header.argnum = argnum;
-		func->header.is_variadic = is_variadic;
+		func->header.flags = (is_variadic ? PQ_VARIADIC : 0) | PQ_EVAL_ARGS | PQ_PUSH_SCOPE;
 		func->code = code;
 	}
 	return val;
@@ -188,6 +197,14 @@ int pq_is_callable(pq_value *val) {
 
 int pq_is_nil(pq_value *val) {
 	return val->type->kind == PQ_NIL;
+}
+
+int pq_is_symbol(pq_value *val) {
+	return val->type->kind == PQ_SYMBOL;
+}
+
+int pq_is_string(pq_value *val) {
+	return val->type->kind == PQ_STRING;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -229,11 +246,16 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_ERROR:
-			fprintf(output, "error: %s", pq_value_get_data_as(val, char *));
+			fprintf(output, "Error: %s", pq_value_get_data_as(val, char *));
+			break;
+
+		case PQ_TYPE:
+			fprintf(output, "%s", pq_value_get_data_as(val, pq_type *)->name);
 			break;
 
 		default:
 			fprintf(output, "[no print for type \"%s\"]", val->type->name);
+			break;
 	}
 }
 

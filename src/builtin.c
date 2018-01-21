@@ -88,11 +88,10 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_cons_cell, "cons-t", PQ_CONS_CELL, NULL, NULL, NULL);
 	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) &pq_scope_destroy, NULL);
 	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL, NULL);
-	register_type(_symbol, "symbol", PQ_SYMBOL, NULL, &_free_data, NULL);
+	register_type(_symbol, "symbol-t", PQ_SYMBOL, NULL, &_free_data, NULL);
 
 	register_type(_function, "function-t", PQ_FUNCTION, NULL, (pq_destructor) &_destroy_function, NULL);
 	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL, NULL);
-	register_type(_c_macro, "c-macro-t", PQ_C_MACRO, NULL, NULL, NULL);
 
 	register_type(_bool, "bool", PQ_INT, NULL, NULL, LLVMInt1TypeInContext(ctx->llvm));
 	register_type(_i8, "i8", PQ_INT, NULL, NULL, LLVMInt8TypeInContext(ctx->llvm));
@@ -118,29 +117,33 @@ int pq_register_builtin_types(pq_context *ctx) {
 ////////////////////////////////////////////////////////////////////////////////
 //  Builtin functions
 ////////////////////////////////////////////////////////////////////////////////
+
+/// Print all values given.
 static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
 	FILE *output = stdout;
-	while(argc--) {
-		pq_value *val = *(argv++);
-		pq_fprint(ctx, val, output);
+	const char *sep = " ";
+	const char *end = "\n";
+	int i;
+	for(i = 0; i < argc; i++) {
+		pq_fprint(ctx, argv[i], output);
+		fputs(sep, output);
 	}
-	fputc('\n', stdout);
-	return pq_return(ctx, pq_value_nil(ctx));
+	fputs(end, output);
+	return pq_value_nil(ctx);
 }
 static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	const char *sym;
 	argv[1] = pq_eval(ctx, argv[1]);
-	if(!pq_is_error(argv[1])) {
-		switch(argv[0]->type->kind) {
-			case PQ_SYMBOL:
-				sym = pq_value_get_data_as(argv[0], char *);
-				pq_context_set(ctx, sym, argv[1]);
-				break;
+	pq_assert_not_error(argv[1]);
+	switch(argv[0]->type->kind) {
+		case PQ_SYMBOL:
+			sym = pq_value_get_data_as(argv[0], char *);
+			pq_context_set(ctx, sym, argv[1]);
+			break;
 
-			default:
-				return pq_value_ferror(ctx, "Invalid argument 1 for let: expected symbol, found %s",
-						argv[0]->type->name);
-		}
+		default:
+			return pq_value_ferror(ctx, "Invalid argument 1: expected symbol, found %s",
+					argv[0]->type->name);
 	}
 	return argv[1];
 }
@@ -157,13 +160,19 @@ static pq_value *_quote(pq_context *ctx, int argc, pq_value **argv) {
 static pq_value *_quit(pq_context *ctx, int argc, pq_value **argv) {
 	return NULL;
 }
+/// Get the Type of a Value.
+static pq_value *_type_of(pq_context *ctx, int argc, pq_value **argv) {
+	return pq_value_from_type(ctx, argv[0]->type);
+}
 ////////////////////////////////////////////////////////////////////////////////
 
 int pq_register_builtin_functions(pq_context *ctx) {
-	pq_register_c_function(ctx, "let", &_let, 2, PQ_NO_VARARGS, 1);
-	pq_register_c_function(ctx, "quote", &_quote, 1, PQ_NO_VARARGS, 1);
-	pq_register_c_function(ctx, "eval", &_eval, 1, PQ_NO_VARARGS, 1);
-	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARARGS, 0);
-	pq_register_c_function(ctx, "quit", &_quit, 0, PQ_NO_VARARGS, 1);
+	pq_register_c_function(ctx, "let", &_let, 2, 0);
+	pq_register_c_function(ctx, "quote", &_quote, 1, 0);
+	pq_register_c_function(ctx, "eval", &_eval, 1, 0);
+	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS);
+	pq_register_c_function(ctx, "quit", &_quit, 0, 0);
+	// TODO: FIX `type-of` to find the type value instead of creating another one
+	/* pq_register_c_function(ctx, "type-of", &_type_of, 1, PQ_EVAL_ARGS); */
 }
 

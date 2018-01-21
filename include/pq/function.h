@@ -31,17 +31,21 @@ typedef struct pq_context pq_context;
 
 #include <stdint.h>
 
-enum {
-	PQ_NO_VARARGS = 0,
-	PQ_VARARGS = 1,
-};
+/**
+ * Flags for C Functions, to be ORed and stored in the metadata.
+ */
+typedef enum {
+	PQ_VARIADIC   = 0b001,
+	PQ_EVAL_ARGS  = 0b010,
+	PQ_PUSH_SCOPE = 0b100,
+} pq_function_flags;
 
 /**
  * Function metadata, used by every Function type in pq.
  */
 typedef struct pq_function_metadata {
 	uint8_t argnum;
-	uint8_t is_variadic : 1;
+	uint8_t flags;
 } pq_function_metadata;
 
 /**
@@ -71,7 +75,7 @@ typedef struct pq_c_function {
 /**
  * Registers a C Function or Macro into pq Context.
  */
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro);
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, pq_function_flags flags);
 
 /**
  * Try to call the `func` value, which should be callable (either a function, macro or type).

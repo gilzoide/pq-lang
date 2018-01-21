@@ -31,9 +31,9 @@ pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code
 	return func_val;
 }
 
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro) {
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, pq_function_flags flags) {
 	pq_value *func_val;
-	if(func_val = pq_value_from_c_function(ctx, func, argnum, is_variadic, is_macro)) {
+	if(func_val = pq_value_from_c_function(ctx, func, argnum, flags)) {
 		pq_context_set(ctx, name, func_val);
 	}
 	return func_val;
@@ -54,9 +54,10 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 	}
 	else {
 		pq_function_metadata *func_md = pq_value_get_data(func);
-		if(argc < (int) func_md->argnum || !func_md->is_variadic && argc > (int) func_md->argnum) {
+		pq_function_flags is_variadic = func_md->flags & PQ_VARIADIC;
+		if(argc < (int) func_md->argnum || !is_variadic && argc > (int) func_md->argnum) {
 			return pq_value_ferror(ctx, "Expected %s%u argument(s); found %d",
-					func_md->is_variadic ? "at least " : "", func_md->argnum, argc);
+					is_variadic ? "at least " : "", func_md->argnum, argc);
 		}
 
 		int i;
@@ -68,10 +69,9 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 				// just run. must return code.
 				break;
 
-			case PQ_C_FUNCTION:
-				_eval_args();
-				pq_push_scope(ctx);
-			case PQ_C_MACRO: {
+			case PQ_C_FUNCTION: {
+				if(func_md->flags & PQ_EVAL_ARGS) _eval_args();
+				if(func_md->flags & PQ_PUSH_SCOPE) pq_push_scope(ctx);
 				pq_c_function *func_val = (pq_c_function *) func_md;
 				return func_val->fptr(ctx, argc, argv);
 			}

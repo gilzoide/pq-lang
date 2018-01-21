@@ -51,7 +51,6 @@ typedef struct pq_builtin_types {
 
 	pq_type *_function;
 	pq_type *_c_function;
-	pq_type *_c_macro;
 
 	pq_type *_bool;
 	pq_type *_i8;

@@ -69,23 +69,27 @@ pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
 
 pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits);
 pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits);
+pq_value *pq_value_from_float(pq_context *ctx, double f);
+
 pq_value *pq_value_from_string(pq_context *ctx, const char *str);
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n);
 pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second);
 
 pq_value *pq_value_nil(pq_context *ctx);
 
-pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, uint8_t is_variadic, uint8_t is_macro);
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, pq_function_flags flags);
 pq_value *pq_value_from_code(pq_context *ctx, pq_value *code, uint8_t argnum, uint8_t is_variadic);
 
 // Value type checks
 
 /// Checks if a Value is an integer.
 int pq_is_int(pq_value *val);
+int pq_is_float(pq_value *val);
 int pq_is_error(pq_value *val);
 int pq_is_callable(pq_value *val);
 int pq_is_nil(pq_value *val);
-
+int pq_is_symbol(pq_value *val);
+int pq_is_string(pq_value *val);
 
 // General operations
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output);

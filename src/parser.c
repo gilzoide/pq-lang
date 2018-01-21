@@ -28,6 +28,10 @@ static pt_data read_integer(const char *str, size_t start, size_t end, int argc,
 	pq_context *ctx = data;
 	return (pt_data){ .p = pq_value_from_int(ctx, atoll(str + start), 32) };
 }
+static pt_data read_float(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
+	pq_context *ctx = data;
+	return (pt_data){ .p = pq_value_from_float(ctx, atof(str + start)) };
+}
 static pt_data read_symbol(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;
 	return (pt_data){ .p = pq_value_from_lstring(ctx, str + start, end - start) };
@@ -35,7 +39,7 @@ static pt_data read_symbol(const char *str, size_t start, size_t end, int argc, 
 static pt_data read_list(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;
 	int i;
-	pq_value *list = ctx->builtin_values._nil;
+	pq_value *list = pq_value_nil(ctx);
 	for(i = argc - 1; i >= 0; i--) {
 		list = pq_value_cons(ctx, (pq_value *) argv[i].p, list);
 	}
@@ -48,10 +52,15 @@ static pt_data read_list(const char *str, size_t start, size_t end, int argc, pt
  * Axiom <- Sp (!. / Expr)
  * Expr <- SExpr / Atom
  * SExpr <- "(" Sp (Expr Sp)* ")"
- * Atom <- Int / Symbol
- * Symbol <- [^()\s]+
+ * Atom <- Float / Int / Symbol
+ * Symbol <- [^();\s]+
  *
- * Int <- [+-]? \d+
+ * Digits <- \d+
+ * Sign <- [+-]?
+ * Int <- Sign Digits
+ * Float <- Sign (FloatDot FloatExp? / \d+ FloatExp)
+ * FloatDot <- \d* "." Digits
+ * FloatExp <- [eE] Signal Digits
  *
  * Comment <- ";" [^\n]*
  * Sp <- (\s / Comment)*
@@ -62,9 +71,16 @@ int pq_parser_initialize(pq_parser *parser) {
 		{ "Axiom", SEQ(V("Sp"), OR(NOT(ANY), V("Expr"))) },
 		{ "Expr", OR(V("SExpr"), V("Atom")) },
 		{ "SExpr", SEQ_(&read_list, L("("), V("Sp"), Q(SEQ(V("Expr"), V("Sp")), 0), L(")")) },
-		{ "Atom", OR(V("Int"), V("Symbol")) },
+		{ "Atom", OR(V("Float"), V("Int"), V("Symbol")) },
 		{ "Symbol", Q_(&read_symbol, BUT(OR(S("();"), F(isspace))), 1) },
-		{ "Int", SEQ_(&read_integer, Q(S("+-"), 0), Q(F(isdigit), 1)) },
+		// numbers
+		{ "Digits", Q(F(isdigit), 1) },
+		{ "Sign", Q(S("+-"), 0) },
+		{ "Int", SEQ_(&read_integer, V("Sign"), V("Digits")) },
+		{ "Float", SEQ_(&read_float, V("Sign"), OR(SEQ(V("FloatDot"), Q(V("FloatExp"), -1)), SEQ(V("Digits"), V("FloatExp")))) },
+		{ "FloatDot", SEQ(Q(F(isdigit), 0), L("."), V("Digits")) },
+		{ "FloatExp", SEQ(S("eE"), V("Sign"), V("Digits")) },
+		// skip
 		{ "Comment", SEQ(L(";"), Q(BUT(L("\n")), 0)) },
 		{ "Sp", Q(OR(F(isspace), V("Comment")), 0) },
 		{ NULL, NULL },
@@ -78,12 +94,12 @@ int pq_parser_initialize(pq_parser *parser) {
 pq_value *pq_read(pq_context *ctx, const char *str) {
 	pt_match_options opts = { .userdata = ctx };
 	pt_match_result res = pt_match_grammar(ctx->parser.grammar, str, &opts);
-	// TODO: error handling
 	if(res.matched > 0) {
 		return res.data.p ? res.data.p : pq_value_nil(ctx);
 	}
 	else {
-		return pq_value_error(ctx, "Erro no parse!");
+		// TODO: error handling
+		return pq_value_error(ctx, "Parse error");
 	}
 }
 

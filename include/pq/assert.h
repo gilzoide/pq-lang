@@ -18,17 +18,36 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+/** @file assert.h
+ * Value assertions to be used inside C Functions/Macros, which returns a
+ * `pq_value`.
+ * All macros return the Error produced on assertion error.
+ */
+
 #ifndef __PQ_ASSERT_H__
 #define __PQ_ASSERT_H__
 
 /**
  * Assert that a Value is not an Error.
- *
- * This macro actually returns the value, so it is designed to be used only on
- * C Functions/Macros.
  */
 #define pq_assert_not_error(val) \
 	if(pq_is_error(val)) return val
+
+/**
+ * Assert that a Value is of some type, using the `pq_is_<type>` functions.
+ */
+#define pq_assert_type(val, type) \
+	if(!pq_is_ ## type (val)) \
+		return pq_value_ferror("Expected " #type ", found %s", val->type->name)
+
+/**
+ * Assert that the argument `i` of `argv` is of some type, using the
+ * `pq_is_<type>` functions.
+ */
+#define pq_assert_arg_type(argv, i, type) \
+	if(!pq_is_ ## type (argv[i])) \
+		return pq_value_ferror("Invalid argument %d: expected " #type ", found %s", \
+				i, argv[i]->type->name)
 
 #endif
 
