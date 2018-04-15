@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -35,9 +35,9 @@ typedef struct pq_context pq_context;
  * Flags for C Functions, to be ORed and stored in the metadata.
  */
 typedef enum {
-	PQ_VARIADIC   = 0b001,
-	PQ_EVAL_ARGS  = 0b010,
-	PQ_PUSH_SCOPE = 0b100,
+	PQ_VARIADIC   = (1 << 0),
+	PQ_EVAL_ARGS  = (1 << 1),
+	PQ_PUSH_SCOPE = (1 << 2),
 } pq_function_flags;
 
 /**

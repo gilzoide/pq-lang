@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -25,7 +25,6 @@
 #ifndef __PQ_BUILTIN_H__
 #define __PQ_BUILTIN_H__
 
-#include "cons.h"
 #include "function.h"
 #include "type.h"
 #include "value.h"
@@ -44,7 +43,7 @@ int pq_register_builtin(pq_context *ctx);
 typedef struct pq_builtin_types {
 	pq_type *_type;  // The "type" type
 	pq_type *_error;  // Error type
-	pq_type *_cons_cell;  // Cons cells, including code ones
+	pq_type *_list;  // 
 	pq_type *_scope;  // Scopes
 	pq_type *_nil;
 	pq_type *_symbol;
@@ -57,12 +56,10 @@ typedef struct pq_builtin_types {
 	pq_type *_i16;
 	pq_type *_i32;
 	pq_type *_i64;
-	pq_type *_i128;
 	pq_type *_u8;
 	pq_type *_u16;
 	pq_type *_u32;
 	pq_type *_u64;
-	pq_type *_u128;
 
 	pq_type *_string;
 

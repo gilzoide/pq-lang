@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -76,7 +76,6 @@ pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits) {
 		case 16: type = ctx->builtin_types._i16; break;
 		case 32: type = ctx->builtin_types._i32; break;
 		case 64: type = ctx->builtin_types._i64; break;
-		case 128: type = ctx->builtin_types._i128; break;
 		default: return pq_value_ferror(ctx, "Invalid number of bits for integer value: expected 1, 8, 16, 32, 64 or 128; found %d", numbits);
 	}
 	if(val = pq_new_value(ctx, intmax_t)) {
@@ -95,7 +94,6 @@ pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits) {
 		case 16: type = ctx->builtin_types._u16; break;
 		case 32: type = ctx->builtin_types._u32; break;
 		case 64: type = ctx->builtin_types._u64; break;
-		case 128: type = ctx->builtin_types._u128; break;
 		default: return pq_value_ferror(ctx, "Invalid number of bits for unsigned integer value: expected 1, 8, 16, 32, 64 or 128; found %d", numbits);
 	}
 	if(val = pq_new_value(ctx, uintmax_t)) {
@@ -132,13 +130,11 @@ pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n) {
 	return val;
 }
 
-pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second) {
+pq_value *pq_value_from_list(pq_context *ctx, pq_list lst) {
 	pq_value *val;
-	if(val = pq_new_value(ctx, pq_cons_cell)) {
-		val->type = ctx->builtin_types._cons_cell;
-		pq_cons_cell *cell = pq_value_get_data(val);
-		cell->first = first;
-		cell->second = second;
+	if(val = pq_new_value(ctx, pq_list)) {
+		val->type = ctx->builtin_types._list;
+		pq_value_get_data_as(val, pq_list) = lst;
 	}
 	return val;
 }
@@ -159,7 +155,7 @@ pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint
 	return val;
 }
 
-pq_value *pq_value_from_code(pq_context *ctx, pq_value *code, uint8_t argnum, uint8_t is_variadic) {
+pq_value *pq_value_from_code(pq_context *ctx, pq_list *code, uint8_t argnum, uint8_t is_variadic) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_function)) {
 		val->type = ctx->builtin_types._function;
@@ -190,9 +186,7 @@ int pq_is_callable(pq_value *val) {
 	return val->type->kind == PQ_FUNCTION
 	       || val->type->kind == PQ_MACRO
 	       || val->type->kind == PQ_C_FUNCTION
-	       || val->type->kind == PQ_C_MACRO
-	       || val->type->kind == PQ_LLVM_MACRO
-	       || val->type->kind == PQ_LLVM_FUNCTION;
+	       || val->type->kind == PQ_C_MACRO;
 }
 
 int pq_is_nil(pq_value *val) {
@@ -232,17 +226,8 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			fprintf(output, "%f", pq_value_get_data_as(val, double));
 			break;
 
-		case PQ_CONS_CELL:
-			fputc('(', output);
-			pq_cons_cell *cell;
-			while(1) {
-				cell = pq_value_get_data(val);
-				val = cell->second;
-				pq_fprint(ctx, cell->first, output);
-				if(pq_is_nil(val)) break;
-				fputc(' ', output);
-			}
-			fputc(')', output);
+		case PQ_LIST:
+			// TODO
 			break;
 
 		case PQ_ERROR:

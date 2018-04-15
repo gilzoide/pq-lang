@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -25,10 +25,9 @@
 #ifndef __PQ_CONTEXT_H__
 #define __PQ_CONTEXT_H__
 
-#include <llvm-c/Core.h>
+#include <jit/jit.h>
 
 #include "builtin.h"
-#include "cons.h"
 #include "memory_manager.h"
 #include "parser.h"
 #include "scope.h"
@@ -39,9 +38,10 @@
  * Pq interpreter Context, the topmost know-it-all structure.
  */
 typedef struct pq_context {
-	LLVMContextRef llvm;
+	jit_context_t jit;
 	pq_parser parser;
 	pq_scope_queue scopes;
+	pq_scope env;
 	pq_builtin_types builtin_types;
 	pq_builtin_values builtin_values;
 	pq_memory_manager memory_manager;

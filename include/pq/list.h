@@ -18,37 +18,21 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include <pq/type.h>
-#include <pq/context.h>
-#include <pq/value.h>
+/** @file list.h
+ * Pq list, used as code.
+ */
 
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
+#ifndef __PQ_LIST_H__
+#define __PQ_LIST_H__
 
-pq_value *pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
-                           jit_type_t jit_type, pq_destructor value_destructor) {
-	assert(ctx && kind < PQ_TYPE_KIND_END);
-	pq_type *new_type;
-	if(new_type = malloc(sizeof(pq_type))) {
-		new_type->name = strdup(name);
-		new_type->jit_type = jit_type;
-		new_type->kind = kind;
-		new_type->value_destructor = value_destructor;
+// Forward declaration
+typedef struct pq_value pq_value;
+typedef struct pq_context pq_context;
 
-		pq_value *type_val;
-		if(type_val = pq_value_from_type(ctx, new_type)) {
-			pq_context_set(ctx, name, type_val);
-		}
-		return type_val;
-	}
-	else {
-		return NULL;
-	}
-}
+typedef struct pq_list {
+	pq_value **values;
+	int size;
+} pq_list;
 
-void pq_type_destroy(pq_context *ctx, pq_type *type) {
-	free(type->name);
-	free(type);
-}
+#endif
 

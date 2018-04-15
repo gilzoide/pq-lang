@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -21,9 +21,9 @@
 #ifndef __PQ_VALUE_H__
 #define __PQ_VALUE_H__
 
-#include "cons.h"
-#include "type.h"
+#include "list.h"
 #include "function.h"
+#include "type.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,12 +73,12 @@ pq_value *pq_value_from_float(pq_context *ctx, double f);
 
 pq_value *pq_value_from_string(pq_context *ctx, const char *str);
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n);
-pq_value *pq_value_cons(pq_context *ctx, pq_value *first, pq_value *second);
+pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
 
 pq_value *pq_value_nil(pq_context *ctx);
 
 pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, pq_function_flags flags);
-pq_value *pq_value_from_code(pq_context *ctx, pq_value *code, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_value_from_code(pq_context *ctx, pq_list *code, uint8_t argnum, uint8_t is_variadic);
 
 // Value type checks
 

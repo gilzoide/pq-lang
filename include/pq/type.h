@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -25,6 +25,8 @@
 #ifndef __PQ_TYPE_H__
 #define __PQ_TYPE_H__
 
+#include <jit/jit.h>
+
 /**
  * Kinds of types in pq.
  */
@@ -36,7 +38,7 @@ typedef enum pq_type_kind {
 	PQ_ARRAY,
 
 	PQ_NIL,
-	PQ_CONS_CELL,
+	PQ_LIST,
 	PQ_TYPE,
 	PQ_SCOPE,
 	PQ_SYMBOL,
@@ -46,8 +48,6 @@ typedef enum pq_type_kind {
 	PQ_MACRO,
 	PQ_C_FUNCTION,
 	PQ_C_MACRO,
-	PQ_LLVM_FUNCTION,
-	PQ_LLVM_MACRO,
 
 	PQ_TYPE_KIND_END,
 } pq_type_kind;
@@ -71,10 +71,9 @@ typedef void (*pq_destructor)(pq_context *, void *);
  */
 typedef struct pq_type {
 	char *name;
+	jit_type_t jit_type;
 	pq_type_kind kind;
-	pq_destructor self_destructor;
 	pq_destructor value_destructor;
-	void *data;
 } pq_type;
 
 /**
@@ -83,8 +82,12 @@ typedef struct pq_type {
  * This will be primarily used by the pq interpreter itself.
  */
 pq_value *pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
-                           pq_destructor self_destructor,
-                           pq_destructor value_destructor, void *data);
+                           jit_type_t jit_type, pq_destructor value_destructor);
+
+/**
+ * Destroy a Type.
+ */
+void pq_type_destroy(pq_context *ctx, pq_type *type);
 
 #endif
 

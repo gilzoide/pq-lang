@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -55,61 +55,49 @@ int pq_register_builtin_values(pq_context *ctx) {
 ////////////////////////////////////////////////////////////////////////////////
 //  Builtin value destructors
 ////////////////////////////////////////////////////////////////////////////////
-static void _destroy_type(pq_context *ctx, void *data) {
-	pq_type *type = *((pq_type **) data);
-	free(type->name);
-	if(type->self_destructor) {
-		type->self_destructor(ctx, type->data);
-	}
-	free(type);
-}
 static void _free_data(pq_context *ctx, void *data) {
 	free(*((void **) data));
 }
-static void _destroy_function(pq_context *ctx, void *data) {
-	pq_function *f = data;
+static void _free_type(pq_context *ctx, void *data) {
+	pq_type_destroy(ctx, *((pq_type **) data));
 }
-////////////////////////////////////////////////////////////////////////////////
 
 int pq_register_builtin_types(pq_context *ctx) {
 	pq_value *type_val;
-	if(type_val = pq_register_type(ctx, "type", PQ_TYPE, NULL, (pq_destructor) &_destroy_type, NULL)) {
+	if(type_val = pq_register_type(ctx, "type", PQ_TYPE, NULL, _free_type)) {
 		type_val->type = ctx->builtin_types._type = pq_value_get_data_as(type_val, pq_type *);
 	}
 	else return 0;
 
-#define register_type(builtin_var, name, kind, self_dtor, val_dtor, d) \
-	if(type_val = pq_register_type(ctx, name, kind, self_dtor, val_dtor, d)) { \
+#define register_type(builtin_var, name, kind, jit_type, val_dtor) \
+	if(type_val = pq_register_type(ctx, name, kind, jit_type, val_dtor)) { \
 		ctx->builtin_types. builtin_var = pq_value_get_data_as(type_val, pq_type *); \
 	} \
 	else return 0
 
-	register_type(_error, "error-t", PQ_ERROR, NULL, &_free_data, NULL);
-	register_type(_cons_cell, "cons-t", PQ_CONS_CELL, NULL, NULL, NULL);
-	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) &pq_scope_destroy, NULL);
-	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL, NULL);
-	register_type(_symbol, "symbol-t", PQ_SYMBOL, NULL, &_free_data, NULL);
+	register_type(_error, "error-t", PQ_ERROR, NULL, _free_data);
+	register_type(_list, "list-t", PQ_LIST, NULL, (pq_destructor) pq_release_list);
+	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) pq_scope_destroy);
+	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL);
+	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr, _free_data);
 
-	register_type(_function, "function-t", PQ_FUNCTION, NULL, (pq_destructor) &_destroy_function, NULL);
-	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL, NULL);
+	register_type(_function, "function-t", PQ_FUNCTION, NULL, NULL);
+	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL);
 
-	register_type(_bool, "bool", PQ_INT, NULL, NULL, LLVMInt1TypeInContext(ctx->llvm));
-	register_type(_i8, "i8", PQ_INT, NULL, NULL, LLVMInt8TypeInContext(ctx->llvm));
-	register_type(_i16, "i16", PQ_INT, NULL, NULL, LLVMInt16TypeInContext(ctx->llvm));
-	register_type(_i32, "i32", PQ_INT, NULL, NULL, LLVMInt32TypeInContext(ctx->llvm));
-	register_type(_i64, "i64", PQ_INT, NULL, NULL, LLVMInt64TypeInContext(ctx->llvm));
-	register_type(_i128, "i128", PQ_INT, NULL, NULL, LLVMInt128TypeInContext(ctx->llvm));
-	register_type(_u8, "u8", PQ_INT, NULL, NULL, LLVMInt8TypeInContext(ctx->llvm));
-	register_type(_u16, "u16", PQ_INT, NULL, NULL, LLVMInt16TypeInContext(ctx->llvm));
-	register_type(_u32, "u32", PQ_INT, NULL, NULL, LLVMInt32TypeInContext(ctx->llvm));
-	register_type(_u64, "u64", PQ_INT, NULL, NULL, LLVMInt64TypeInContext(ctx->llvm));
-	register_type(_u128, "u128", PQ_INT, NULL, NULL, LLVMInt128TypeInContext(ctx->llvm));
+	register_type(_bool, "bool", PQ_INT, jit_type_sys_bool, NULL);
+	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,    NULL);
+	register_type(_i16,  "i16",  PQ_INT, jit_type_short,    NULL);
+	register_type(_i32,  "i32",  PQ_INT, jit_type_int,      NULL);
+	register_type(_i64,  "i64",  PQ_INT, jit_type_long,     NULL);
+	register_type(_u8,   "u8",   PQ_INT, jit_type_ubyte,    NULL);
+	register_type(_u16,  "u16",  PQ_INT, jit_type_ushort,   NULL);
+	register_type(_u32,  "u32",  PQ_INT, jit_type_uint,     NULL);
+	register_type(_u64,  "u64",  PQ_INT, jit_type_ulong,    NULL);
 
-	register_type(_string, "string", PQ_STRING, NULL, &_free_data, LLVMPointerType(LLVMInt8TypeInContext(ctx->llvm), 0));
+	register_type(_float,  "float",  PQ_FLOAT, jit_type_float32, NULL);
+	register_type(_double, "double", PQ_FLOAT, jit_type_float64, NULL);
 
-	register_type(_half, "half", PQ_FLOAT, NULL, NULL, LLVMHalfTypeInContext(ctx->llvm));
-	register_type(_float, "float", PQ_FLOAT, NULL, NULL, LLVMFloatTypeInContext(ctx->llvm));
-	register_type(_double, "double", PQ_FLOAT, NULL, NULL, LLVMDoubleTypeInContext(ctx->llvm));
+	register_type(_string, "string", PQ_STRING, NULL, _free_data);
 #undef register_type
 	return 1;
 }

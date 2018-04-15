@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -24,13 +24,11 @@
 #include <stdlib.h>
 
 int pq_context_initialize(pq_context *ctx) {
-	// require LLVM to shutdown to avoid memory leaks
-	atexit(LLVMShutdown);
-
-	if((ctx->llvm = LLVMContextCreate()) != NULL
+	if((ctx->jit = jit_context_create()) != NULL
 			&& pq_memory_manager_initialize(&ctx->memory_manager)
 			&& pq_parser_initialize(&ctx->parser)
 			&& pq_scope_queue_initialize(&ctx->scopes, 0)
+			&& pq_scope_initialize(&ctx->env)
 			&& pq_register_builtin(ctx)) {
 		return 1;
 	}
@@ -38,9 +36,10 @@ int pq_context_initialize(pq_context *ctx) {
 }
 
 void pq_context_destroy(pq_context *ctx) {
-	LLVMContextDispose(ctx->llvm);
+	jit_context_destroy(ctx->jit);
 	pq_parser_destroy(&ctx->parser);
 	pq_scope_queue_destroy(ctx, &ctx->scopes);
+	pq_scope_destroy(ctx, &ctx->env);
 	pq_memory_manager_destroy(ctx, &ctx->memory_manager);
 }
 
@@ -63,22 +62,13 @@ pq_value *pq_eval(pq_context *ctx, pq_value *val) {
 		case PQ_SYMBOL:
 			return pq_context_get(ctx, pq_value_get_data_as(val, const char *));
 
-		case PQ_CONS_CELL: {
-			pq_cons_cell *cons = pq_value_get_data(val);
-			pq_value *func = pq_eval(ctx, cons->first);
+		case PQ_LIST: {
+			pq_list list = pq_value_get_data_as(val, pq_list);
+			pq_value *func = pq_eval(ctx, list.values[0]);
 			pq_assert_not_error(func);
-			// transform the arguments list into an array
-			int argc = 0;
-			pq_value *arg, **argv = NULL;
-			while(!pq_is_nil(arg = cons->second)) {
-				cons = pq_value_get_data(arg);
-				argc++;
-				argv = realloc(argv, argc * sizeof(pq_value *));
-				argv[argc - 1] = cons->first;
-			}
-			pq_value *ret = pq_call(ctx, func, argc, argv);
-			free(argv);
-			return ret;
+			int argc = list.size - 1;
+			pq_value *ret = pq_call(ctx, func, argc, list.values + 1);
+			return val;
 		}
 
 		default:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Gil Barbosa Reis <gilzoide@gmail.com>
+ * Copyright 2017, 2018 Gil Barbosa Reis <gilzoide@gmail.com>
  * This file is part of pq-lang.
  * 
  * Pq-lang is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * 
- * Pega-texto is distributed in the hope that it will be useful,
+ * Pq-lang is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
@@ -43,6 +43,21 @@ void pq_release_value(pq_context *ctx, pq_value *val) {
 			val->type->value_destructor(ctx, pq_value_get_data(val));
 		}
 		free(val);
+	}
+}
+
+pq_list pq_new_list_with_size(pq_context *ctx, int size) {
+	pq_list new_list;
+	new_list.values = malloc(size * sizeof(pq_value *));
+	new_list.size = new_list.values ? size : 0;
+	return new_list;
+}
+
+void pq_release_list(pq_context *ctx, pq_list *lst) {
+	if(lst) {
+		free(lst->values);
+		lst->values = NULL;
+		lst->size = 0;
 	}
 }
 
