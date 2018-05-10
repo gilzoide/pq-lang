@@ -67,6 +67,11 @@ typedef struct pq_value pq_value;
 typedef void (*pq_destructor)(pq_context *, void *);
 
 /**
+ * Memory size of a Value.
+ */
+typedef unsigned int pq_value_size;
+
+/**
  * Pq Type: metadata about a Value's type.
  */
 typedef struct pq_type {

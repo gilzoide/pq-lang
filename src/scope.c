@@ -37,7 +37,7 @@ int pq_scope_initialize(pq_scope *scope) {
 
 void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
 	Word_t bytes;
-	JSLFA(bytes, scope->table);
+	JLFA(bytes, scope->table);
 	// Destroy values created at this Scope
 	// The reverse order is important, as newer Values may reference older ones:
 	// this is particularly true for builtin Types.
@@ -48,16 +48,18 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
 	free(scope->created_values);
 }
 
-pq_value *pq_scope_get(const pq_scope *scope, const char *key) {
+pq_value *pq_scope_get(const pq_scope *scope, pq_symbol sym) {
 	Word_t *pvalue;
-	JSLG(pvalue, scope->table, key);
+	JLG(pvalue, scope->table, sym);
 	return pvalue ? (pq_value *) *pvalue : NULL;
 }
 
-void pq_scope_set(pq_scope *scope, const char *key, pq_value *val) {
+void pq_scope_set(pq_scope *scope, pq_symbol sym, pq_value *val) {
 	Word_t *pvalue;
-	JSLI(pvalue, scope->table, key);
-	*pvalue = (Word_t) val;
+	JLI(pvalue, scope->table, sym);
+	if(pvalue != PJERR) {
+		*pvalue = (Word_t) val;
+	}
 }
 
 int pq_scope_mark_value_for_destruction(pq_scope *scope, pq_value *val) {

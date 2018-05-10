@@ -79,7 +79,7 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_list, "list-t", PQ_LIST, NULL, (pq_destructor) pq_release_list);
 	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) pq_scope_destroy);
 	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL);
-	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr, _free_data);
+	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr, NULL);
 
 	register_type(_function, "function-t", PQ_FUNCTION, NULL, NULL);
 	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL);
@@ -120,13 +120,13 @@ static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
 	return pq_value_nil(ctx);
 }
 static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
-	const char *sym;
+	pq_symbol sym;
 	argv[1] = pq_eval(ctx, argv[1]);
 	pq_assert_not_error(argv[1]);
 	switch(argv[0]->type->kind) {
 		case PQ_SYMBOL:
-			sym = pq_value_get_data_as(argv[0], char *);
-			pq_context_set(ctx, sym, argv[1]);
+			sym = pq_value_get_data_as(argv[0], pq_symbol);
+			pq_context_set_symbol(ctx, sym, argv[1]);
 			break;
 
 		default:
@@ -162,5 +162,6 @@ int pq_register_builtin_functions(pq_context *ctx) {
 	pq_register_c_function(ctx, "quit", &_quit, 0, 0);
 	// TODO: FIX `type-of` to find the type value instead of creating another one
 	/* pq_register_c_function(ctx, "type-of", &_type_of, 1, PQ_EVAL_ARGS); */
+	return 1;
 }
 

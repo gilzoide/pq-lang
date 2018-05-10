@@ -49,7 +49,7 @@ typedef struct pq_function_metadata {
 } pq_function_metadata;
 
 /**
- * Functions defined in pq: code defined by Cons Cells.
+ * Functions defined in pq: code defined by Lists.
  */
 typedef struct pq_function {
 	pq_function_metadata header;

@@ -45,6 +45,7 @@ typedef struct pq_context {
 	pq_builtin_types builtin_types;
 	pq_builtin_values builtin_values;
 	pq_memory_manager memory_manager;
+	pq_symbol_manager symbol_manager;
 } pq_context;
 
 /**
@@ -66,9 +67,31 @@ void pq_context_destroy(pq_context *ctx);
  */
 pq_value *pq_context_get(pq_context *ctx, const char *key);
 /**
+ * Get a local Value by it's symbol, searching for it from local (topmost) to
+ * root Scope.
+ */
+pq_value *pq_context_get_symbol(pq_context *ctx, pq_symbol symbol);
+/**
  * Set a Value in the local (topmost) Scope.
  */
 void pq_context_set(pq_context *ctx, const char *key, pq_value *val);
+/**
+ * Set a Value by it's symbol in the local (topmost) Scope.
+ */
+void pq_context_set_symbol(pq_context *ctx, pq_symbol symbol, pq_value *val);
+
+/**
+ * Get the interned Symbol correspondent to the string.
+ */
+pq_symbol pq_symbol_from_string(pq_context *ctx, const char *str);
+/**
+ * Get the interned Symbol correspondent to the string with length `n`.
+ */
+pq_symbol pq_symbol_from_lstring(pq_context *ctx, const char *str, size_t n);
+/**
+ * Get the string correspondent to the interned Symbol.
+ */
+const char *pq_string_from_symbol(pq_context *ctx, pq_symbol symbol);
 
 
 /**

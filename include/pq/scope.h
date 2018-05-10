@@ -22,6 +22,7 @@
 #define __PQ_SCOPE_H__
 
 #include "value.h"
+#include "symbol.h"
 
 #include <stdlib.h>
 
@@ -30,7 +31,7 @@
  * form "String -> Value".
  */
 typedef struct pq_scope {
-	void *table;
+	Pvoid_t table;
 
 	pq_value **created_values;
 	size_t size;
@@ -61,11 +62,11 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope);
  * @note The `nil` Value is still a valid #pq_value instance.
  *
  * @param scope Target Scope.
- * @param key   Lookup key.
+ * @param key   Lookup Symbol.
  *
- * @return Value related to the key, if there is one, `NULL` otherwise.
+ * @return Value related to the Symbol, if there is one, `NULL` otherwise.
  */
-pq_value *pq_scope_get(const pq_scope *scope, const char *key);
+pq_value *pq_scope_get(const pq_scope *scope, pq_symbol key);
 /**
  * Set a Value in a Scope.
  *
@@ -73,7 +74,7 @@ pq_value *pq_scope_get(const pq_scope *scope, const char *key);
  * @param key   Value's identifier.
  * @param val   Value to be inserted.
  */
-void pq_scope_set(pq_scope *scope, const char *key, pq_value *val);
+void pq_scope_set(pq_scope *scope, pq_symbol key, pq_value *val);
 
 
 /**

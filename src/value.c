@@ -115,7 +115,7 @@ pq_value *pq_value_from_float(pq_context *ctx, double f) {
 pq_value *pq_value_from_string(pq_context *ctx, const char *str) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, char *)) {
-		val->type = ctx->builtin_types._symbol;
+		val->type = ctx->builtin_types._string;
 		pq_value_get_data_as(val, char *) = strdup(str);
 	}
 	return val;
@@ -124,8 +124,17 @@ pq_value *pq_value_from_string(pq_context *ctx, const char *str) {
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, char *)) {
-		val->type = ctx->builtin_types._symbol;
+		val->type = ctx->builtin_types._string;
 		pq_value_get_data_as(val, char *) = strndup(str, n);
+	}
+	return val;
+}
+
+pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, pq_symbol)) {
+		val->type = ctx->builtin_types._symbol;
+		pq_value_get_data_as(val, pq_symbol) = symbol;
 	}
 	return val;
 }
@@ -211,7 +220,7 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_SYMBOL:
-			fprintf(output, "%s", pq_value_get_data_as(val, char *));
+			fprintf(output, "%s", pq_string_from_symbol(ctx, pq_value_get_data_as(val, pq_symbol)));
 			break;
 
 		case PQ_STRING:
@@ -219,15 +228,25 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_INT:
-			fprintf(output, "%d", pq_value_get_data_as(val, intmax_t));
+			fprintf(output, "%ld", pq_value_get_data_as(val, intmax_t));
 			break;
 
 		case PQ_FLOAT:
 			fprintf(output, "%f", pq_value_get_data_as(val, double));
 			break;
 
-		case PQ_LIST:
-			// TODO
+		case PQ_LIST: {
+				pq_list lst = pq_value_get_data_as(val, pq_list);
+				int i;
+				fputc('(', output);
+				for(i = 0; i < lst.size; i++) {
+					pq_fprint(ctx, lst.values[i], output);
+					if(i < lst.size - 1) {
+						fputc(' ', output);
+					}
+				}
+				fputc(')', output);
+			}
 			break;
 
 		case PQ_ERROR:

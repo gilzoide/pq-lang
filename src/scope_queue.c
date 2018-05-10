@@ -72,18 +72,18 @@ pq_scope *pq_scope_queue_pop(pq_scope_queue *q) {
 	else return NULL;
 }
 
-pq_value *pq_scope_queue_get(const pq_scope_queue *q, const char *key) {
+pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym) {
 	int i;
 	pq_value *val;
 	for(i = q->size - 1; i >= 0; i--) {
-		if((val = pq_scope_get(q->scopes + i, key)) != NULL) {
+		if((val = pq_scope_get(q->scopes + i, sym)) != NULL) {
 			return val;
 		}
 	}
 	return NULL;
 }
 
-void pq_scope_queue_set(pq_scope_queue *q, const char *key, pq_value *val) {
-	pq_scope_set(q->scopes + q->size - 1, key, val);
+void pq_scope_queue_set(pq_scope_queue *q, pq_symbol sym, pq_value *val) {
+	pq_scope_set(q->scopes + q->size - 1, sym, val);
 }
 

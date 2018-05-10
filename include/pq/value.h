@@ -23,6 +23,7 @@
 
 #include "list.h"
 #include "function.h"
+#include "symbol.h"
 #include "type.h"
 
 #include <stdlib.h>
@@ -73,6 +74,7 @@ pq_value *pq_value_from_float(pq_context *ctx, double f);
 
 pq_value *pq_value_from_string(pq_context *ctx, const char *str);
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n);
+pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol);
 pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
 
 pq_value *pq_value_nil(pq_context *ctx);

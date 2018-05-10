@@ -35,7 +35,8 @@ static pt_data read_float(const char *str, size_t start, size_t end, int argc, p
 }
 static pt_data read_symbol(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;
-	return (pt_data){ .p = pq_value_from_lstring(ctx, str + start, end - start) };
+	pq_symbol symbol = pq_symbol_from_lstring(ctx, str + start, end - start);
+	return (pt_data){ .p = pq_value_from_symbol(ctx, symbol) };
 }
 static pt_data read_list(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;
