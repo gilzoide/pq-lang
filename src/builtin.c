@@ -33,7 +33,7 @@ int pq_register_builtin(pq_context *ctx) {
 int pq_register_builtin_values(pq_context *ctx) {
 	pq_value *new_val;
 	if(new_val = pq_new_value_with_size(ctx, 0)) {
-		new_val->type = ctx->builtin_types._nil;
+		new_val->type = ctx->type_manager._nil;
 		ctx->builtin_values._nil = new_val;
 		pq_context_set(ctx, "nil", new_val);
 	}
@@ -59,29 +59,37 @@ static void _free_data(pq_context *ctx, void *data) {
 	free(*((void **) data));
 }
 static void _free_type(pq_context *ctx, void *data) {
-	pq_type_destroy(ctx, *((pq_type **) data));
+	pq_type_destroy(ctx, *((pq_type *) data));
 }
 
 int pq_register_builtin_types(pq_context *ctx) {
+	pq_type type;
 	pq_value *type_val;
-	if(type_val = pq_register_type(ctx, "type", PQ_TYPE, NULL, _free_type)) {
-		type_val->type = ctx->builtin_types._type = pq_value_get_data_as(type_val, pq_type *);
+	if(type = pq_register_type(ctx, "type", PQ_TYPE, NULL, &_free_type)) {
+		ctx->type_manager._type = type;
+		if(type_val = pq_value_from_type(ctx, type)) {
+			pq_context_set(ctx, "type", type_val);
+			jit_type_free(type);  // decrement the first reference count so this first value owns the only reference
+		}
+		else return 0;
 	}
 	else return 0;
 
 #define register_type(builtin_var, name, kind, jit_type, val_dtor) \
-	if(type_val = pq_register_type(ctx, name, kind, jit_type, val_dtor)) { \
-		ctx->builtin_types. builtin_var = pq_value_get_data_as(type_val, pq_type *); \
+	if((type = pq_register_type(ctx, name, kind, jit_type, val_dtor)) && (type_val = pq_value_from_type(ctx, type))) { \
+		ctx->type_manager. builtin_var = type; \
+		pq_context_set(ctx, name, type_val); \
+		jit_type_free(type); \
 	} \
 	else return 0
 
-	register_type(_error, "error-t", PQ_ERROR, NULL, _free_data);
-	register_type(_list, "list-t", PQ_LIST, NULL, (pq_destructor) pq_release_list);
-	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) pq_scope_destroy);
+	register_type(_error, "error-t", PQ_ERROR, NULL, &_free_data);
+	register_type(_list, "list-t", PQ_LIST, NULL, (pq_destructor) &pq_release_list);
+	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) &pq_scope_destroy);
 	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL);
 	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr, NULL);
 
-	register_type(_function, "function-t", PQ_FUNCTION, NULL, NULL);
+	register_type(_function,   "function-t",   PQ_FUNCTION,   NULL, NULL);
 	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL);
 
 	register_type(_bool, "bool", PQ_INT, jit_type_sys_bool, NULL);
@@ -97,7 +105,7 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_float,  "float",  PQ_FLOAT, jit_type_float32, NULL);
 	register_type(_double, "double", PQ_FLOAT, jit_type_float64, NULL);
 
-	register_type(_string, "string", PQ_STRING, NULL, _free_data);
+	register_type(_string, "string", PQ_STRING, NULL, &_free_data);
 #undef register_type
 	return 1;
 }
@@ -123,7 +131,7 @@ static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	pq_symbol sym;
 	argv[1] = pq_eval(ctx, argv[1]);
 	pq_assert_not_error(argv[1]);
-	switch(argv[0]->type->kind) {
+	switch(pq_type_get_metadata(argv[0]->type)->kind) {
 		case PQ_SYMBOL:
 			sym = pq_value_get_data_as(argv[0], pq_symbol);
 			pq_context_set_symbol(ctx, sym, argv[1]);
@@ -131,7 +139,7 @@ static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 
 		default:
 			return pq_value_ferror(ctx, "Invalid argument 1: expected symbol, found %s",
-					argv[0]->type->name);
+					pq_type_get_metadata(argv[0]->type)->name);
 	}
 	return argv[1];
 }
@@ -160,8 +168,7 @@ int pq_register_builtin_functions(pq_context *ctx) {
 	pq_register_c_function(ctx, "eval", &_eval, 1, 0);
 	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS);
 	pq_register_c_function(ctx, "quit", &_quit, 0, 0);
-	// TODO: FIX `type-of` to find the type value instead of creating another one
-	/* pq_register_c_function(ctx, "type-of", &_type_of, 1, PQ_EVAL_ARGS); */
+	pq_register_c_function(ctx, "type-of", &_type_of, 1, PQ_EVAL_ARGS);
 	return 1;
 }
 

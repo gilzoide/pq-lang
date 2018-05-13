@@ -38,7 +38,7 @@
  * may contain anything. The contents are defined by the Type.
  */
 typedef struct pq_value {
-	pq_type *type;
+	pq_type type;
 	unsigned int parent_scope;
 } pq_value;
 
@@ -65,7 +65,7 @@ typedef struct pq_scope pq_scope;
 pq_value *pq_value_error(pq_context *ctx, const char *msg);
 pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...);
 
-pq_value *pq_value_from_type(pq_context *ctx, pq_type *t);
+pq_value *pq_value_from_type(pq_context *ctx, pq_type t);
 pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
 
 pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits);
@@ -79,8 +79,8 @@ pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
 
 pq_value *pq_value_nil(pq_context *ctx);
 
-pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, pq_function_flags flags);
-pq_value *pq_value_from_code(pq_context *ctx, pq_list *code, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, uint8_t is_variadic);
 
 // Value type checks
 

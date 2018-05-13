@@ -80,7 +80,7 @@ void pq_push_scope(pq_context *ctx) {
 
 pq_value *pq_eval(pq_context *ctx, pq_value *val) {
 	if(val == NULL) return pq_value_nil(ctx);
-	switch(val->type->kind) {
+	switch(pq_type_get_metadata(val->type)->kind) {
 		case PQ_SYMBOL:
 			return pq_context_get_symbol(ctx, pq_value_get_data_as(val, pq_symbol));
 

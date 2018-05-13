@@ -39,8 +39,9 @@ pq_value *pq_new_value_with_size(pq_context *ctx, size_t data_size) {
 void pq_release_value(pq_context *ctx, pq_value *val) {
 	// only destroy val if it's scope isn't yet below in the stack
 	if(val && val->parent_scope >= ctx->scopes.size) {
-		if(val->type->value_destructor) {
-			val->type->value_destructor(ctx, pq_value_get_data(val));
+		pq_destructor value_destructor = pq_type_get_metadata(val->type)->value_destructor;
+		if(value_destructor) {
+			value_destructor(ctx, pq_value_get_data(val));
 		}
 		free(val);
 	}

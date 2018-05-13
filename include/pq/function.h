@@ -26,6 +26,7 @@
 #define __PQ_FUNCTION_H__
 
 // Forward declarations
+typedef struct pq_list pq_list;
 typedef struct pq_value pq_value;
 typedef struct pq_context pq_context;
 
@@ -34,11 +35,11 @@ typedef struct pq_context pq_context;
 /**
  * Flags for C Functions, to be ORed and stored in the metadata.
  */
-typedef enum {
+enum pq_function_flags {
 	PQ_VARIADIC   = (1 << 0),
 	PQ_EVAL_ARGS  = (1 << 1),
 	PQ_PUSH_SCOPE = (1 << 2),
-} pq_function_flags;
+};
 
 /**
  * Function metadata, used by every Function type in pq.
@@ -59,7 +60,7 @@ typedef struct pq_function {
 /**
  * Registers a pq Function into pq Context.
  */
-pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list code, uint8_t argnum, uint8_t is_variadic);
 
 /// C Function prototype.
 typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value **argv);
@@ -75,7 +76,7 @@ typedef struct pq_c_function {
 /**
  * Registers a C Function or Macro into pq Context.
  */
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, pq_function_flags flags);
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags);
 
 /**
  * Try to call the `func` value, which should be callable (either a function, macro or type).

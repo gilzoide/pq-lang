@@ -23,7 +23,7 @@
 
 #include <stdarg.h>
 
-pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code, uint8_t argnum, uint8_t is_variadic) {
+pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list code, uint8_t argnum, uint8_t is_variadic) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_code(ctx, code, argnum, is_variadic)) {
 		pq_context_set(ctx, name, func_val);
@@ -31,7 +31,7 @@ pq_value *pq_register_function(pq_context *ctx, const char *name, pq_value *code
 	return func_val;
 }
 
-pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, pq_function_flags flags) {
+pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_c_function(ctx, func, argnum, flags)) {
 		pq_context_set(ctx, name, func_val);
@@ -50,18 +50,18 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 		return pq_value_error(ctx, "Can't call a null value");
 	}
 	else if(!pq_is_callable(func)) {
-		return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", func->type->name);
+		return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", pq_type_get_metadata(func->type)->name);
 	}
 	else {
 		pq_function_metadata *func_md = pq_value_get_data(func);
-		pq_function_flags is_variadic = func_md->flags & PQ_VARIADIC;
+		enum pq_function_flags is_variadic = func_md->flags & PQ_VARIADIC;
 		if(argc < (int) func_md->argnum || !is_variadic && argc > (int) func_md->argnum) {
 			return pq_value_ferror(ctx, "Expected %s%u argument(s); found %d",
 					is_variadic ? "at least " : "", func_md->argnum, argc);
 		}
 
 		int i;
-		switch(func->type->kind) {
+		switch(pq_type_get_metadata(func->type)->kind) {
 			case PQ_FUNCTION:
 				_eval_args();
 				pq_push_scope(ctx);
@@ -79,7 +79,7 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 			default: break;
 		}
 		return pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)",
-				func->type->name);
+				pq_type_get_metadata(func->type)->name);
 	}
 }
 #undef _eval_args

@@ -38,40 +38,6 @@ typedef struct pq_context pq_context;
 int pq_register_builtin(pq_context *ctx);
 
 /**
- * Builtin pq Types, important stuff to store directly in variables.
- */
-typedef struct pq_builtin_types {
-	pq_type *_type;  // The "type" type
-	pq_type *_error;  // Error type
-	pq_type *_list;  // 
-	pq_type *_scope;  // Scopes
-	pq_type *_nil;
-	pq_type *_symbol;
-
-	pq_type *_function;
-	pq_type *_c_function;
-
-	pq_type *_bool;
-	pq_type *_i8;
-	pq_type *_i16;
-	pq_type *_i32;
-	pq_type *_i64;
-	pq_type *_u8;
-	pq_type *_u16;
-	pq_type *_u32;
-	pq_type *_u64;
-
-	pq_type *_string;
-
-	pq_type *_half;
-	pq_type *_float;
-	pq_type *_double;
-
-	pq_type *_pointer;
-	pq_type *_struct;
-	pq_type *_array;
-} pq_builtin_types;
-/**
  * Registers the builtin pq Types in the Context.
  */
 int pq_register_builtin_types(pq_context *ctx);

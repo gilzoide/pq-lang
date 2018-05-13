@@ -34,7 +34,7 @@
 pq_value *pq_value_error(pq_context *ctx, const char *msg) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, char *)) {
-		val->type = ctx->builtin_types._error;
+		val->type = ctx->type_manager._error;
 		pq_value_get_data_as(val, char *) = strdup(msg);
 	}
 	return val;
@@ -49,11 +49,11 @@ pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...) {
 	return pq_value_error(ctx, ferror_buffer);
 }
 
-pq_value *pq_value_from_type(pq_context *ctx, pq_type *t) {
+pq_value *pq_value_from_type(pq_context *ctx, pq_type t) {
 	pq_value *val;
-	if(val = pq_new_value(ctx, pq_type *)) {
-		val->type = ctx->builtin_types._type;
-		pq_value_get_data_as(val, pq_type *) = t;
+	if(val = pq_new_value(ctx, pq_type)) {
+		val->type = ctx->type_manager._type;
+		pq_value_get_data_as(val, pq_type) = jit_type_copy(t);
 	}
 	return val;
 }
@@ -61,7 +61,7 @@ pq_value *pq_value_from_type(pq_context *ctx, pq_type *t) {
 pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_scope *)) {
-		val->type = ctx->builtin_types._scope;
+		val->type = ctx->type_manager._scope;
 		pq_value_get_data_as(val, pq_scope *) = s;
 	}
 	return val;
@@ -69,13 +69,13 @@ pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s) {
 
 pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits) {
 	pq_value *val;
-	pq_type *type;
+	pq_type type;
 	switch(numbits) {
-		case 1: type = ctx->builtin_types._bool; break;
-		case 8: type = ctx->builtin_types._i8; break;
-		case 16: type = ctx->builtin_types._i16; break;
-		case 32: type = ctx->builtin_types._i32; break;
-		case 64: type = ctx->builtin_types._i64; break;
+		case 1: type = ctx->type_manager._bool; break;
+		case 8: type = ctx->type_manager._i8; break;
+		case 16: type = ctx->type_manager._i16; break;
+		case 32: type = ctx->type_manager._i32; break;
+		case 64: type = ctx->type_manager._i64; break;
 		default: return pq_value_ferror(ctx, "Invalid number of bits for integer value: expected 1, 8, 16, 32, 64 or 128; found %d", numbits);
 	}
 	if(val = pq_new_value(ctx, intmax_t)) {
@@ -87,13 +87,13 @@ pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits) {
 
 pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits) {
 	pq_value *val;
-	pq_type *type;
+	pq_type type;
 	switch(numbits) {
-		case 1: type = ctx->builtin_types._bool; break;
-		case 8: type = ctx->builtin_types._u8; break;
-		case 16: type = ctx->builtin_types._u16; break;
-		case 32: type = ctx->builtin_types._u32; break;
-		case 64: type = ctx->builtin_types._u64; break;
+		case 1: type = ctx->type_manager._bool; break;
+		case 8: type = ctx->type_manager._u8; break;
+		case 16: type = ctx->type_manager._u16; break;
+		case 32: type = ctx->type_manager._u32; break;
+		case 64: type = ctx->type_manager._u64; break;
 		default: return pq_value_ferror(ctx, "Invalid number of bits for unsigned integer value: expected 1, 8, 16, 32, 64 or 128; found %d", numbits);
 	}
 	if(val = pq_new_value(ctx, uintmax_t)) {
@@ -106,7 +106,7 @@ pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits) {
 pq_value *pq_value_from_float(pq_context *ctx, double f) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, double)) {
-		val->type = ctx->builtin_types._float;
+		val->type = ctx->type_manager._float;
 		pq_value_get_data_as(val, double) = f;
 	}
 	return val;
@@ -115,7 +115,7 @@ pq_value *pq_value_from_float(pq_context *ctx, double f) {
 pq_value *pq_value_from_string(pq_context *ctx, const char *str) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, char *)) {
-		val->type = ctx->builtin_types._string;
+		val->type = ctx->type_manager._string;
 		pq_value_get_data_as(val, char *) = strdup(str);
 	}
 	return val;
@@ -124,7 +124,7 @@ pq_value *pq_value_from_string(pq_context *ctx, const char *str) {
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, char *)) {
-		val->type = ctx->builtin_types._string;
+		val->type = ctx->type_manager._string;
 		pq_value_get_data_as(val, char *) = strndup(str, n);
 	}
 	return val;
@@ -133,7 +133,7 @@ pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n) {
 pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_symbol)) {
-		val->type = ctx->builtin_types._symbol;
+		val->type = ctx->type_manager._symbol;
 		pq_value_get_data_as(val, pq_symbol) = symbol;
 	}
 	return val;
@@ -142,7 +142,7 @@ pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol) {
 pq_value *pq_value_from_list(pq_context *ctx, pq_list lst) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_list)) {
-		val->type = ctx->builtin_types._list;
+		val->type = ctx->type_manager._list;
 		pq_value_get_data_as(val, pq_list) = lst;
 	}
 	return val;
@@ -152,10 +152,10 @@ pq_value *pq_value_nil(pq_context *ctx) {
 	return ctx->builtin_values._nil;
 }
 
-pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, pq_function_flags flags) {
+pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_c_function)) {
-		val->type = ctx->builtin_types._c_function;
+		val->type = ctx->type_manager._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
 		cfunc->header.argnum = argnum;
 		cfunc->header.flags = flags;
@@ -164,57 +164,56 @@ pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint
 	return val;
 }
 
-pq_value *pq_value_from_code(pq_context *ctx, pq_list *code, uint8_t argnum, uint8_t is_variadic) {
-	pq_value *val;
-	if(val = pq_new_value(ctx, pq_function)) {
-		val->type = ctx->builtin_types._function;
-		pq_function *func = pq_value_get_data(val);
-		func->header.argnum = argnum;
-		func->header.flags = (is_variadic ? PQ_VARIADIC : 0) | PQ_EVAL_ARGS | PQ_PUSH_SCOPE;
-		func->code = code;
-	}
-	return val;
+pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, uint8_t is_variadic) {
+	return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Value Type Checks
 ////////////////////////////////////////////////////////////////////////////////
 int pq_is_int(pq_value *val) {
-	return val->type->kind == PQ_INT;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_INT;
 }
 
 int pq_is_float(pq_value *val) {
-	return val->type->kind == PQ_FLOAT;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_FLOAT;
 }
 
 int pq_is_error(pq_value *val) {
-	return val->type->kind == PQ_ERROR;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_ERROR;
 }
 
 int pq_is_callable(pq_value *val) {
-	return val->type->kind == PQ_FUNCTION
-	       || val->type->kind == PQ_MACRO
-	       || val->type->kind == PQ_C_FUNCTION
-	       || val->type->kind == PQ_C_MACRO;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_FUNCTION
+	       || kind == PQ_MACRO
+	       || kind == PQ_C_FUNCTION
+	       || kind == PQ_C_MACRO;
 }
 
 int pq_is_nil(pq_value *val) {
-	return val->type->kind == PQ_NIL;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_NIL;
 }
 
 int pq_is_symbol(pq_value *val) {
-	return val->type->kind == PQ_SYMBOL;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_SYMBOL;
 }
 
 int pq_is_string(pq_value *val) {
-	return val->type->kind == PQ_STRING;
+	int kind = pq_type_get_metadata(val->type)->kind;
+	return kind == PQ_STRING;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //  General operations
 ////////////////////////////////////////////////////////////////////////////////
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
-	switch(val->type->kind) {
+	switch(pq_type_get_metadata(val->type)->kind) {
 		case PQ_NIL:
 			fputs("nil", output);
 			break;
@@ -232,7 +231,7 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_FLOAT:
-			fprintf(output, "%f", pq_value_get_data_as(val, double));
+			fprintf(output, "%g", pq_value_get_data_as(val, double));
 			break;
 
 		case PQ_LIST: {
@@ -254,11 +253,11 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_TYPE:
-			fprintf(output, "%s", pq_value_get_data_as(val, pq_type *)->name);
+			fprintf(output, "%s", pq_type_get_metadata(pq_value_get_data_as(val, pq_type))->name);
 			break;
 
 		default:
-			fprintf(output, "[no print for type \"%s\"]", val->type->name);
+			fprintf(output, "[no print for type \"%s\"]", pq_type_get_metadata(val->type)->name);
 			break;
 	}
 }

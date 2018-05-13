@@ -32,7 +32,7 @@
 #include "parser.h"
 #include "scope.h"
 #include "scope_queue.h"
-#include "type.h"
+#include "type_manager.h"
 
 /**
  * Pq interpreter Context, the topmost know-it-all structure.
@@ -42,10 +42,10 @@ typedef struct pq_context {
 	pq_parser parser;
 	pq_scope_queue scopes;
 	pq_scope env;
-	pq_builtin_types builtin_types;
 	pq_builtin_values builtin_values;
 	pq_memory_manager memory_manager;
 	pq_symbol_manager symbol_manager;
+	pq_type_manager type_manager;
 } pq_context;
 
 /**
