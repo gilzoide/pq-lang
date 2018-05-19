@@ -25,12 +25,13 @@
 
 int pq_context_initialize(pq_context *ctx) {
 	return (ctx->jit = jit_context_create()) != NULL
-			&& pq_symbol_manager_initialize(&ctx->symbol_manager)
-			&& pq_memory_manager_initialize(&ctx->memory_manager)
-			&& pq_parser_initialize(&ctx->parser)
-			&& pq_scope_queue_initialize(&ctx->scopes, 0)
-			&& pq_scope_initialize(&ctx->env)
-			&& pq_register_builtin(ctx);
+	       && pq_symbol_manager_initialize(&ctx->symbol_manager)
+	       && pq_memory_manager_initialize(&ctx->memory_manager)
+	       && pq_type_manager_initialize(&ctx->type_manager)
+	       && pq_parser_initialize(&ctx->parser)
+	       && pq_scope_queue_initialize(&ctx->scopes, 0)
+	       && pq_scope_initialize(&ctx->env)
+	       && pq_register_builtin(ctx);
 }
 
 void pq_context_destroy(pq_context *ctx) {
@@ -40,6 +41,7 @@ void pq_context_destroy(pq_context *ctx) {
 	pq_scope_destroy(ctx, &ctx->env);
 	pq_memory_manager_destroy(ctx, &ctx->memory_manager);
 	pq_symbol_manager_destroy(&ctx->symbol_manager);
+	pq_type_manager_destroy(&ctx->type_manager);
 }
 
 pq_value *pq_context_get(pq_context *ctx, const char *key) {
@@ -80,7 +82,7 @@ void pq_push_scope(pq_context *ctx) {
 
 pq_value *pq_eval(pq_context *ctx, pq_value *val) {
 	if(val == NULL) return pq_value_nil(ctx);
-	switch(pq_type_get_metadata(val->type)->kind) {
+	switch(val->type->kind) {
 		case PQ_SYMBOL:
 			return pq_context_get_symbol(ctx, pq_value_get_data_as(val, pq_symbol));
 

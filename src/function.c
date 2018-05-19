@@ -50,7 +50,7 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 		return pq_value_error(ctx, "Can't call a null value");
 	}
 	else if(!pq_is_callable(func)) {
-		return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", pq_type_get_metadata(func->type)->name);
+		return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", func->type->name);
 	}
 	else {
 		pq_function_metadata *func_md = pq_value_get_data(func);
@@ -61,7 +61,7 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 		}
 
 		int i;
-		switch(pq_type_get_metadata(func->type)->kind) {
+		switch(func->type->kind) {
 			case PQ_FUNCTION:
 				_eval_args();
 				pq_push_scope(ctx);
@@ -79,7 +79,7 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 			default: break;
 		}
 		return pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)",
-				pq_type_get_metadata(func->type)->name);
+				func->type->name);
 	}
 }
 #undef _eval_args
@@ -101,7 +101,7 @@ pq_value *pq_return(pq_context *ctx, pq_value *ret) {
 	if(top == NULL) {
 		return pq_value_error(ctx, "cannot pop scope from empty queue");
 	}
-	else if(ret && ret->parent_scope >= ctx->scopes.size) {
+	else if(ret && ret->parent_scope >= ctx->scopes.scopes.size) {
 		ret->parent_scope--;
 		if(!pq_scope_mark_value_for_destruction(top - 1, ret)) {
 			return pq_value_error(ctx, "memory error on scope destruction");

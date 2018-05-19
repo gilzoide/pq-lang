@@ -22,37 +22,28 @@
 #include <pq/context.h>
 #include <pq/value.h>
 
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define PQ_TYPE_METADATA_TAG_KIND 1
 
-pq_type pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
+pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
                          jit_type_t jit_type, pq_destructor value_destructor) {
 	assert(kind >= PQ_INT && kind < PQ_TYPE_KIND_END && "Invalid type kind enum value");
-	pq_type_metadata *new_type_metadata;
-	if(new_type_metadata = malloc(sizeof(pq_type_metadata))) {
-		new_type_metadata->name = name ? strdup(name) : NULL;
-		new_type_metadata->kind = kind;
-		new_type_metadata->value_destructor = value_destructor;
+	pq_type *new_type;
+	if(new_type = malloc(sizeof(pq_type))) {
+		new_type->name = name ? strdup(name) : NULL;
+		new_type->kind = kind;
+		new_type->jit_type = jit_type;
+		new_type->value_destructor = value_destructor;
 	}
-	return new_type_metadata
-			? jit_type_create_tagged(jit_type, PQ_TYPE_METADATA_TAG_KIND,
-					new_type_metadata, (void (*)(void *)) &pq_type_metadata_destroy, 1)
-			: NULL;
+	return new_type;
 }
 
-pq_type_metadata *pq_type_get_metadata(pq_type type) {
-	return jit_type_get_tagged_data(type);
-}
-
-void pq_type_metadata_destroy(pq_type_metadata *type_metadata) {
-	free(type_metadata->name);
-	free(type_metadata);
-}
-
-void pq_type_destroy(pq_context *ctx, pq_type type) {
-	jit_type_free(type);
+void pq_type_destroy(pq_type *type) {
+	jit_type_free(type->jit_type);
+	free(type->name);
+	free(type);
 }
 

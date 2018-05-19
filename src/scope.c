@@ -27,12 +27,7 @@
 
 int pq_scope_initialize(pq_scope *scope) {
 	scope->table = NULL;
-	scope->capacity = PQ_SCOPE_INITIAL_CAPACITY;
-	if(scope->created_values = malloc(PQ_SCOPE_INITIAL_CAPACITY * sizeof(pq_value *))) {
-		scope->size = 0;
-		return 1;
-	}
-	return 0;
+	return pq_vector_initialize_as(&scope->created_values, PQ_SCOPE_INITIAL_CAPACITY, pq_value *);
 }
 
 void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
@@ -42,10 +37,10 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
 	// The reverse order is important, as newer Values may reference older ones:
 	// this is particularly true for builtin Types.
 	int i;
-	for(i = scope->size - 1; i >= 0; i--) {
-		pq_release_value(ctx, scope->created_values[i]);
+	for(i = scope->created_values.size - 1; i >= 0; i--) {
+		pq_release_value(ctx, *pq_vector_at(&scope->created_values, i, pq_value *));
 	}
-	free(scope->created_values);
+	pq_vector_destroy(&scope->created_values);
 }
 
 pq_value *pq_scope_get(const pq_scope *scope, pq_symbol sym) {
@@ -63,18 +58,10 @@ void pq_scope_set(pq_scope *scope, pq_symbol sym, pq_value *val) {
 }
 
 int pq_scope_mark_value_for_destruction(pq_scope *scope, pq_value *val) {
-	pq_value **aux;
-	if(scope->size == scope->capacity) {
-		size_t new_capacity = scope->capacity * 2;
-		if((aux = realloc(scope->created_values, new_capacity * sizeof(pq_value *))) != NULL) {
-			scope->created_values = aux;
-			scope->capacity = new_capacity;
-		}
-		else {
-			return 0;
-		}
+	pq_value **val_ptr;
+	if(val_ptr = pq_vector_push_as(&scope->created_values, pq_value *)) {
+		*val_ptr = val;
 	}
-	scope->created_values[scope->size++] = val;
-	return 1;
+	return val_ptr != NULL;
 }
 

@@ -26,40 +26,45 @@
 #define __PQ_TYPE_MANAGER_H__
 
 #include "type.h"
+#include "utils.h"
+
+#include <Judy.h>
 
 /**
- * Type Manager, responsible for interning Type combinations.
+ * Type Manager, responsible for interning Type combinations and ownership.
  *
  * Tuples and function signatures will be interned in pq, to ease function
  * overload search.
  */
 typedef struct pq_type_manager {
-	pq_type _type;  ///< The Type type.
-	pq_type _error;  ///< The Error type.
-	pq_type _list;  ///< The List type.
-	pq_type _scope;  ///< The Scope type.
-	pq_type _nil;   ///< The Nil type.
-	pq_type _symbol;  ///< The Symbol type.
+	pq_type *_type;  ///< The Type type.
+	pq_type *_error;  ///< The Error type.
+	pq_type *_list;  ///< The List type.
+	pq_type *_scope;  ///< The Scope type.
+	pq_type *_nil;   ///< The Nil type.
+	pq_type *_symbol;  ///< The Symbol type.
 
-	pq_type _bool;  ///< The Bool type.
-	pq_type _i8;  ///< The i8 type.
-	pq_type _i16;  ///< The i16 type.
-	pq_type _i32;  ///< The i32 type.
-	pq_type _i64;  ///< The i64 type.
-	pq_type _u8;  ///< The u8 type.
-	pq_type _u16;  ///< The u16 type.
-	pq_type _u32;  ///< The u32 type.
-	pq_type _u64;  ///< The u64 type.
+	pq_type *_bool;  ///< The Bool type.
+	pq_type *_i8;  ///< The i8 type.
+	pq_type *_i16;  ///< The i16 type.
+	pq_type *_i32;  ///< The i32 type.
+	pq_type *_i64;  ///< The i64 type.
+	pq_type *_u8;  ///< The u8 type.
+	pq_type *_u16;  ///< The u16 type.
+	pq_type *_u32;  ///< The u32 type.
+	pq_type *_u64;  ///< The u64 type.
 	
-	pq_type _float;  ///< The float type.
-	pq_type _double;  ///< The double type.
+	pq_type *_float;  ///< The float type.
+	pq_type *_double;  ///< The double type.
 
-	pq_type _string;  ///< The String type.
+	pq_type *_string;  ///< The String type.
 
-	pq_type _pointer;  ///< The generic pointer type.
+	pq_type *_pointer;  ///< The generic pointer type.
 
-	pq_type _function;
-	pq_type _c_function;
+	pq_type *_function;
+	pq_type *_c_function;
+
+	pq_vector all_types;
 
 	/// Type list -> Tuple type table.
 	Pvoid_t tuple_table;
@@ -108,14 +113,20 @@ enum pq_builtin_type {
 /**
  * Get a builtin type.
  */
-pq_type pq_get_builtin_type(pq_context *ctx, enum pq_builtin_type builtin_type);
+pq_type *pq_get_builtin_type(pq_context *ctx, enum pq_builtin_type builtin_type);
+
+/**
+ * Register a new Type in the Context.
+ */
+pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind kind,
+                          jit_type_t jit_type, pq_destructor value_destructor);
 
 /**
  * Get the tuple type that contains the given `n` types in order.
  *
  * This returns the same pointer for the same input types.
  */
-pq_type pq_get_tuple_type(pq_context *ctx, const pq_type *types, size_t n);
+pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n);
 
 #endif
 

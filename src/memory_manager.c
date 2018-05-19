@@ -30,7 +30,7 @@ void pq_memory_manager_destroy(pq_context *ctx, pq_memory_manager *mgr) {}
 pq_value *pq_new_value_with_size(pq_context *ctx, size_t data_size) {
 	pq_value *val;
 	if(val = malloc(sizeof(pq_value) + data_size)) {
-		val->parent_scope = ctx->scopes.size - 1;
+		val->parent_scope = ctx->scopes.scopes.size - 1;
 		pq_scope_mark_value_for_destruction(pq_scope_queue_peek(&ctx->scopes), val);
 	}
 	return val;
@@ -38,8 +38,8 @@ pq_value *pq_new_value_with_size(pq_context *ctx, size_t data_size) {
 
 void pq_release_value(pq_context *ctx, pq_value *val) {
 	// only destroy val if it's scope isn't yet below in the stack
-	if(val && val->parent_scope >= ctx->scopes.size) {
-		pq_destructor value_destructor = pq_type_get_metadata(val->type)->value_destructor;
+	if(val && val->parent_scope >= ctx->scopes.scopes.size) {
+		pq_destructor value_destructor = val->type->value_destructor;
 		if(value_destructor) {
 			value_destructor(ctx, pq_value_get_data(val));
 		}

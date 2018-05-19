@@ -22,6 +22,7 @@
 #define __PQ_SCOPE_QUEUE_H__
 
 #include "scope.h"
+#include "utils.h"
 #include "value.h"
 
 #include <stdlib.h>
@@ -30,9 +31,7 @@
  * Dynamic Scope Queue.
  */
 typedef struct pq_scope_queue {
-	pq_scope *scopes;
-	size_t size;
-	size_t capacity;
+	pq_vector scopes;
 } pq_scope_queue;
 
 /**

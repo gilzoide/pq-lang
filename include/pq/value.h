@@ -38,7 +38,7 @@
  * may contain anything. The contents are defined by the Type.
  */
 typedef struct pq_value {
-	pq_type type;
+	pq_type *type;
 	unsigned int parent_scope;
 } pq_value;
 
@@ -65,7 +65,7 @@ typedef struct pq_scope pq_scope;
 pq_value *pq_value_error(pq_context *ctx, const char *msg);
 pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...);
 
-pq_value *pq_value_from_type(pq_context *ctx, pq_type t);
+pq_value *pq_value_from_type(pq_context *ctx, pq_type *type);
 pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
 
 pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits);

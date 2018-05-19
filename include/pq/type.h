@@ -30,13 +30,14 @@
 /**
  * Kinds of types in pq.
  */
-typedef enum pq_type_kind {
+enum pq_type_kind {
 	PQ_INT,
 	PQ_FLOAT,
 	PQ_STRING,
 	PQ_STRUCT,
 	PQ_TUPLE,
 	PQ_ARRAY,
+	PQ_POINTER,
 
 	PQ_NIL,
 	PQ_LIST,
@@ -51,7 +52,7 @@ typedef enum pq_type_kind {
 	PQ_C_MACRO,
 
 	PQ_TYPE_KIND_END,
-} pq_type_kind;
+};
 
 // Forward declarations
 typedef struct pq_context pq_context;
@@ -75,35 +76,25 @@ typedef unsigned int pq_value_size;
 /**
  * Pq Type: metadata about a Value's type.
  */
-typedef struct pq_type_metadata {
+typedef struct pq_type {
 	char *name;
-	pq_type_kind kind;
+	jit_type_t jit_type;
 	pq_destructor value_destructor;
-} pq_type_metadata;
-
-typedef jit_type_t pq_type;
+	enum pq_type_kind kind;
+} pq_type;
 
 /**
  * Register a Type in Context.
  *
  * This will be primarily used by the pq interpreter itself.
  */
-pq_type pq_register_type(pq_context *ctx, const char *name, pq_type_kind kind,
-                         jit_type_t jit_type, pq_destructor value_destructor);
-
-/**
- * Get the metadata associated with a Type.
- */
-pq_type_metadata *pq_type_get_metadata(pq_type type);
+pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
+                        jit_type_t jit_type, pq_destructor value_destructor);
 
 /**
  * Destroy a Type.
  */
-void pq_type_destroy(pq_context *ctx, pq_type type);
-/**
- * Destroy a Type Metadata.
- */
-void pq_type_metadata_destroy(pq_type_metadata *type);
+void pq_type_destroy(pq_type *type);
 
 #endif
 

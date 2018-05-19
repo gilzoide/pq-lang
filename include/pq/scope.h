@@ -23,19 +23,18 @@
 
 #include "value.h"
 #include "symbol.h"
+#include "utils.h"
 
 #include <stdlib.h>
 
 /**
  * Pq Scopes: a table-like structure that holds value definitions in the
- * form "String -> Value".
+ * form "Symbol -> Value".
  */
 typedef struct pq_scope {
 	Pvoid_t table;
 
-	pq_value **created_values;
-	size_t size;
-	size_t capacity;
+	pq_vector created_values;
 } pq_scope;
 
 // Forward declarations

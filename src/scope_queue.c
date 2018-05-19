@@ -26,57 +26,39 @@ int pq_scope_queue_initialize(pq_scope_queue *q, size_t initial_capacity) {
 	if(initial_capacity == 0) {
 		initial_capacity = PQ_DEFAULT_INITIAL_SCOPE_QUEUE_CAPACITY;
 	}
-	q->capacity = initial_capacity;
-	q->size = 1;
-	if((q->scopes = malloc(initial_capacity * sizeof(pq_scope))) != NULL) {
-		pq_scope_initialize(q->scopes);
-		return 1;
-	}
-	return 0;
+	return pq_vector_initialize_as(&q->scopes, initial_capacity, pq_scope)
+	       && pq_scope_initialize(pq_vector_push_as(&q->scopes, pq_scope));
 }
 
 void pq_scope_queue_destroy(pq_context *ctx, pq_scope_queue *q) {
 	pq_scope *top;
-	while(top = pq_scope_queue_pop(q)) {
+	while(top = pq_vector_pop_as(&q->scopes, pq_scope)) {
 		pq_scope_destroy(ctx, top);
 	}
-	free(q->scopes);
+	pq_vector_destroy(&q->scopes);
 }
 
 pq_scope *pq_scope_queue_peek(pq_scope_queue *q) {
-	return q->size > 0 ? q->scopes + q->size - 1 : NULL;
+	return pq_vector_peek_as(&q->scopes, pq_scope);
 }
 
 pq_scope *pq_scope_queue_push(pq_scope_queue *q) {
 	pq_scope *aux;
-	if(q->size == q->capacity) {
-		size_t new_capacity = q->capacity * 2;
-		if((aux = realloc(q->scopes, new_capacity * sizeof(pq_scope))) != NULL) {
-			q->scopes = aux;
-			q->capacity = new_capacity;
-		}
-		else {
-			return NULL;
-		}
+	if(aux = pq_vector_push_as(&q->scopes, pq_scope)) {
+		pq_scope_initialize(aux);
 	}
-	aux = q->scopes + (q->size++);
-	pq_scope_initialize(aux);
 	return aux;
 }
 
 pq_scope *pq_scope_queue_pop(pq_scope_queue *q) {
-	if(q->size > 0) {
-		q->size--;
-		return q->scopes + q->size;
-	}
-	else return NULL;
+	return pq_vector_pop_as(&q->scopes, pq_scope);
 }
 
 pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym) {
 	int i;
 	pq_value *val;
-	for(i = q->size - 1; i >= 0; i--) {
-		if((val = pq_scope_get(q->scopes + i, sym)) != NULL) {
+	for(i = q->scopes.size - 1; i >= 0; i--) {
+		if(val = pq_scope_get(pq_vector_at(&q->scopes, i, pq_scope), sym)) {
 			return val;
 		}
 	}
@@ -84,6 +66,6 @@ pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym) {
 }
 
 void pq_scope_queue_set(pq_scope_queue *q, pq_symbol sym, pq_value *val) {
-	pq_scope_set(q->scopes + q->size - 1, sym, val);
+	pq_scope_set(pq_vector_peek_as(&q->scopes, pq_scope), sym, val);
 }
 

@@ -58,18 +58,14 @@ int pq_register_builtin_values(pq_context *ctx) {
 static void _free_data(pq_context *ctx, void *data) {
 	free(*((void **) data));
 }
-static void _free_type(pq_context *ctx, void *data) {
-	pq_type_destroy(ctx, *((pq_type *) data));
-}
 
 int pq_register_builtin_types(pq_context *ctx) {
-	pq_type type;
+	pq_type *type;
 	pq_value *type_val;
-	if(type = pq_register_type(ctx, "type", PQ_TYPE, NULL, &_free_type)) {
+	if(type = pq_register_type(ctx, "type", PQ_TYPE, NULL, NULL)) {
 		ctx->type_manager._type = type;
 		if(type_val = pq_value_from_type(ctx, type)) {
 			pq_context_set(ctx, "type", type_val);
-			jit_type_free(type);  // decrement the first reference count so this first value owns the only reference
 		}
 		else return 0;
 	}
@@ -79,7 +75,6 @@ int pq_register_builtin_types(pq_context *ctx) {
 	if((type = pq_register_type(ctx, name, kind, jit_type, val_dtor)) && (type_val = pq_value_from_type(ctx, type))) { \
 		ctx->type_manager. builtin_var = type; \
 		pq_context_set(ctx, name, type_val); \
-		jit_type_free(type); \
 	} \
 	else return 0
 
@@ -88,9 +83,6 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) &pq_scope_destroy);
 	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL);
 	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr, NULL);
-
-	register_type(_function,   "function-t",   PQ_FUNCTION,   NULL, NULL);
-	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL);
 
 	register_type(_bool, "bool", PQ_INT, jit_type_sys_bool, NULL);
 	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,    NULL);
@@ -106,6 +98,11 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_double, "double", PQ_FLOAT, jit_type_float64, NULL);
 
 	register_type(_string, "string", PQ_STRING, NULL, &_free_data);
+
+	register_type(_pointer, "pointer", PQ_POINTER, jit_type_void_ptr, NULL);
+
+	register_type(_function,   "function-t",   PQ_FUNCTION,   NULL, NULL);
+	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL);
 #undef register_type
 	return 1;
 }
@@ -131,7 +128,7 @@ static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	pq_symbol sym;
 	argv[1] = pq_eval(ctx, argv[1]);
 	pq_assert_not_error(argv[1]);
-	switch(pq_type_get_metadata(argv[0]->type)->kind) {
+	switch(argv[0]->type->kind) {
 		case PQ_SYMBOL:
 			sym = pq_value_get_data_as(argv[0], pq_symbol);
 			pq_context_set_symbol(ctx, sym, argv[1]);
@@ -139,7 +136,7 @@ static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 
 		default:
 			return pq_value_ferror(ctx, "Invalid argument 1: expected symbol, found %s",
-					pq_type_get_metadata(argv[0]->type)->name);
+					argv[0]->type->name);
 	}
 	return argv[1];
 }

@@ -49,11 +49,11 @@ pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...) {
 	return pq_value_error(ctx, ferror_buffer);
 }
 
-pq_value *pq_value_from_type(pq_context *ctx, pq_type t) {
+pq_value *pq_value_from_type(pq_context *ctx, pq_type *type) {
 	pq_value *val;
-	if(val = pq_new_value(ctx, pq_type)) {
+	if(val = pq_new_value(ctx, pq_type *)) {
 		val->type = ctx->type_manager._type;
-		pq_value_get_data_as(val, pq_type) = jit_type_copy(t);
+		pq_value_get_data_as(val, pq_type *) = type;
 	}
 	return val;
 }
@@ -69,7 +69,7 @@ pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s) {
 
 pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits) {
 	pq_value *val;
-	pq_type type;
+	pq_type *type;
 	switch(numbits) {
 		case 1: type = ctx->type_manager._bool; break;
 		case 8: type = ctx->type_manager._i8; break;
@@ -87,7 +87,7 @@ pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits) {
 
 pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits) {
 	pq_value *val;
-	pq_type type;
+	pq_type *type;
 	switch(numbits) {
 		case 1: type = ctx->type_manager._bool; break;
 		case 8: type = ctx->type_manager._u8; break;
@@ -172,22 +172,22 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, uint
 //  Value Type Checks
 ////////////////////////////////////////////////////////////////////////////////
 int pq_is_int(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_INT;
 }
 
 int pq_is_float(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_FLOAT;
 }
 
 int pq_is_error(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_ERROR;
 }
 
 int pq_is_callable(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_FUNCTION
 	       || kind == PQ_MACRO
 	       || kind == PQ_C_FUNCTION
@@ -195,17 +195,17 @@ int pq_is_callable(pq_value *val) {
 }
 
 int pq_is_nil(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_NIL;
 }
 
 int pq_is_symbol(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_SYMBOL;
 }
 
 int pq_is_string(pq_value *val) {
-	int kind = pq_type_get_metadata(val->type)->kind;
+	int kind = val->type->kind;
 	return kind == PQ_STRING;
 }
 
@@ -213,7 +213,7 @@ int pq_is_string(pq_value *val) {
 //  General operations
 ////////////////////////////////////////////////////////////////////////////////
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
-	switch(pq_type_get_metadata(val->type)->kind) {
+	switch(val->type->kind) {
 		case PQ_NIL:
 			fputs("nil", output);
 			break;
@@ -253,11 +253,11 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_TYPE:
-			fprintf(output, "%s", pq_type_get_metadata(pq_value_get_data_as(val, pq_type))->name);
+			fprintf(output, "%s", pq_value_get_data_as(val, pq_type *)->name);
 			break;
 
 		default:
-			fprintf(output, "[no print for type \"%s\"]", pq_type_get_metadata(val->type)->name);
+			fprintf(output, "[no print for type \"%s\"]", val->type->name);
 			break;
 	}
 }
