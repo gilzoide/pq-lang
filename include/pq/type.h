@@ -46,10 +46,9 @@ enum pq_type_kind {
 	PQ_SYMBOL,
 	PQ_ERROR,
 
+	PQ_SIGNATURE,
 	PQ_FUNCTION,
-	PQ_MACRO,
 	PQ_C_FUNCTION,
-	PQ_C_MACRO,
 
 	PQ_TYPE_KIND_END,
 };

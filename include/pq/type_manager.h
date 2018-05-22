@@ -61,8 +61,8 @@ typedef struct pq_type_manager {
 
 	pq_type *_pointer;  ///< The generic pointer type.
 
-	pq_type *_function;
-	pq_type *_c_function;
+	pq_type *_function;  ///< The function type.
+	pq_type *_c_function;  ///< The C function type.
 
 	pq_vector all_types;
 
@@ -127,6 +127,15 @@ pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind k
  * This returns the same pointer for the same input types.
  */
 pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n);
+
+/**
+ * Get the signature type that contains the given `n` types in order.
+ *
+ * This returns the same pointer for the same combination of return and
+ * argument types and variadic.
+ */
+pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
+                               pq_type **argument_types, size_t n, uint8_t is_variadic);
 
 #endif
 

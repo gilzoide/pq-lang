@@ -159,13 +159,33 @@ pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint
 		pq_c_function *cfunc = pq_value_get_data(val);
 		cfunc->header.argnum = argnum;
 		cfunc->header.flags = flags;
-		cfunc->fptr = fptr;
+		cfunc->callable.function_ptr = fptr;
 	}
 	return val;
 }
 
-pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, uint8_t is_variadic) {
-	return NULL;
+pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr macro_ptr, uint8_t argnum, enum pq_function_flags flags) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, pq_c_function)) {
+		val->type = ctx->type_manager._c_function;
+		pq_c_function *cfunc = pq_value_get_data(val);
+		cfunc->header.argnum = argnum;
+		cfunc->header.flags = flags;
+		cfunc->callable.macro_ptr = macro_ptr;
+	}
+	return val;
+}
+
+pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, enum pq_function_flags flags) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, pq_function)) {
+		val->type = ctx->type_manager._function;
+		pq_function *func = pq_value_get_data(val);
+		func->header.argnum = argnum;
+		func->header.flags = flags;
+		func->code = code;
+	}
+	return val;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,9 +209,8 @@ int pq_is_error(pq_value *val) {
 int pq_is_callable(pq_value *val) {
 	int kind = val->type->kind;
 	return kind == PQ_FUNCTION
-	       || kind == PQ_MACRO
-	       || kind == PQ_C_FUNCTION
-	       || kind == PQ_C_MACRO;
+	       | kind == PQ_C_FUNCTION
+	       | kind == PQ_TYPE;
 }
 
 int pq_is_nil(pq_value *val) {
@@ -207,6 +226,25 @@ int pq_is_symbol(pq_value *val) {
 int pq_is_string(pq_value *val) {
 	int kind = val->type->kind;
 	return kind == PQ_STRING;
+}
+
+int pq_true(pq_value *val) {
+	return !pq_false(val);
+}
+
+int pq_false(pq_value *val) {
+	if(val == NULL) return 1;
+	switch(val->type->kind) {
+		case PQ_NIL:
+		case PQ_ERROR:
+			return 1;
+
+		case PQ_INT:
+			return pq_value_get_data_as(val, intmax_t) == 0;
+
+		default:
+			return 0;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

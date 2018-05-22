@@ -19,8 +19,9 @@
  */
 
 #include <pq/builtin.h>
+#include <pq/assert.h>
 #include <pq/context.h>
-#include <pq.h>
+#include <pq/value.h>
 
 #include <stdio.h>
 
@@ -101,8 +102,8 @@ int pq_register_builtin_types(pq_context *ctx) {
 
 	register_type(_pointer, "pointer", PQ_POINTER, jit_type_void_ptr, NULL);
 
-	register_type(_function,   "function-t",   PQ_FUNCTION,   NULL, NULL);
-	register_type(_c_function, "c-function-t", PQ_C_FUNCTION, NULL, NULL);
+	register_type(_function,   "function",   PQ_FUNCTION,   NULL, NULL);
+	register_type(_c_function, "c-function", PQ_C_FUNCTION, NULL, NULL);
 #undef register_type
 	return 1;
 }
@@ -123,6 +124,14 @@ static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
 	}
 	fputs(end, output);
 	return pq_value_nil(ctx);
+}
+static pq_value *_if(pq_context *ctx, jit_function_t jit_function, int argc, pq_value **argv) {
+	if(jit_function) {
+		return pq_value_error(ctx, "compiled if is not yet implemented");
+	}
+	else {
+		return pq_true(pq_eval(ctx, argv[0])) ? pq_eval(ctx, argv[1]) : pq_eval(ctx, argv[2]);
+	}
 }
 static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	pq_symbol sym;
@@ -160,6 +169,7 @@ static pq_value *_type_of(pq_context *ctx, int argc, pq_value **argv) {
 ////////////////////////////////////////////////////////////////////////////////
 
 int pq_register_builtin_functions(pq_context *ctx) {
+	pq_register_c_function(ctx, "if", &_if, 3, PQ_COMPILER_MACRO);
 	pq_register_c_function(ctx, "let", &_let, 2, 0);
 	pq_register_c_function(ctx, "quote", &_quote, 1, 0);
 	pq_register_c_function(ctx, "eval", &_eval, 1, 0);

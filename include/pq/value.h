@@ -80,7 +80,8 @@ pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
 pq_value *pq_value_nil(pq_context *ctx);
 
 pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags);
-pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr macro_ptr, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, enum pq_function_flags flags);
 
 // Value type checks
 
@@ -92,6 +93,11 @@ int pq_is_callable(pq_value *val);
 int pq_is_nil(pq_value *val);
 int pq_is_symbol(pq_value *val);
 int pq_is_string(pq_value *val);
+
+/// Return whether a value is considered to be true.
+int pq_true(pq_value *val);
+/// Return whether a value is considered to be false.
+int pq_false(pq_value *val);
 
 // General operations
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output);

@@ -20,6 +20,7 @@
 
 #include <pq/type_manager.h>
 #include <pq/context.h>
+#include <pq/function.h>
 
 #include <assert.h>
 
@@ -74,6 +75,40 @@ pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n) {
 			}
 			jit_type_t tuple_jit_type = jit_type_create_struct(field_types, n, 1);
 			*pvalue = (Word_t) pq_register_type(ctx, NULL, PQ_TUPLE, tuple_jit_type, NULL);
+		}
+		return (pq_type *) *pvalue;
+	}
+	else {
+		return NULL;
+	}
+}
+
+pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
+                               pq_type **argument_types, size_t n, uint8_t is_variadic) {
+	Word_t *pvalue;
+	int i;
+	{
+		size_t total_size = (1 + n) * sizeof(pq_type *) + (is_variadic != 0);
+		uint8_t index[total_size];
+		((pq_type **)index)[0] = return_type;
+		for(i = 0; i < n; i++) {
+			((pq_type **)index)[i + 1] = argument_types[i];
+		}
+		if(is_variadic) {
+			index[total_size - 1] = PQ_VARIADIC;
+		}
+		JHSI(pvalue, ctx->type_manager.signature_table, index, total_size);
+	}
+	if(pvalue != PJERR) {
+		if(*pvalue == 0) {
+			jit_type_t argument_jit_types[n];
+			for(i = 0; i < n; i++) {
+				argument_jit_types[i] = argument_types[i]->jit_type;
+			}
+			jit_type_t signature_jit_type = jit_type_create_signature(
+					is_variadic ? jit_abi_vararg : jit_abi_cdecl,
+					return_type->jit_type, argument_jit_types, n, 1);
+			*pvalue = (Word_t) pq_register_type(ctx, NULL, PQ_SIGNATURE, signature_jit_type, NULL);
 		}
 		return (pq_type *) *pvalue;
 	}

@@ -19,32 +19,38 @@
  */
 
 /** @file function.h
- * Pq callable functions, defined either through pq, C or LLVM.
+ * Pq callable functions, defined either through pq or C.
  */
 
 #ifndef __PQ_FUNCTION_H__
 #define __PQ_FUNCTION_H__
 
 // Forward declarations
-typedef struct pq_list pq_list;
-typedef struct pq_value pq_value;
 typedef struct pq_context pq_context;
+typedef struct pq_type pq_type;
+typedef struct pq_value pq_value;
+
+#include "list.h"
+
+#include <jit/jit-function.h>
 
 #include <stdint.h>
 
 /**
- * Flags for C Functions, to be ORed and stored in the metadata.
+ * Flags for Functions, to be ORed and stored in the metadata.
  */
 enum pq_function_flags {
-	PQ_VARIADIC   = (1 << 0),
-	PQ_EVAL_ARGS  = (1 << 1),
-	PQ_PUSH_SCOPE = (1 << 2),
+	PQ_VARIADIC       = (1 << 0),
+	PQ_EVAL_ARGS      = (1 << 1),
+	PQ_PUSH_SCOPE     = (1 << 2),
+	PQ_COMPILER_MACRO = (1 << 3),
 };
 
 /**
  * Function metadata, used by every Function type in pq.
  */
 typedef struct pq_function_metadata {
+	pq_type *signature;
 	uint8_t argnum;
 	uint8_t flags;
 } pq_function_metadata;
@@ -54,7 +60,7 @@ typedef struct pq_function_metadata {
  */
 typedef struct pq_function {
 	pq_function_metadata header;
-	pq_value *code;
+	pq_list code;
 } pq_function;
 
 /**
@@ -64,19 +70,24 @@ pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list code, 
 
 /// C Function prototype.
 typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value **argv);
+/// C Compiler Macro prototype.
+typedef pq_value *(*pq_compiler_macro_ptr)(pq_context *ctx, jit_function_t jit_function, int argc, pq_value **argv);
 
 /**
  * Functions defined in C, receiving pq Values in the argv array.
  */
 typedef struct pq_c_function {
 	pq_function_metadata header;
-	pq_c_function_ptr fptr;
+	union {
+		pq_c_function_ptr function_ptr;
+		pq_compiler_macro_ptr macro_ptr;
+	} callable;
 } pq_c_function;
-
 /**
- * Registers a C Function or Macro into pq Context.
+ * Registers a C Function into pq Context.
  */
 pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags);
+
 
 /**
  * Try to call the `func` value, which should be callable (either a function, macro or type).

@@ -41,9 +41,12 @@ pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_functio
 
 // Evaluate the arguments given to `pq_call`, if it is a function
 #define _eval_args() \
+{ \
+	int i; \
 	for(i = 0; i < argc; i++) \
 		if(pq_is_error(argv[i] = pq_eval(ctx, argv[i]))) \
-			return argv[i] \
+			return argv[i]; \
+}
 
 pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 	if(!func) {
@@ -60,20 +63,17 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 					is_variadic ? "at least " : "", func_md->argnum, argc);
 		}
 
-		int i;
+		if(func_md->flags & PQ_EVAL_ARGS) _eval_args();
+		if(func_md->flags & PQ_PUSH_SCOPE) pq_push_scope(ctx);
 		switch(func->type->kind) {
 			case PQ_FUNCTION:
-				_eval_args();
-				pq_push_scope(ctx);
-			case PQ_MACRO:
-				// just run. must return code.
 				break;
 
 			case PQ_C_FUNCTION: {
-				if(func_md->flags & PQ_EVAL_ARGS) _eval_args();
-				if(func_md->flags & PQ_PUSH_SCOPE) pq_push_scope(ctx);
 				pq_c_function *func_val = (pq_c_function *) func_md;
-				return func_val->fptr(ctx, argc, argv);
+				return func_md->flags & PQ_COMPILER_MACRO
+				       ? func_val->callable.macro_ptr(ctx, NULL, argc, argv)
+				       : func_val->callable.function_ptr(ctx, argc, argv);
 			}
 
 			default: break;
