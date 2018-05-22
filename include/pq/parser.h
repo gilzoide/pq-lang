@@ -30,6 +30,11 @@
  */
 typedef struct pq_parser {
 	pt_grammar *grammar;
+
+	const char *last_error;
+	int last_error_line;
+	int last_error_line_position;
+	int last_error_position;
 } pq_parser;
 
 // Forward declarations

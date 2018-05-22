@@ -79,11 +79,11 @@ int pq_register_builtin_types(pq_context *ctx) {
 	} \
 	else return 0
 
-	register_type(_error, "error-t", PQ_ERROR, NULL, &_free_data);
-	register_type(_list, "list-t", PQ_LIST, NULL, (pq_destructor) &pq_release_list);
-	register_type(_scope, "scope-t", PQ_SCOPE, NULL, (pq_destructor) &pq_scope_destroy);
-	register_type(_nil, "nil-t", PQ_NIL, NULL, NULL);
-	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr, NULL);
+	register_type(_error,  "error-t",  PQ_ERROR,  NULL,                 &_free_data);
+	register_type(_list,   "list-t",   PQ_LIST,   NULL, (pq_destructor) &pq_release_list);
+	register_type(_scope,  "scope-t",  PQ_SCOPE,  NULL, (pq_destructor) &pq_scope_destroy);
+	register_type(_nil,    "nil-t",    PQ_NIL,    NULL,                 NULL);
+	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr,    NULL);
 
 	register_type(_bool, "bool", PQ_INT, jit_type_sys_bool, NULL);
 	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,    NULL);
