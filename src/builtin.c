@@ -47,8 +47,8 @@ int pq_register_builtin_values(pq_context *ctx) {
 	} \
 	else return 0
 
-	register_value(_false, "false", pq_value_from_int(ctx, 0, 1));
-	register_value(_true, "true", pq_value_from_int(ctx, 1, 1));
+	register_value(_false, "false", pq_value_from_i8(ctx, 0));
+	register_value(_true, "true", pq_value_from_i8(ctx, 1));
 #undef register_value
 	return 1;
 }
@@ -169,7 +169,7 @@ static pq_value *_type_of(pq_context *ctx, int argc, pq_value **argv) {
 ////////////////////////////////////////////////////////////////////////////////
 
 int pq_register_builtin_functions(pq_context *ctx) {
-	pq_register_c_function(ctx, "if", &_if, 3, PQ_COMPILER_MACRO);
+	pq_register_compiler_macro(ctx, "if", &_if, 3, PQ_COMPILER_MACRO);
 	pq_register_c_function(ctx, "let", &_let, 2, 0);
 	pq_register_c_function(ctx, "quote", &_quote, 1, 0);
 	pq_register_c_function(ctx, "eval", &_eval, 1, 0);

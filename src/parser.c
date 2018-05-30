@@ -63,7 +63,7 @@ static void on_error(const char *str, size_t pos, int code, void *data) {
 
 static pt_data read_integer(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;
-	return (pt_data){ .p = pq_value_from_int(ctx, atoll(str + start), 32) };
+	return (pt_data){ .p = pq_value_from_i32(ctx, atoll(str + start)) };
 }
 static pt_data read_float(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
 	pq_context *ctx = data;

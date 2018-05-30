@@ -39,6 +39,14 @@ pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_functio
 	return func_val;
 }
 
+pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags) {
+	pq_value *func_val;
+	if(func_val = pq_value_from_compiler_macro(ctx, macro, argnum, flags)) {
+		pq_context_set(ctx, name, func_val);
+	}
+	return func_val;
+}
+
 // Evaluate the arguments given to `pq_call`, if it is a function
 #define _eval_args() \
 { \

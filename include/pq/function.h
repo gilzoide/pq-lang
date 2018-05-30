@@ -40,19 +40,19 @@ typedef struct pq_value pq_value;
  * Flags for Functions, to be ORed and stored in the metadata.
  */
 enum pq_function_flags {
-	PQ_VARIADIC       = (1 << 0),
-	PQ_EVAL_ARGS      = (1 << 1),
-	PQ_PUSH_SCOPE     = (1 << 2),
-	PQ_COMPILER_MACRO = (1 << 3),
+	PQ_VARIADIC        = (1 << 0),
+	PQ_EVAL_ARGS       = (1 << 1),
+	PQ_PUSH_SCOPE      = (1 << 2),
+	PQ_COMPILER_MACRO  = (1 << 3),
 };
 
 /**
  * Function metadata, used by every Function type in pq.
  */
 typedef struct pq_function_metadata {
-	pq_type *signature;
-	uint8_t argnum;
-	uint8_t flags;
+	pq_type *signature;  ///< Function signature, may be NULL.
+	uint8_t argnum;      ///< Number of arguments expected.
+	uint8_t flags;       ///< Flags from enum pq_function_flags.
 } pq_function_metadata;
 
 /**
@@ -87,6 +87,7 @@ typedef struct pq_c_function {
  * Registers a C Function into pq Context.
  */
 pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags);
 
 
 /**

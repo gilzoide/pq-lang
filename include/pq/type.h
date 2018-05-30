@@ -79,7 +79,7 @@ typedef struct pq_type {
 	char *name;
 	jit_type_t jit_type;
 	pq_destructor value_destructor;
-	enum pq_type_kind kind;
+	int kind;
 } pq_type;
 
 /**

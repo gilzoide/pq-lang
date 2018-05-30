@@ -68,9 +68,18 @@ pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...);
 pq_value *pq_value_from_type(pq_context *ctx, pq_type *type);
 pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
 
-pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, unsigned numbits);
-pq_value *pq_value_from_uint(pq_context *ctx, uintmax_t u, unsigned numbits);
-pq_value *pq_value_from_float(pq_context *ctx, double f);
+pq_value *pq_value_from_i8(pq_context *ctx, int8_t i);
+pq_value *pq_value_from_i16(pq_context *ctx, int16_t i);
+pq_value *pq_value_from_i32(pq_context *ctx, int32_t i);
+pq_value *pq_value_from_i64(pq_context *ctx, int64_t i);
+
+pq_value *pq_value_from_u8(pq_context *ctx, uint8_t u);
+pq_value *pq_value_from_u16(pq_context *ctx, uint16_t u);
+pq_value *pq_value_from_u32(pq_context *ctx, uint32_t u);
+pq_value *pq_value_from_u64(pq_context *ctx, uint64_t u);
+
+pq_value *pq_value_from_float(pq_context *ctx, float f);
+pq_value *pq_value_from_double(pq_context *ctx, double d);
 
 pq_value *pq_value_from_string(pq_context *ctx, const char *str);
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n);
