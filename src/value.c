@@ -22,6 +22,7 @@
 #include <pq/context.h>
 #include <pq/function.h>
 
+#include <math.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -103,6 +104,16 @@ pq_value *pq_value_from_i64(pq_context *ctx, int64_t i) {
 	return val;
 }
 
+intmax_t pq_value_as_int(pq_value *val) {
+	switch(pq_type_get_value_size(val->type)) {
+		case 1: return (intmax_t) pq_value_get_data_as(val, int8_t);
+		case 2: return (intmax_t) pq_value_get_data_as(val, int16_t);
+		case 4: return (intmax_t) pq_value_get_data_as(val, int32_t);
+		case 8: return (intmax_t) pq_value_get_data_as(val, int64_t);
+		default: return 0;
+	}
+}
+
 pq_value *pq_value_from_u8(pq_context *ctx, uint8_t u) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, uint8_t)) {
@@ -137,6 +148,24 @@ pq_value *pq_value_from_u64(pq_context *ctx, uint64_t u) {
 		pq_value_get_data_as(val, uint64_t) = u;
 	}
 	return val;
+}
+
+uintmax_t pq_value_as_uint(pq_value *val) {
+	switch(pq_type_get_value_size(val->type)) {
+		case 1: return (uintmax_t) pq_value_get_data_as(val, uint8_t);
+		case 2: return (uintmax_t) pq_value_get_data_as(val, uint16_t);
+		case 4: return (uintmax_t) pq_value_get_data_as(val, uint32_t);
+		case 8: return (uintmax_t) pq_value_get_data_as(val, uint64_t);
+		default: return 0;
+	}
+}
+
+double pq_value_as_double(pq_value *val) {
+	switch(pq_type_get_value_size(val->type)) {
+		case sizeof(float): return (double) pq_value_get_data_as(val, float);
+		case sizeof(double): return (double) pq_value_get_data_as(val, double);
+		default: return NAN;
+	}
 }
 
 pq_value *pq_value_from_float(pq_context *ctx, float f) {
@@ -221,6 +250,22 @@ pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr ma
 	return val;
 }
 
+pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *signature) {
+	pq_value *val;
+	if(signature == NULL || signature->kind != PQ_SIGNATURE) {
+		val = pq_value_error(ctx, "Native functions need a signature type");
+	}
+	else if(val = pq_new_value(ctx, pq_native_function)) {
+		val->type = ctx->type_manager._native_function;
+		pq_native_function *native_func = pq_value_get_data(val);
+		native_func->header.signature = signature;
+		native_func->header.argnum = jit_type_num_params(jit_type_remove_tags(signature->jit_type));
+		native_func->header.flags = (jit_type_get_abi(signature->jit_type) == jit_abi_vararg ? PQ_VARIADIC : 0) | PQ_EVAL_ARGS;
+		native_func->function_ptr = fptr;
+	}
+	return val;
+}
+
 pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, enum pq_function_flags flags) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_function)) {
@@ -231,6 +276,20 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, enum
 		func->code = code;
 	}
 	return val;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//  Variables
+////////////////////////////////////////////////////////////////////////////////
+pq_value *pq_new_variable(pq_context *ctx, pq_type *type) {
+	if(type->kind == PQ_NIL) {
+		return pq_value_nil(ctx);
+	}
+	pq_value *variable;
+	if(variable = pq_new_value_with_size(ctx, pq_type_get_value_size(type))) {
+		variable->type = type;
+	}
+	return variable;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -255,6 +314,7 @@ int pq_is_callable(pq_value *val) {
 	int kind = val->type->kind;
 	return kind == PQ_FUNCTION
 	       | kind == PQ_C_FUNCTION
+	       | kind == PQ_NATIVE_FUNCTION
 	       | kind == PQ_TYPE;
 }
 
@@ -310,11 +370,11 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_INT:
-			fprintf(output, "%ld", pq_value_get_data_as(val, intmax_t));
+			fprintf(output, "%ld", pq_value_as_int(val));
 			break;
 
 		case PQ_FLOAT:
-			fprintf(output, "%g", pq_value_get_data_as(val, double));
+			fprintf(output, "%g", pq_value_as_double(val));
 			break;
 
 		case PQ_LIST: {

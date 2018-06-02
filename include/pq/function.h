@@ -91,6 +91,19 @@ pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compi
 
 
 /**
+ * Already compiled native functions with obligatory signature.
+ */
+typedef struct pq_native_function {
+	pq_function_metadata header;
+	void *function_ptr;
+} pq_native_function;
+/**
+ * Registers a Native function into pq Context.
+ */
+pq_value *pq_register_native_function(pq_context *ctx, const char *name, void *fptr, pq_type *signature);
+
+
+/**
  * Try to call the `func` value, which should be callable (either a function, macro or type).
  *
  * @param ctx  Pq Context.

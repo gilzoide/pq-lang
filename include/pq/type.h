@@ -27,6 +27,8 @@
 
 #include <jit/jit.h>
 
+#include <stdlib.h>
+
 /**
  * Kinds of types in pq.
  */
@@ -34,10 +36,6 @@ enum pq_type_kind {
 	PQ_INT,
 	PQ_FLOAT,
 	PQ_STRING,
-	PQ_STRUCT,
-	PQ_TUPLE,
-	PQ_ARRAY,
-	PQ_POINTER,
 
 	PQ_NIL,
 	PQ_LIST,
@@ -46,11 +44,21 @@ enum pq_type_kind {
 	PQ_SYMBOL,
 	PQ_ERROR,
 
+	PQ_STRUCT,
+	PQ_TUPLE,
+	PQ_ARRAY,
+	PQ_POINTER,
+
 	PQ_SIGNATURE,
 	PQ_FUNCTION,
 	PQ_C_FUNCTION,
+	PQ_NATIVE_FUNCTION,
 
 	PQ_TYPE_KIND_END,
+
+	// index reference enum values
+	PQ_TYPE_FIRST_AGGREGATE = PQ_STRUCT,
+	PQ_TYPE_LAST_AGGREGATE = PQ_SIGNATURE,
 };
 
 // Forward declarations
@@ -68,11 +76,6 @@ typedef struct pq_value pq_value;
 typedef void (*pq_destructor)(pq_context *, void *);
 
 /**
- * Memory size of a Value.
- */
-typedef unsigned int pq_value_size;
-
-/**
  * Pq Type: metadata about a Value's type.
  */
 typedef struct pq_type {
@@ -83,17 +86,61 @@ typedef struct pq_type {
 } pq_type;
 
 /**
- * Register a Type in Context.
+ * Pq Aggregate Types: types with subtypes: Tuples, Arrays, Pointers, Structs
+ * and Signatures.
+ */
+typedef struct pq_aggregate_type {
+	pq_type type;
+	int num_subtypes;
+	pq_type *subtypes[0];
+} pq_aggregate_type;
+
+/**
+ * Create a Type.
  *
  * This will be primarily used by the pq interpreter itself.
  */
 pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
                         jit_type_t jit_type, pq_destructor value_destructor);
+/**
+ * Create an Aggregate Type.
+ *
+ * The kind passed should be either one of the following: PQ_STRUCT, PQ_TUPLE,
+ * PQ_ARRAY, PQ_POINTER, PQ_SIGNATURE.
+ * Signatures use the first subtype as the return type.
+ *
+ * This will be primarily used by the pq interpreter itself.
+ */
+pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind,
+                                  jit_type_t jit_type, unsigned int num_subtypes, pq_type **subtypes);
 
 /**
  * Destroy a Type.
  */
 void pq_type_destroy(pq_type *type);
+
+/**
+ * Get the expected size in bytes of a Value with the specified Type.
+ */
+size_t pq_type_get_value_size(pq_type *type);
+
+/**
+ * Get the Type associated with a JIT type.
+ */
+pq_type *pq_type_from_jit(jit_type_t jit_type);
+
+/**
+ * Get the return type of a Signature Type.
+ *
+ * Returns NULL if type is not a Signature.
+ */
+pq_type *pq_type_get_return_type(pq_type *signature);
+/**
+ * Get the number of parameters of a Signature Type.
+ *
+ * Returns -1 if not a Signature.
+ */
+int pq_type_get_num_params(pq_type *signature);
 
 #endif
 

@@ -35,15 +35,50 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
 	if(new_type = malloc(sizeof(pq_type))) {
 		new_type->name = name ? strdup(name) : NULL;
 		new_type->kind = kind;
-		new_type->jit_type = jit_type;
+		new_type->jit_type = jit_type_create_tagged(jit_type, PQ_TYPE_METADATA_TAG_KIND, new_type, NULL, 0);
 		new_type->value_destructor = value_destructor;
 	}
 	return new_type;
+}
+
+pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind,
+                                  jit_type_t jit_type, unsigned int num_subtypes, pq_type **subtypes) {
+	assert(kind >= PQ_TYPE_FIRST_AGGREGATE && kind <= PQ_TYPE_LAST_AGGREGATE && "Invalid type kind enum value for aggregate type");
+	pq_aggregate_type *new_aggregate_type;
+	if(new_aggregate_type = malloc(sizeof(pq_aggregate_type) + (num_subtypes * sizeof(pq_type *)))) {
+		pq_type *new_type = &new_aggregate_type->type;
+		new_type->name = name ? strdup(name) : NULL;
+		new_type->kind = kind;
+		new_type->jit_type = jit_type_create_tagged(jit_type, PQ_TYPE_METADATA_TAG_KIND, new_type, NULL, 0);
+		new_type->value_destructor = NULL;
+
+		new_aggregate_type->num_subtypes = num_subtypes;
+		memcpy(new_aggregate_type->subtypes, subtypes, num_subtypes * sizeof(pq_type *));
+	}
+	return (pq_type *) new_aggregate_type;
 }
 
 void pq_type_destroy(pq_type *type) {
 	jit_type_free(type->jit_type);
 	free(type->name);
 	free(type);
+}
+
+size_t pq_type_get_value_size(pq_type *type) {
+	return jit_type_get_size(type->jit_type);
+}
+
+pq_type *pq_type_from_jit(jit_type_t jit_type) {
+	return jit_type_get_tagged_data(jit_type);
+}
+
+pq_type *pq_type_get_return_type(pq_type *signature) {
+	if(signature->kind == PQ_SIGNATURE) {
+		pq_aggregate_type *aggregate_type = (pq_aggregate_type *) signature;
+		return aggregate_type->subtypes[0];
+	}
+	else {
+		return NULL;
+	}
 }
 

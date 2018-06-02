@@ -63,6 +63,7 @@ typedef struct pq_type_manager {
 
 	pq_type *_function;  ///< The function type.
 	pq_type *_c_function;  ///< The C function type.
+	pq_type *_native_function;  ///< The Native function type.
 
 	pq_vector all_types;
 
@@ -106,6 +107,7 @@ enum pq_builtin_type {
 	PQ_TYPE_POINTER,
 	PQ_TYPE_FUNCTION,
 	PQ_TYPE_C_FUNCTION,
+	PQ_TYPE_NATIVE_FUNCTION,
 
 	PQ_BUILTIN_TYPE_MAX,
 };
@@ -126,7 +128,7 @@ pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind k
  *
  * This returns the same pointer for the same input types.
  */
-pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n);
+pq_type *pq_get_tuple_type(pq_context *ctx, size_t n, pq_type **types);
 
 /**
  * Get the signature type that contains the given `n` types in order.
@@ -135,7 +137,7 @@ pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n);
  * argument types and variadic.
  */
 pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
-                               pq_type **argument_types, size_t n, uint8_t is_variadic);
+                               size_t n, pq_type **argument_types, uint8_t is_variadic);
 
 #endif
 

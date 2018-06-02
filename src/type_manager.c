@@ -63,7 +63,23 @@ pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind k
 	return new_type;
 }
 
-pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n) {
+pq_type *pq_register_aggregate_type(pq_context *ctx, const char *name, enum pq_type_kind kind,
+                                    jit_type_t jit_type, unsigned int num_subtypes, pq_type **subtypes) {
+	pq_type *new_type;
+	if(new_type = pq_create_aggregate_type(name, kind, jit_type, num_subtypes, subtypes)) {
+		pq_type **new_type_ptr;
+		if(new_type_ptr = pq_vector_push_as(&ctx->type_manager.all_types, pq_type *)) {
+			*new_type_ptr = new_type;
+		}
+		else {
+			pq_type_destroy(new_type);
+			return NULL;
+		}
+	}
+	return new_type;
+}
+
+pq_type *pq_get_tuple_type(pq_context *ctx, size_t n, pq_type **types) {
 	Word_t *pvalue;
 	JHSI(pvalue, ctx->type_manager.tuple_table, types, n * sizeof(pq_type *));
 	if(pvalue != PJERR) {
@@ -74,7 +90,7 @@ pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n) {
 				field_types[i] = types[i]->jit_type;
 			}
 			jit_type_t tuple_jit_type = jit_type_create_struct(field_types, n, 1);
-			*pvalue = (Word_t) pq_register_type(ctx, NULL, PQ_TUPLE, tuple_jit_type, NULL);
+			*pvalue = (Word_t) pq_register_aggregate_type(ctx, NULL, PQ_TUPLE, tuple_jit_type, n, types);
 		}
 		return (pq_type *) *pvalue;
 	}
@@ -84,21 +100,19 @@ pq_type *pq_get_tuple_type(pq_context *ctx, pq_type **types, size_t n) {
 }
 
 pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
-                               pq_type **argument_types, size_t n, uint8_t is_variadic) {
+                               size_t n, pq_type **argument_types, uint8_t is_variadic) {
 	Word_t *pvalue;
 	int i;
-	{
-		size_t total_size = (1 + n) * sizeof(pq_type *) + (is_variadic != 0);
-		uint8_t index[total_size];
-		((pq_type **)index)[0] = return_type;
-		for(i = 0; i < n; i++) {
-			((pq_type **)index)[i + 1] = argument_types[i];
-		}
-		if(is_variadic) {
-			index[total_size - 1] = PQ_VARIADIC;
-		}
-		JHSI(pvalue, ctx->type_manager.signature_table, index, total_size);
+	size_t total_size = (1 + n) * sizeof(pq_type *) + (is_variadic != 0);
+	uint8_t index[total_size];
+	((pq_type **)index)[0] = return_type;
+	for(i = 0; i < n; i++) {
+		((pq_type **)index)[i + 1] = argument_types[i];
 	}
+	if(is_variadic) {
+		index[total_size - 1] = PQ_VARIADIC;
+	}
+	JHSI(pvalue, ctx->type_manager.signature_table, index, total_size);
 	if(pvalue != PJERR) {
 		if(*pvalue == 0) {
 			jit_type_t argument_jit_types[n];
@@ -108,7 +122,7 @@ pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
 			jit_type_t signature_jit_type = jit_type_create_signature(
 					is_variadic ? jit_abi_vararg : jit_abi_cdecl,
 					return_type->jit_type, argument_jit_types, n, 1);
-			*pvalue = (Word_t) pq_register_type(ctx, NULL, PQ_SIGNATURE, signature_jit_type, NULL);
+			*pvalue = (Word_t) pq_register_aggregate_type(ctx, NULL, PQ_SIGNATURE, signature_jit_type, 1 + n, (pq_type **) index);
 		}
 		return (pq_type *) *pvalue;
 	}

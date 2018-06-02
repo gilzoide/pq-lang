@@ -39,6 +39,14 @@ pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_functio
 	return func_val;
 }
 
+pq_value *pq_register_native_function(pq_context *ctx, const char *name, void *fptr, pq_type *signature) {
+	pq_value *func_val;
+	if(func_val = pq_value_from_native_function(ctx, fptr, signature)) {
+		pq_context_set(ctx, name, func_val);
+	}
+	return func_val;
+}
+
 pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_compiler_macro(ctx, macro, argnum, flags)) {
@@ -73,6 +81,7 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 
 		if(func_md->flags & PQ_EVAL_ARGS) _eval_args();
 		if(func_md->flags & PQ_PUSH_SCOPE) pq_push_scope(ctx);
+		// TODO: create right signature for variadic calls
 		switch(func->type->kind) {
 			case PQ_FUNCTION:
 				break;
@@ -82,6 +91,19 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 				return func_md->flags & PQ_COMPILER_MACRO
 				       ? func_val->callable.macro_ptr(ctx, NULL, argc, argv)
 				       : func_val->callable.function_ptr(ctx, argc, argv);
+			}
+
+			case PQ_NATIVE_FUNCTION: {
+				pq_native_function *func_val = (pq_native_function *) func_md;
+				void *native_argv[argc];
+				int i;
+				for(i = 0; i < argc; i++) {
+					native_argv[i] = pq_value_get_data(argv[i]);
+				}
+				jit_type_t signature = jit_type_remove_tags(func_md->signature->jit_type);
+				pq_value *return_value = pq_new_variable(ctx, pq_type_get_return_type(func_md->signature));
+				jit_apply(signature, func_val->function_ptr, native_argv, argc, pq_value_get_data(return_value));
+				return return_value;
 			}
 
 			default: break;
