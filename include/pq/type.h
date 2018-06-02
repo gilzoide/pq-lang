@@ -91,6 +91,7 @@ typedef struct pq_type {
  */
 typedef struct pq_aggregate_type {
 	pq_type type;
+	pq_type *main_subtype;
 	int num_subtypes;
 	pq_type *subtypes[0];
 } pq_aggregate_type;
@@ -111,8 +112,8 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
  *
  * This will be primarily used by the pq interpreter itself.
  */
-pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind,
-                                  jit_type_t jit_type, unsigned int num_subtypes, pq_type **subtypes);
+pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
+                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes);
 
 /**
  * Destroy a Type.
@@ -129,6 +130,9 @@ size_t pq_type_get_value_size(pq_type *type);
  */
 pq_type *pq_type_from_jit(jit_type_t jit_type);
 
+////////////////////////////////////////////////////////////////////////////////
+//  Accessing aggregate type information
+////////////////////////////////////////////////////////////////////////////////
 /**
  * Get the return type of a Signature Type.
  *
@@ -140,7 +144,31 @@ pq_type *pq_type_get_return_type(pq_type *signature);
  *
  * Returns -1 if not a Signature.
  */
-int pq_type_get_num_params(pq_type *signature);
+int pq_type_get_num_arguments(pq_type *signature);
+/**
+ * Get the argument types of a Signature Type.
+ *
+ * Returns NULL if type is not a Signature.
+ */
+pq_type **pq_type_get_argument_types(pq_type *signature);
+
+/**
+ * Get the number of fields in a Tuple or Struct type.
+ *
+ * Returns -1 if not a Tuple or Struct type.
+ */
+int pq_type_get_num_fields(pq_type *aggregate);
+/**
+ * Get the field types for a Tuple or Struct type.
+ *
+ * Returns NULL if not a Tuple or Struct type.
+ */
+pq_type **pq_type_get_field_types(pq_type *aggregate);
+
+/**
+ * Get the underlying type for an Array or Pointer type.
+ */
+pq_type *pq_type_get_underlying_type(pq_type *ptr);
 
 #endif
 

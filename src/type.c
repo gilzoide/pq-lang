@@ -41,8 +41,8 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
 	return new_type;
 }
 
-pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind,
-                                  jit_type_t jit_type, unsigned int num_subtypes, pq_type **subtypes) {
+pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
+                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes) {
 	assert(kind >= PQ_TYPE_FIRST_AGGREGATE && kind <= PQ_TYPE_LAST_AGGREGATE && "Invalid type kind enum value for aggregate type");
 	pq_aggregate_type *new_aggregate_type;
 	if(new_aggregate_type = malloc(sizeof(pq_aggregate_type) + (num_subtypes * sizeof(pq_type *)))) {
@@ -52,6 +52,7 @@ pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind,
 		new_type->jit_type = jit_type_create_tagged(jit_type, PQ_TYPE_METADATA_TAG_KIND, new_type, NULL, 0);
 		new_type->value_destructor = NULL;
 
+		new_aggregate_type->main_subtype = main_subtype;
 		new_aggregate_type->num_subtypes = num_subtypes;
 		memcpy(new_aggregate_type->subtypes, subtypes, num_subtypes * sizeof(pq_type *));
 	}
@@ -73,12 +74,39 @@ pq_type *pq_type_from_jit(jit_type_t jit_type) {
 }
 
 pq_type *pq_type_get_return_type(pq_type *signature) {
-	if(signature->kind == PQ_SIGNATURE) {
-		pq_aggregate_type *aggregate_type = (pq_aggregate_type *) signature;
-		return aggregate_type->subtypes[0];
-	}
-	else {
-		return NULL;
-	}
+	return signature->kind == PQ_SIGNATURE
+	       ? ((pq_aggregate_type *) signature)->main_subtype
+	       : NULL;
+}
+
+int pq_type_get_num_arguments(pq_type *signature) {
+	return signature->kind == PQ_SIGNATURE
+	       ? ((pq_aggregate_type *) signature)->num_subtypes
+	       : -1;
+}
+
+pq_type **pq_type_get_argument_types(pq_type *signature) {
+	return signature->kind == PQ_SIGNATURE
+	       ? ((pq_aggregate_type *) signature)->subtypes
+	       : NULL;
+}
+
+
+int pq_type_get_num_fields(pq_type *aggregate) {
+	return aggregate->kind == PQ_TUPLE || aggregate->kind == PQ_STRUCT
+	       ? ((pq_aggregate_type *) aggregate)->num_subtypes
+	       : -1;
+}
+
+pq_type **pq_type_get_field_types(pq_type *aggregate) {
+	return aggregate->kind == PQ_TUPLE || aggregate->kind == PQ_STRUCT
+	       ? ((pq_aggregate_type *) aggregate)->subtypes
+	       : NULL;
+}
+
+pq_type *pq_type_get_underlying_type(pq_type *type) {
+	return type->kind == PQ_ARRAY || type->kind == PQ_POINTER
+	       ? ((pq_aggregate_type *) type)->main_subtype
+	       : NULL;
 }
 
