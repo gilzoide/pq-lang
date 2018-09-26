@@ -60,13 +60,14 @@ typedef struct pq_function_metadata {
  */
 typedef struct pq_function {
 	pq_function_metadata header;
+	pq_list args;
 	pq_list code;
 } pq_function;
 
 /**
  * Registers a pq Function into pq Context.
  */
-pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list code, uint8_t argnum, uint8_t is_variadic);
+pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list args, pq_list code, enum pq_function_flags flags);
 
 /// C Function prototype.
 typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value **argv);

@@ -34,5 +34,22 @@ typedef struct pq_list {
 	int size;
 } pq_list;
 
+/**
+ * Creates a slice of `lst` with the items starting in `from` until `to`
+ * indexes.
+ *
+ * Negative indexes refer to items in the end of the list.
+ *
+ * @warning This doesn't allocate memory for the internal array of the returned
+ *  slice.
+ *
+ * @param lst  Original list.
+ * @param from Starting index.
+ * @param to   End index.
+ *
+ * @return List slice.
+ */
+pq_list pq_list_slice(pq_list lst, int from, int to);
+
 #endif
 

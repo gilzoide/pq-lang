@@ -20,6 +20,7 @@ add_definitions(-DPROJECT_VERSION="${PROJECT_VERSION}")
 # Extra CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(Judy REQUIRED)
+find_package(Replxx REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PEGA_TEXTO REQUIRED pega-texto>=2)
 pkg_check_modules(LIBJIT REQUIRED libjit)

@@ -36,17 +36,17 @@
 /**
  * Assert that a Value is of some type, using the `pq_is_<type>` functions.
  */
-#define pq_assert_type(ctx, val, type) \
-	if(!pq_is_ ## type (val)) \
-		return pq_value_ferror(ctx, "Expected " #type ", found %s", val->type->name)
+#define pq_assert_type(ctx, val, _type) \
+	if(!pq_is_ ## _type (val)) \
+		return pq_value_ferror(ctx, "Expected " #_type ", found %s", val->type->name)
 
 /**
  * Assert that the argument `i` of `argv` is of some type, using the
  * `pq_is_<type>` functions.
  */
-#define pq_assert_arg_type(ctx, argv, i, type) \
-	if(!pq_is_ ## type (argv[i])) \
-		return pq_value_ferror(ctx, "Invalid argument %d: expected " #type ", found %s", \
+#define pq_assert_arg_type(ctx, argv, i, _type) \
+	if(!pq_is_ ## _type (argv[i])) \
+		return pq_value_ferror(ctx, "Invalid argument %d: expected " #_type ", found %s", \
 				i, argv[i]->type->name)
 
 #endif

@@ -19,6 +19,7 @@
  */
 
 #include <pq/value.h>
+#include <pq/assert.h>
 #include <pq/context.h>
 #include <pq/function.h>
 
@@ -104,16 +105,6 @@ pq_value *pq_value_from_i64(pq_context *ctx, int64_t i) {
 	return val;
 }
 
-intmax_t pq_value_as_int(pq_value *val) {
-	switch(pq_type_get_value_size(val->type)) {
-		case 1: return (intmax_t) pq_value_get_data_as(val, int8_t);
-		case 2: return (intmax_t) pq_value_get_data_as(val, int16_t);
-		case 4: return (intmax_t) pq_value_get_data_as(val, int32_t);
-		case 8: return (intmax_t) pq_value_get_data_as(val, int64_t);
-		default: return 0;
-	}
-}
-
 pq_value *pq_value_from_u8(pq_context *ctx, uint8_t u) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, uint8_t)) {
@@ -148,24 +139,6 @@ pq_value *pq_value_from_u64(pq_context *ctx, uint64_t u) {
 		pq_value_get_data_as(val, uint64_t) = u;
 	}
 	return val;
-}
-
-uintmax_t pq_value_as_uint(pq_value *val) {
-	switch(pq_type_get_value_size(val->type)) {
-		case 1: return (uintmax_t) pq_value_get_data_as(val, uint8_t);
-		case 2: return (uintmax_t) pq_value_get_data_as(val, uint16_t);
-		case 4: return (uintmax_t) pq_value_get_data_as(val, uint32_t);
-		case 8: return (uintmax_t) pq_value_get_data_as(val, uint64_t);
-		default: return 0;
-	}
-}
-
-double pq_value_as_double(pq_value *val) {
-	switch(pq_type_get_value_size(val->type)) {
-		case sizeof(float): return (double) pq_value_get_data_as(val, float);
-		case sizeof(double): return (double) pq_value_get_data_as(val, double);
-		default: return NAN;
-	}
 }
 
 pq_value *pq_value_from_float(pq_context *ctx, float f) {
@@ -222,6 +195,17 @@ pq_value *pq_value_from_list(pq_context *ctx, pq_list lst) {
 	return val;
 }
 
+pq_value *pq_value_list_from_values(pq_context *ctx, pq_value **values, int size) {
+	pq_value *val = NULL;
+	if(val = pq_new_value(ctx, pq_list)) {
+		pq_list lst = pq_new_list_with_size(ctx, size);
+		if(lst.size) {
+			memcpy(lst.values, values, size * sizeof(pq_value *));
+		}
+	}
+	return val;
+}
+
 pq_value *pq_value_nil(pq_context *ctx) {
 	return ctx->builtin_values._nil;
 }
@@ -266,16 +250,66 @@ pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *si
 	return val;
 }
 
-pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, enum pq_function_flags flags) {
+pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags) {
 	pq_value *val;
+	int i;
+	for(i = 0; i < args.size; i++) {
+		pq_assert_arg_type(ctx, args.values, i, symbol);
+	}
+	int is_variadic = args.size && pq_value_as_symbol(args.values[args.size - 1]) == pq_symbol_from_string(ctx, "...");
 	if(val = pq_new_value(ctx, pq_function)) {
 		val->type = ctx->type_manager._function;
 		pq_function *func = pq_value_get_data(val);
-		func->header.argnum = argnum;
-		func->header.flags = flags;
+		func->header.argnum = args.size - is_variadic;
+		func->header.flags = flags | (is_variadic * PQ_VARIADIC);
+		func->args = args;
 		func->code = code;
 	}
 	return val;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//  Value native representation
+////////////////////////////////////////////////////////////////////////////////
+intmax_t pq_value_as_int(pq_value *val) {
+	switch(pq_type_get_value_size(val->type)) {
+		case 1: return (intmax_t) pq_value_get_data_as(val, int8_t);
+		case 2: return (intmax_t) pq_value_get_data_as(val, int16_t);
+		case 4: return (intmax_t) pq_value_get_data_as(val, int32_t);
+		case 8: return (intmax_t) pq_value_get_data_as(val, int64_t);
+		default: return 0;
+	}
+}
+
+
+uintmax_t pq_value_as_uint(pq_value *val) {
+	switch(pq_type_get_value_size(val->type)) {
+		case 1: return (uintmax_t) pq_value_get_data_as(val, uint8_t);
+		case 2: return (uintmax_t) pq_value_get_data_as(val, uint16_t);
+		case 4: return (uintmax_t) pq_value_get_data_as(val, uint32_t);
+		case 8: return (uintmax_t) pq_value_get_data_as(val, uint64_t);
+		default: return 0;
+	}
+}
+
+double pq_value_as_double(pq_value *val) {
+	switch(pq_type_get_value_size(val->type)) {
+		case sizeof(float): return (double) pq_value_get_data_as(val, float);
+		case sizeof(double): return (double) pq_value_get_data_as(val, double);
+		default: return NAN;
+	}
+}
+
+pq_symbol pq_value_as_symbol(pq_value *val) {
+	return val->type->kind == PQ_SYMBOL
+			? pq_value_get_data_as(val, pq_symbol)
+			: 0;
+}
+
+pq_list pq_value_as_list(pq_value *val) {
+	return val->type->kind == PQ_LIST
+			? pq_value_get_data_as(val, pq_list)
+			: (pq_list){};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -333,6 +367,11 @@ int pq_is_string(pq_value *val) {
 	return kind == PQ_STRING;
 }
 
+int pq_is_list(pq_value *val) {
+	int kind = val->type->kind;
+	return kind == PQ_LIST;
+}
+
 int pq_true(pq_value *val) {
 	return !pq_false(val);
 }
@@ -355,6 +394,17 @@ int pq_false(pq_value *val) {
 ////////////////////////////////////////////////////////////////////////////////
 //  General operations
 ////////////////////////////////////////////////////////////////////////////////
+void pq_list_fprint(pq_context *ctx, pq_list lst, FILE *output) {
+	int i;
+	fputc('(', output);
+	for(i = 0; i < lst.size; i++) {
+		pq_fprint(ctx, lst.values[i], output);
+		if(i < lst.size - 1) {
+			fputc(' ', output);
+		}
+	}
+	fputc(')', output);
+}
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 	switch(val->type->kind) {
 		case PQ_NIL:
@@ -379,15 +429,7 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 
 		case PQ_LIST: {
 				pq_list lst = pq_value_get_data_as(val, pq_list);
-				int i;
-				fputc('(', output);
-				for(i = 0; i < lst.size; i++) {
-					pq_fprint(ctx, lst.values[i], output);
-					if(i < lst.size - 1) {
-						fputc(' ', output);
-					}
-				}
-				fputc(')', output);
+				pq_list_fprint(ctx, lst, output);
 			}
 			break;
 
@@ -398,6 +440,20 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 		case PQ_TYPE:
 			fprintf(output, "%s", pq_value_get_data_as(val, pq_type *)->name);
 			break;
+
+		case PQ_FUNCTION: {
+				pq_function func = pq_value_get_data_as(val, pq_function);
+				fprintf(output, "(lambda ");
+				pq_list_fprint(ctx, func.args, output);
+				int i;
+				for(i = 0; i < func.code.size; i++) {
+					fputc(' ', output);
+					pq_fprint(ctx, func.code.values[i], output);
+				}
+				fputc(')', output);
+			}
+			break;
+
 
 		default:
 			fprintf(output, "[no print for type \"%s\"]", val->type->name);

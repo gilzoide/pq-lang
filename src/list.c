@@ -20,3 +20,11 @@
 
 #include <pq/list.h>
 
+pq_list pq_list_slice(pq_list lst, int from, int to) {
+	int original_size = lst.size;
+	if(from < 0) from = original_size + from;
+	if(to < 0) to = original_size + to;
+
+	return (pq_list){ .values = lst.values + from, .size = to - from };
+}
+

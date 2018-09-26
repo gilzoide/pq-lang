@@ -87,11 +87,11 @@ pq_value *pq_eval(pq_context *ctx, pq_value *val) {
 			return pq_context_get_symbol(ctx, pq_value_get_data_as(val, pq_symbol));
 
 		case PQ_LIST: {
-			pq_list list = pq_value_get_data_as(val, pq_list);
-			pq_value *func = pq_eval(ctx, list.values[0]);
+			pq_list lst = pq_value_get_data_as(val, pq_list);
+			pq_value *func = pq_eval(ctx, lst.values[0]);
 			pq_assert_not_error(func);
-			int argc = list.size - 1;
-			pq_value *ret = pq_call(ctx, func, argc, list.values + 1);
+			int argc = lst.size - 1;
+			pq_value *ret = pq_call(ctx, func, argc, lst.values + 1);
 			return ret;
 		}
 

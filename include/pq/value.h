@@ -73,29 +73,34 @@ pq_value *pq_value_from_i8(pq_context *ctx, int8_t i);
 pq_value *pq_value_from_i16(pq_context *ctx, int16_t i);
 pq_value *pq_value_from_i32(pq_context *ctx, int32_t i);
 pq_value *pq_value_from_i64(pq_context *ctx, int64_t i);
-intmax_t pq_value_as_int(pq_value *val);
 
 pq_value *pq_value_from_u8(pq_context *ctx, uint8_t u);
 pq_value *pq_value_from_u16(pq_context *ctx, uint16_t u);
 pq_value *pq_value_from_u32(pq_context *ctx, uint32_t u);
 pq_value *pq_value_from_u64(pq_context *ctx, uint64_t u);
-uintmax_t pq_value_as_uint(pq_value *val);
 
 pq_value *pq_value_from_float(pq_context *ctx, float f);
 pq_value *pq_value_from_double(pq_context *ctx, double d);
-double pq_value_as_double(pq_value *val);
 
 pq_value *pq_value_from_string(pq_context *ctx, const char *str);
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n);
 pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol);
 pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
+pq_value *pq_value_list_from_values(pq_context *ctx, pq_value **values, int size);
 
 pq_value *pq_value_nil(pq_context *ctx);
 
 pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags);
 pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr macro_ptr, uint8_t argnum, enum pq_function_flags flags);
 pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *signature);
-pq_value *pq_value_from_code(pq_context *ctx, pq_list code, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags);
+
+// Value native getters
+intmax_t pq_value_as_int(pq_value *val);
+uintmax_t pq_value_as_uint(pq_value *val);
+double pq_value_as_double(pq_value *val);
+pq_symbol pq_value_as_symbol(pq_value *val);
+pq_list pq_value_as_list(pq_value *val);
 
 /// Create a new Value with uninitialised memory with the specified Type.
 pq_value *pq_new_variable(pq_context *ctx, pq_type *type);
@@ -110,6 +115,7 @@ int pq_is_callable(pq_value *val);
 int pq_is_nil(pq_value *val);
 int pq_is_symbol(pq_value *val);
 int pq_is_string(pq_value *val);
+int pq_is_list(pq_value *val);
 
 /// Return whether a value is considered to be true.
 int pq_true(pq_value *val);

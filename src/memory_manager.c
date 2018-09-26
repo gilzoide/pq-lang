@@ -50,7 +50,7 @@ void pq_release_value(pq_context *ctx, pq_value *val) {
 pq_list pq_new_list_with_size(pq_context *ctx, int size) {
 	pq_list new_list;
 	new_list.values = malloc(size * sizeof(pq_value *));
-	new_list.size = new_list.values ? size : 0;
+	new_list.size = (new_list.values != NULL) * size;
 	return new_list;
 }
 

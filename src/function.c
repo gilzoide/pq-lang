@@ -19,13 +19,14 @@
  */
 
 #include <pq/function.h>
+#include <pq/assert.h>
 #include <pq/context.h>
 
 #include <stdarg.h>
 
-pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list code, uint8_t argnum, uint8_t is_variadic) {
+pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list args, pq_list code, enum pq_function_flags flags) {
 	pq_value *func_val;
-	if(func_val = pq_value_from_code(ctx, code, argnum, is_variadic)) {
+	if(func_val = pq_value_from_code(ctx, args, code, flags)) {
 		pq_context_set(ctx, name, func_val);
 	}
 	return func_val;
@@ -60,8 +61,9 @@ pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compi
 { \
 	int i; \
 	for(i = 0; i < argc; i++) \
-		if(pq_is_error(argv[i] = pq_eval(ctx, argv[i]))) \
-			return argv[i]; \
+		if(pq_is_error(evaluated[i] = pq_eval(ctx, argv[i]))) \
+			return evaluated[i]; \
+	argv = evaluated; \
 }
 
 pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
@@ -79,18 +81,35 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 					is_variadic ? "at least " : "", func_md->argnum, argc);
 		}
 
+		pq_value *evaluated[argc];
 		if(func_md->flags & PQ_EVAL_ARGS) _eval_args();
 		if(func_md->flags & PQ_PUSH_SCOPE) pq_push_scope(ctx);
 		// TODO: create right signature for variadic calls
+		pq_value *return_value;
 		switch(func->type->kind) {
-			case PQ_FUNCTION:
+			case PQ_FUNCTION: {
+				int i;
+				pq_function f = pq_value_get_data_as(func, pq_function);
+				for(i = 0; i < f.args.size - is_variadic; i++) {
+					pq_context_set_symbol(ctx, pq_value_as_symbol(f.args.values[i]), argv[i]);
+				}
+				if(is_variadic) {
+					pq_context_set_symbol(ctx, pq_value_as_symbol(f.args.values[i]), pq_value_list_from_values(ctx, argv + i, f.args.size - i));
+				}
+				pq_value *val;
+				for(i = 0; i < f.code.size; i++) {
+					if(pq_is_error(val = pq_eval(ctx, f.code.values[i]))) break;
+				}
+				return_value = val;
 				break;
+			}
 
 			case PQ_C_FUNCTION: {
 				pq_c_function *func_val = (pq_c_function *) func_md;
-				return func_md->flags & PQ_COMPILER_MACRO
+				return_value = func_md->flags & PQ_COMPILER_MACRO
 				       ? func_val->callable.macro_ptr(ctx, NULL, argc, argv)
 				       : func_val->callable.function_ptr(ctx, argc, argv);
+				break;
 			}
 
 			case PQ_NATIVE_FUNCTION: {
@@ -101,15 +120,17 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 					native_argv[i] = pq_value_get_data(argv[i]);
 				}
 				jit_type_t signature = jit_type_remove_tags(func_md->signature->jit_type);
-				pq_value *return_value = pq_new_variable(ctx, pq_type_get_return_type(func_md->signature));
+				return_value = pq_new_variable(ctx, pq_type_get_return_type(func_md->signature));
 				jit_apply(signature, func_val->function_ptr, native_argv, argc, pq_value_get_data(return_value));
-				return return_value;
+				break;
 			}
 
-			default: break;
+			default:
+				return_value = NULL;
+				break;
 		}
-		return pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)",
-				func->type->name);
+		if(return_value == NULL) return_value = pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)", func->type->name);
+		return func_md->flags & PQ_PUSH_SCOPE ? pq_return(ctx, return_value) : return_value;
 	}
 }
 #undef _eval_args

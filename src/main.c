@@ -20,11 +20,15 @@
 
 #include <pq.h>
 
+#include <replxx.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LINE_SIZE 1024
-char buffer[LINE_SIZE];
+#define HISTORY_FILE ".pq_history"
+#define PROMPT_COLOR "\x1b[32m"
+#define NORMAL_COLOR "\x1b[0m"
+#define ERROR_COLOR "\x1b[1;31m"
 
 int main() {
 	pq_context ctx;
@@ -32,17 +36,27 @@ int main() {
 		fprintf(stderr, "Error initializing pq context\n");
 		return -1;
 	}
+	Replxx *replxx = replxx_init();
+	if(replxx == NULL) {
+		fprintf(stderr, "Error initializing replxx\n");
+		return -1;
+	}
+	replxx_history_load(replxx, HISTORY_FILE);
 
 	pq_value *val;
+	const char *line;
 	do {
-		printf("> ");
-		if(!fgets(buffer, LINE_SIZE, stdin)) break;
-		if((val = pq_read(&ctx, buffer)) && (val = pq_eval(&ctx, val))) {
+		line = replxx_input(replxx, PROMPT_COLOR "pq" NORMAL_COLOR "> ");
+		if(line == NULL) break;
+		replxx_history_add(replxx, line);
+		if((val = pq_read(&ctx, line)) && (val = pq_eval(&ctx, val))) {
 			pq_print(&ctx, val);
 			fputc('\n', stdout);
 		}
 	} while(val);
 
+	replxx_history_save(replxx, HISTORY_FILE);
+	replxx_end(replxx);
 	pq_context_destroy(&ctx);
 	return 0;
 }
