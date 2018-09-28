@@ -23,6 +23,7 @@
 #include <pq/context.h>
 #include <pq/value.h>
 
+#include <math.h>
 #include <stdio.h>
 
 int pq_register_builtin(pq_context *ctx) {
@@ -47,8 +48,9 @@ int pq_register_builtin_values(pq_context *ctx) {
 	} \
 	else return 0
 
-	register_value(_false, "false", pq_value_from_i8(ctx, 0));
-	register_value(_true, "true", pq_value_from_i8(ctx, 1));
+	register_value(_false, "false", pq_value_from_bool(ctx, 0));
+	register_value(_true, "true", pq_value_from_bool(ctx, 1));
+	register_value(_nan, "nan", pq_value_from_double(ctx, NAN));
 #undef register_value
 	return 1;
 }
@@ -85,7 +87,8 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_nil,    "nil-t",    PQ_NIL,    jit_type_void,        NULL);
 	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr,    NULL);
 
-	register_type(_bool, "bool", PQ_INT, jit_type_sys_bool, NULL);
+	register_type(_bool, "bool", PQ_BOOL, jit_type_sys_bool, NULL);
+
 	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,    NULL);
 	register_type(_i16,  "i16",  PQ_INT, jit_type_short,    NULL);
 	register_type(_i32,  "i32",  PQ_INT, jit_type_int,      NULL);
@@ -131,7 +134,7 @@ static pq_value *_if(pq_context *ctx, jit_function_t jit_function, int argc, pq_
 		return pq_value_error(ctx, "compiled `if` is not yet implemented");
 	}
 	else {
-		return pq_true(pq_eval(ctx, argv[0])) ? pq_eval(ctx, argv[1]) : pq_eval(ctx, argv[2]);
+		return pq_value_as_bool(pq_eval(ctx, argv[0])) ? pq_eval(ctx, argv[1]) : pq_eval(ctx, argv[2]);
 	}
 }
 static pq_value *_while(pq_context *ctx, jit_function_t jit_function, int argc, pq_value **argv) {
@@ -140,7 +143,7 @@ static pq_value *_while(pq_context *ctx, jit_function_t jit_function, int argc, 
 	}
 	else {
 		pq_value *res = pq_value_nil(ctx);
-		while(pq_true(pq_eval(ctx, argv[0])) && res->type->kind != PQ_ERROR) {
+		while(pq_value_as_bool(pq_eval(ctx, argv[0])) && res->type->kind != PQ_ERROR) {
 			res = pq_eval(ctx, argv[1]);
 		}
 		return res;
@@ -179,13 +182,17 @@ static pq_value *_quit(pq_context *ctx, int argc, pq_value **argv) {
 static pq_value *_type_of(pq_context *ctx, int argc, pq_value **argv) {
 	return pq_value_from_type(ctx, argv[0]->type);
 }
-static pq_value *_defun(pq_context *ctx, int argc, pq_value **argv) {
-	pq_assert_arg_type(ctx, argv, 0, symbol);
-	pq_assert_arg_type(ctx, argv, 1, list);
-	pq_symbol sym = pq_value_as_symbol(argv[0]);
-	pq_list args = pq_value_as_list(argv[1]);
-	pq_list code = (pq_list){ .values = argv + 2, .size = argc - 2 };
-	return pq_register_function(ctx, pq_string_from_symbol(ctx, sym), args, code, PQ_EVAL_ARGS | PQ_PUSH_SCOPE);
+static pq_value *_lambda(pq_context *ctx, int argc, pq_value **argv) {
+	pq_assert_arg_type(ctx, argv, 0, list);
+	pq_list args = pq_value_as_list(argv[0]);
+	pq_list code = (pq_list){ .values = argv + 1, .size = argc - 1 };
+	return pq_value_from_code(ctx, args, code, PQ_EVAL_ARGS | PQ_PUSH_SCOPE);
+}
+static pq_value *_macro(pq_context *ctx, int argc, pq_value **argv) {
+	pq_assert_arg_type(ctx, argv, 0, list);
+	pq_list args = pq_value_as_list(argv[0]);
+	pq_list code = (pq_list){ .values = argv + 1, .size = argc - 1 };
+	return pq_value_from_code(ctx, args, code, PQ_PUSH_SCOPE);
 }
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -198,7 +205,8 @@ int pq_register_builtin_functions(pq_context *ctx) {
 	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS);
 	pq_register_c_function(ctx, "quit", &_quit, 0, 0);
 	pq_register_c_function(ctx, "type-of", &_type_of, 1, PQ_EVAL_ARGS);
-	pq_register_c_function(ctx, "defun", &_defun, 3, PQ_VARIADIC);
+	pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC);
+	pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC);
 	return 1;
 }
 

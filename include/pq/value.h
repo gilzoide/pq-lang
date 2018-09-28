@@ -69,6 +69,8 @@ pq_value *pq_value_ferror(pq_context *ctx, const char *fmt, ...);
 pq_value *pq_value_from_type(pq_context *ctx, pq_type *type);
 pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s);
 
+pq_value *pq_value_from_bool(pq_context *ctx, int b);
+
 pq_value *pq_value_from_i8(pq_context *ctx, int8_t i);
 pq_value *pq_value_from_i16(pq_context *ctx, int16_t i);
 pq_value *pq_value_from_i32(pq_context *ctx, int32_t i);
@@ -96,6 +98,7 @@ pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *si
 pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags);
 
 // Value native getters
+int pq_value_as_bool(pq_value *val);
 intmax_t pq_value_as_int(pq_value *val);
 uintmax_t pq_value_as_uint(pq_value *val);
 double pq_value_as_double(pq_value *val);
@@ -116,11 +119,6 @@ int pq_is_nil(pq_value *val);
 int pq_is_symbol(pq_value *val);
 int pq_is_string(pq_value *val);
 int pq_is_list(pq_value *val);
-
-/// Return whether a value is considered to be true.
-int pq_true(pq_value *val);
-/// Return whether a value is considered to be false.
-int pq_false(pq_value *val);
 
 // General operations
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output);

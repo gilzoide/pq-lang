@@ -50,6 +50,7 @@ typedef struct pq_builtin_values {
 	pq_value *_nil;
 	pq_value *_true;
 	pq_value *_false;
+	pq_value *_nan;
 } pq_builtin_values;
 /**
  * Registers the builtin pq Values in the Context.

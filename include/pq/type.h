@@ -38,6 +38,7 @@ enum pq_type_kind {
 	PQ_STRING,
 
 	PQ_NIL,
+	PQ_BOOL,
 	PQ_LIST,
 	PQ_TYPE,
 	PQ_SCOPE,

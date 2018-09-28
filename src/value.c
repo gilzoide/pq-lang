@@ -69,6 +69,15 @@ pq_value *pq_value_from_scope(pq_context *ctx, pq_scope *s) {
 	return val;
 }
 
+pq_value *pq_value_from_bool(pq_context *ctx, int b) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, int8_t)) {
+		val->type = ctx->type_manager._bool;
+		pq_value_get_data_as(val, int8_t) = b != 0;
+	}
+	return val;
+}
+
 pq_value *pq_value_from_i8(pq_context *ctx, int8_t i) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, int8_t)) {
@@ -271,6 +280,27 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum p
 ////////////////////////////////////////////////////////////////////////////////
 //  Value native representation
 ////////////////////////////////////////////////////////////////////////////////
+int pq_value_as_bool(pq_value *val) {
+	if(val == NULL) return 0;
+	switch(val->type->kind) {
+		case PQ_NIL:
+			return 0;
+
+		case PQ_BOOL:
+		case PQ_INT:
+			return pq_value_as_int(val) != 0;
+
+		case PQ_FLOAT:
+			return isnormal(pq_value_as_double(val));
+
+		case PQ_STRING:
+			return pq_value_get_data_as(val, const char *)[0] != '\0';
+
+		default:
+			return 1;
+	}
+}
+
 intmax_t pq_value_as_int(pq_value *val) {
 	switch(pq_type_get_value_size(val->type)) {
 		case 1: return (intmax_t) pq_value_get_data_as(val, int8_t);
@@ -372,25 +402,6 @@ int pq_is_list(pq_value *val) {
 	return kind == PQ_LIST;
 }
 
-int pq_true(pq_value *val) {
-	return !pq_false(val);
-}
-
-int pq_false(pq_value *val) {
-	if(val == NULL) return 1;
-	switch(val->type->kind) {
-		case PQ_NIL:
-		case PQ_ERROR:
-			return 1;
-
-		case PQ_INT:
-			return pq_value_get_data_as(val, intmax_t) == 0;
-
-		default:
-			return 0;
-	}
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //  General operations
 ////////////////////////////////////////////////////////////////////////////////
@@ -407,24 +418,28 @@ void pq_list_fprint(pq_context *ctx, pq_list lst, FILE *output) {
 }
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 	switch(val->type->kind) {
-		case PQ_NIL:
-			fputs("nil", output);
-			break;
-
-		case PQ_SYMBOL:
-			fprintf(output, "%s", pq_string_from_symbol(ctx, pq_value_get_data_as(val, pq_symbol)));
-			break;
-
-		case PQ_STRING:
-			fprintf(output, "\"%s\"", pq_value_get_data_as(val, char *));
-			break;
-
 		case PQ_INT:
 			fprintf(output, "%ld", pq_value_as_int(val));
 			break;
 
 		case PQ_FLOAT:
 			fprintf(output, "%g", pq_value_as_double(val));
+			break;
+
+		case PQ_STRING:
+			fprintf(output, "\"%s\"", pq_value_get_data_as(val, char *));
+			break;
+
+		case PQ_NIL:
+			fputs("nil", output);
+			break;
+
+		case PQ_BOOL:
+			fputs(pq_value_as_bool(val) ? "true" : "false", output);
+			break;
+
+		case PQ_SYMBOL:
+			fprintf(output, "%s", pq_string_from_symbol(ctx, pq_value_get_data_as(val, pq_symbol)));
 			break;
 
 		case PQ_LIST: {
