@@ -44,7 +44,7 @@ typedef struct pq_type_manager {
 	pq_type *_nil;   ///< The Nil type.
 	pq_type *_symbol;  ///< The Symbol type.
 
-	pq_type *_bool;  ///< The Bool type.
+	pq_type *_bool;  ///< The bool type.
 	pq_type *_i8;  ///< The i8 type.
 	pq_type *_i16;  ///< The i16 type.
 	pq_type *_i32;  ///< The i32 type.
@@ -53,7 +53,16 @@ typedef struct pq_type_manager {
 	pq_type *_u16;  ///< The u16 type.
 	pq_type *_u32;  ///< The u32 type.
 	pq_type *_u64;  ///< The u64 type.
-	
+
+	pq_type *_sys_char;  ///< The system char type.
+	pq_type *_sys_short;  ///< The system short type.
+	pq_type *_sys_int;  ///< The system int type.
+	pq_type *_sys_long;  ///< The system long type.
+	pq_type *_sys_uchar;  ///< The system unsigned char type.
+	pq_type *_sys_ushort;  ///< The system unsigned short type.
+	pq_type *_sys_uint;  ///< The system unsigned int type.
+	pq_type *_sys_ulong;  ///< The system unsigned long type.
+
 	pq_type *_float;  ///< The float type.
 	pq_type *_double;  ///< The double type.
 
@@ -64,6 +73,7 @@ typedef struct pq_type_manager {
 	pq_type *_function;  ///< The function type.
 	pq_type *_c_function;  ///< The C function type.
 	pq_type *_native_function;  ///< The Native function type.
+	pq_type *_overload;  ///< The overloaded type.
 
 	pq_vector all_types;
 
@@ -101,6 +111,14 @@ enum pq_builtin_type {
 	PQ_TYPE_U16,
 	PQ_TYPE_U32,
 	PQ_TYPE_U64,
+	PQ_TYPE_SYS_CHAR,
+	PQ_TYPE_SYS_SHORT,
+	PQ_TYPE_SYS_INT,
+	PQ_TYPE_SYS_LONG,
+	PQ_TYPE_SYS_UNSIGNED_CHAR,
+	PQ_TYPE_SYS_UNSIGNED_SHORT,
+	PQ_TYPE_SYS_UNSIGNED_INT,
+	PQ_TYPE_SYS_UNSIGNED_LONG,
 	PQ_TYPE_FLOAT,
 	PQ_TYPE_DOUBLE,
 	PQ_TYPE_STRING,
@@ -108,6 +126,7 @@ enum pq_builtin_type {
 	PQ_TYPE_FUNCTION,
 	PQ_TYPE_C_FUNCTION,
 	PQ_TYPE_NATIVE_FUNCTION,
+	PQ_TYPE_OVERLOAD,
 
 	PQ_BUILTIN_TYPE_MAX,
 };

@@ -88,6 +88,7 @@ typedef struct pq_c_function {
  * Registers a C Function into pq Context.
  */
 pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_register_typed_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, pq_type *return_type, uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags);
 pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags);
 
 

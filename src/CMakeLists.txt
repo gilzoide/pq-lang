@@ -4,12 +4,11 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	${PEGA_TEXTO_INCLUDE_DIRS}
 	${REPLXX_INCLUDE_DIRS})
 
-set(libsrc builtin.c context.c function.c memory_manager.c parser.c scope.c
-	scope_queue.c symbol.c type.c type_manager.c utils.c value.c)
+file(GLOB libsrc "*.c" "core/*.c")
 add_library(pq-lang SHARED ${libsrc})
 install(TARGETS pq-lang LIBRARY DESTINATION lib)
 
-add_executable(pq main.c)
+add_executable(pq "bin/main.c")
 target_link_libraries(pq
 	pq-lang
 	${LIBJIT_LIBRARIES}

@@ -59,7 +59,7 @@ int pq_register_builtin_values(pq_context *ctx) {
 //  Builtin value destructors
 ////////////////////////////////////////////////////////////////////////////////
 static void _free_data(pq_context *ctx, void *data) {
-	free(*((void **) data));
+	free(*((void **)data));
 }
 
 int pq_register_builtin_types(pq_context *ctx) {
@@ -81,25 +81,34 @@ int pq_register_builtin_types(pq_context *ctx) {
 	} \
 	else return 0
 
-	register_type(_error,  "error-t",  PQ_ERROR,  NULL,                 &_free_data);
-	register_type(_list,   "list-t",   PQ_LIST,   NULL, (pq_destructor) &pq_release_list);
-	register_type(_scope,  "scope-t",  PQ_SCOPE,  NULL, (pq_destructor) &pq_scope_destroy);
+	register_type(_error,  "error-t",  PQ_ERROR,  NULL,                &_free_data);
+	register_type(_list,   "list-t",   PQ_LIST,   NULL, (pq_destructor)&pq_release_list);
+	register_type(_scope,  "scope-t",  PQ_SCOPE,  NULL, (pq_destructor)&pq_scope_destroy);
 	register_type(_nil,    "nil-t",    PQ_NIL,    jit_type_void,        NULL);
 	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr,    NULL);
 
 	register_type(_bool, "bool", PQ_BOOL, jit_type_sys_bool, NULL);
 
-	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,    NULL);
-	register_type(_i16,  "i16",  PQ_INT, jit_type_short,    NULL);
-	register_type(_i32,  "i32",  PQ_INT, jit_type_int,      NULL);
-	register_type(_i64,  "i64",  PQ_INT, jit_type_long,     NULL);
-	register_type(_u8,   "u8",   PQ_INT, jit_type_ubyte,    NULL);
-	register_type(_u16,  "u16",  PQ_INT, jit_type_ushort,   NULL);
-	register_type(_u32,  "u32",  PQ_INT, jit_type_uint,     NULL);
-	register_type(_u64,  "u64",  PQ_INT, jit_type_ulong,    NULL);
+	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,  NULL);
+	register_type(_i16,  "i16",  PQ_INT, jit_type_short,  NULL);
+	register_type(_i32,  "i32",  PQ_INT, jit_type_int,    NULL);
+	register_type(_i64,  "i64",  PQ_INT, jit_type_long,   NULL);
+	register_type(_u8,   "u8",   PQ_INT, jit_type_ubyte,  NULL);
+	register_type(_u16,  "u16",  PQ_INT, jit_type_ushort, NULL);
+	register_type(_u32,  "u32",  PQ_INT, jit_type_uint,   NULL);
+	register_type(_u64,  "u64",  PQ_INT, jit_type_ulong,  NULL);
 
-	register_type(_float,  "float",  PQ_FLOAT, jit_type_float32, NULL);
-	register_type(_double, "double", PQ_FLOAT, jit_type_float64, NULL);
+	register_type(_sys_char,   "sys-char",   PQ_INT, jit_type_sys_schar,  NULL);
+	register_type(_sys_short,  "sys-short",  PQ_INT, jit_type_sys_short,  NULL);
+	register_type(_sys_int,    "sys-int",    PQ_INT, jit_type_sys_int,    NULL);
+	register_type(_sys_long,   "sys-long",   PQ_INT, jit_type_sys_long,   NULL);
+	register_type(_sys_uchar,  "sys-uchar",  PQ_INT, jit_type_sys_uchar,  NULL);
+	register_type(_sys_ushort, "sys-ushort", PQ_INT, jit_type_sys_ushort, NULL);
+	register_type(_sys_uint,   "sys-uint",   PQ_INT, jit_type_sys_uint,   NULL);
+	register_type(_sys_ulong,  "sys-ulong",  PQ_INT, jit_type_sys_ulong,  NULL);
+
+	register_type(_float,  "float",  PQ_FLOAT, jit_type_sys_float,  NULL);
+	register_type(_double, "double", PQ_FLOAT, jit_type_sys_double, NULL);
 
 	register_type(_string, "string", PQ_STRING, NULL, &_free_data);
 
@@ -108,6 +117,7 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_function,        "function",        PQ_FUNCTION,        NULL, NULL);
 	register_type(_c_function,      "c-function",      PQ_C_FUNCTION,      NULL, NULL);
 	register_type(_native_function, "native-function", PQ_NATIVE_FUNCTION, NULL, NULL);
+	register_type(_overload,        "overload",        PQ_OVERLOAD,        NULL, (pq_destructor)&pq_overload_destroy);
 #undef register_type
 	return 1;
 }
@@ -151,19 +161,19 @@ static pq_value *_while(pq_context *ctx, jit_function_t jit_function, int argc, 
 }
 static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
 	pq_symbol sym;
-	argv[1] = pq_eval(ctx, argv[1]);
-	pq_assert_not_error(argv[1]);
+	pq_value *val = pq_eval(ctx, argv[1]);
+	pq_assert_not_error(val);
 	switch(argv[0]->type->kind) {
 		case PQ_SYMBOL:
 			sym = pq_value_get_data_as(argv[0], pq_symbol);
-			pq_context_set_symbol(ctx, sym, argv[1]);
+			pq_context_set_symbol(ctx, sym, val);
 			break;
 
 		default:
 			return pq_value_ferror(ctx, "Invalid argument 1: expected symbol, found %s",
 					argv[0]->type->name);
 	}
-	return argv[1];
+	return val;
 }
 /// Just return the evaluation of the evaluated argument.
 static pq_value *_eval(pq_context *ctx, int argc, pq_value **argv) {

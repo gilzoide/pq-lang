@@ -74,7 +74,11 @@ pq_scope *pq_scope_queue_pop(pq_scope_queue *q);
 /**
  * Get a local Value, searching for it from local (topmost) to root Scope.
  */
-pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol key);
+pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym);
+/**
+ * Get a Value from the topmost Scope.
+ */
+pq_value *pq_scope_queue_get_from_top(const pq_scope_queue *q, pq_symbol sym);
 /**
  * Set a Value in the local (topmost) Scope.
  */

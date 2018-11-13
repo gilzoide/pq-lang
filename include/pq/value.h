@@ -23,6 +23,7 @@
 
 #include "list.h"
 #include "function.h"
+#include "overload.h"
 #include "symbol.h"
 #include "type.h"
 
@@ -93,9 +94,11 @@ pq_value *pq_value_list_from_values(pq_context *ctx, pq_value **values, int size
 pq_value *pq_value_nil(pq_context *ctx);
 
 pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_value_from_typed_c_function(pq_context *ctx, pq_c_function_ptr fptr, pq_type *return_type, uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags);
 pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr macro_ptr, uint8_t argnum, enum pq_function_flags flags);
 pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *signature);
 pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags);
+pq_value *pq_value_from_overload(pq_context *ctx, pq_overload overload);
 
 // Value native getters
 int pq_value_as_bool(pq_value *val);
@@ -114,6 +117,8 @@ pq_value *pq_new_variable(pq_context *ctx, pq_type *type);
 int pq_is_int(pq_value *val);
 int pq_is_float(pq_value *val);
 int pq_is_error(pq_value *val);
+int pq_is_function(pq_value *val);
+int pq_is_overload(pq_value *val);
 int pq_is_callable(pq_value *val);
 int pq_is_nil(pq_value *val);
 int pq_is_symbol(pq_value *val);

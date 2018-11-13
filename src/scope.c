@@ -46,7 +46,7 @@ void pq_scope_destroy(pq_context *ctx, pq_scope *scope) {
 pq_value *pq_scope_get(const pq_scope *scope, pq_symbol sym) {
 	Word_t *pvalue;
 	JLG(pvalue, scope->table, sym);
-	return pvalue ? (pq_value *) *pvalue : NULL;
+	return pvalue != NULL ? (pq_value *) *pvalue : NULL;
 }
 
 void pq_scope_set(pq_scope *scope, pq_symbol sym, pq_value *val) {

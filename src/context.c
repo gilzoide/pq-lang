@@ -64,6 +64,23 @@ void pq_context_set_symbol(pq_context *ctx, pq_symbol symbol, pq_value *val) {
 	pq_scope_queue_set(&ctx->scopes, symbol, val);
 }
 
+pq_value *pq_context_set_function(pq_context *ctx, const char *key, pq_value *val) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, key);
+	return pq_context_set_function_symbol(ctx, symbol, val);
+}
+
+pq_value *pq_context_set_function_symbol(pq_context *ctx, pq_symbol sym, pq_value *val) {
+	if(!pq_is_function(val)) {
+		return pq_value_error(ctx, "Value must be a function");
+	}
+	pq_value *overload = pq_scope_queue_get_from_top(&ctx->scopes, sym);
+	if(overload == NULL || !pq_is_overload(overload)) {
+		overload = pq_value_from_overload(ctx, pq_empty_overload(ctx));
+		pq_context_set_symbol(ctx, sym, overload);
+	}
+	return pq_overload_add_function(ctx, (pq_overload *)pq_value_get_data(overload), val);
+}
+
 pq_symbol pq_symbol_from_string(pq_context *ctx, const char *str) {
 	return pq_symbol_manager_symbol_from_string(&ctx->symbol_manager, str);
 }
@@ -78,25 +95,5 @@ const char *pq_string_from_symbol(pq_context *ctx, pq_symbol symbol) {
 
 void pq_push_scope(pq_context *ctx) {
 	pq_scope_queue_push(&ctx->scopes);
-}
-
-pq_value *pq_eval(pq_context *ctx, pq_value *val) {
-	if(val == NULL) return pq_value_nil(ctx);
-	switch(val->type->kind) {
-		case PQ_SYMBOL:
-			return pq_context_get_symbol(ctx, pq_value_get_data_as(val, pq_symbol));
-
-		case PQ_LIST: {
-			pq_list lst = pq_value_get_data_as(val, pq_list);
-			pq_value *func = pq_eval(ctx, lst.values[0]);
-			pq_assert_not_error(func);
-			int argc = lst.size - 1;
-			pq_value *ret = pq_call(ctx, func, argc, lst.values + 1);
-			return ret;
-		}
-
-		default:
-			return val;
-	}
 }
 

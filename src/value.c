@@ -22,6 +22,7 @@
 #include <pq/assert.h>
 #include <pq/context.h>
 #include <pq/function.h>
+#include <pq/overload.h>
 
 #include <math.h>
 #include <string.h>
@@ -220,10 +221,16 @@ pq_value *pq_value_nil(pq_context *ctx) {
 }
 
 pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags) {
+	return pq_value_from_typed_c_function(ctx, fptr, NULL, argnum, NULL, flags);
+}
+
+pq_value *pq_value_from_typed_c_function(pq_context *ctx, pq_c_function_ptr fptr, pq_type *return_type,
+		uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, pq_c_function)) {
 		val->type = ctx->type_manager._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
+		cfunc->header.signature = (return_type && (argnum == 0 || argtypes)) ? pq_get_signature_type(ctx, return_type, argnum, argtypes, flags & PQ_VARIADIC) : NULL;
 		cfunc->header.argnum = argnum;
 		cfunc->header.flags = flags;
 		cfunc->callable.function_ptr = fptr;
@@ -236,6 +243,7 @@ pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr ma
 	if(val = pq_new_value(ctx, pq_c_function)) {
 		val->type = ctx->type_manager._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
+		cfunc->header.signature = NULL;
 		cfunc->header.argnum = argnum;
 		cfunc->header.flags = flags;
 		cfunc->callable.macro_ptr = macro_ptr;
@@ -269,10 +277,20 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum p
 	if(val = pq_new_value(ctx, pq_function)) {
 		val->type = ctx->type_manager._function;
 		pq_function *func = pq_value_get_data(val);
+		func->header.signature = NULL;
 		func->header.argnum = args.size - is_variadic;
 		func->header.flags = flags | (is_variadic * PQ_VARIADIC);
 		func->args = args;
 		func->code = code;
+	}
+	return val;
+}
+
+pq_value *pq_value_from_overload(pq_context *ctx, pq_overload overload) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, pq_overload)) {
+		val->type = ctx->type_manager._overload;
+		pq_value_get_data_as(val, pq_overload) = overload;
 	}
 	return val;
 }
@@ -374,11 +392,24 @@ int pq_is_error(pq_value *val) {
 	return kind == PQ_ERROR;
 }
 
+int pq_is_function(pq_value *val) {
+	int kind = val->type->kind;
+	return kind == PQ_FUNCTION
+	       | kind == PQ_C_FUNCTION
+	       | kind == PQ_NATIVE_FUNCTION;
+}
+
+int pq_is_overload(pq_value *val) {
+	int kind = val->type->kind;
+	return kind == PQ_OVERLOAD;
+}
+
 int pq_is_callable(pq_value *val) {
 	int kind = val->type->kind;
 	return kind == PQ_FUNCTION
 	       | kind == PQ_C_FUNCTION
 	       | kind == PQ_NATIVE_FUNCTION
+	       | kind == PQ_OVERLOAD
 	       | kind == PQ_TYPE;
 }
 
