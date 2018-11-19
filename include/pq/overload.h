@@ -34,6 +34,7 @@ typedef struct pq_value pq_value;
 
 typedef struct pq_overload {
 	Pvoid_t function_table;
+	Pvoid_t variadic_function_table;
 } pq_overload;
 
 /**

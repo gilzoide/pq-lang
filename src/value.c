@@ -447,6 +447,9 @@ void pq_list_fprint(pq_context *ctx, pq_list lst, FILE *output) {
 	}
 	fputc(')', output);
 }
+void pq_type_fprint(pq_context *ctx, pq_type *type, FILE *output) {
+	fprintf(output, "%s", type->name);
+}
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 	switch(val->type->kind) {
 		case PQ_INT:
@@ -473,10 +476,8 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			fprintf(output, "%s", pq_string_from_symbol(ctx, pq_value_get_data_as(val, pq_symbol)));
 			break;
 
-		case PQ_LIST: {
-				pq_list lst = pq_value_get_data_as(val, pq_list);
-				pq_list_fprint(ctx, lst, output);
-			}
+		case PQ_LIST:
+			pq_list_fprint(ctx, pq_value_get_data_as(val, pq_list), output);
 			break;
 
 		case PQ_ERROR:
@@ -484,7 +485,7 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_TYPE:
-			fprintf(output, "%s", pq_value_get_data_as(val, pq_type *)->name);
+			pq_type_fprint(ctx, pq_value_get_data_as(val, pq_type *), output);
 			break;
 
 		case PQ_FUNCTION: {

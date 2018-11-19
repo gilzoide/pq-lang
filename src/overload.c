@@ -27,16 +27,45 @@ pq_overload pq_empty_overload(pq_context *ctx) {
 }
 
 void pq_overload_destroy(pq_context *ctx, pq_overload *overload) {
-	Word_t bytes;
+	Word_t bytes, index = 0, *pvalue;
+	Pvoid_t table;
+	JLF(pvalue, overload->variadic_function_table, index);
+	while(pvalue != NULL) {
+		table = (Pvoid_t)*pvalue;
+		JLFA(bytes, table);
+		JLN(pvalue, overload->variadic_function_table, index);
+	}
+	JLFA(bytes, overload->variadic_function_table);
 	JLFA(bytes, overload->function_table);
 }
 
+static inline Word_t *_pq_overload_non_variadic_function_pointer(pq_overload *overload, pq_type *argument_types_tuple) {
+	Word_t *pvalue;
+	JLI(pvalue, overload->function_table, (Word_t)argument_types_tuple);
+	return pvalue;
+}
+static inline Word_t *_pq_overload_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *argument_types_tuple) {
+	Word_t *pvalue;
+	JLI(pvalue, overload->variadic_function_table, metadata->argnum);
+	if(pvalue != PJERR) {
+		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)argument_types_tuple, PJE0);
+	}
+	return pvalue;
+}
 pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_value *func) {
 	if(func != NULL && pq_is_function(func)) {
 		Word_t *pvalue;
-		pq_type *signature = pq_value_get_data_as(func, pq_function_metadata).signature;
-		pq_type *argument_types_tuple = signature == NULL ? NULL : pq_get_tuple_type(ctx, pq_type_get_num_arguments(signature), pq_type_get_argument_types(signature));
-		JLI(pvalue, overload->function_table, (Word_t)argument_types_tuple);
+		pq_function_metadata *metadata = pq_value_get_data(func);
+		pq_type *signature = metadata->signature;
+		pq_type *argument_types_tuple = signature == NULL
+		                                ? NULL
+		                                : pq_get_tuple_type(ctx, pq_type_get_num_arguments(signature), pq_type_get_argument_types(signature));
+		if(signature != NULL && metadata->flags & PQ_VARIADIC) {
+			pvalue = _pq_overload_variadic_function_pointer(overload, metadata, argument_types_tuple);
+		}
+		else {
+			pvalue = _pq_overload_non_variadic_function_pointer(overload, argument_types_tuple);
+		}
 		if(pvalue == PJERR) {
 			func = pq_value_error(ctx, "Memory error in Judy insert");
 		}
@@ -53,23 +82,44 @@ pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_va
 	}
 }
 
-pq_value *pq_overload_for_types(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types) {
+static inline pq_value *_pq_overload_for_types_non_variadic(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types) {
 	Word_t *pvalue;
 	pq_type *argument_types_tuple = pq_get_tuple_type(ctx, n, types);
 	JLG(pvalue, overload->function_table, (Word_t)argument_types_tuple);
-	pq_value *val;
-	if(pvalue == NULL) {
-		// try finding fallback
-		JLG(pvalue, overload->function_table, (Word_t)NULL);
-		if(pvalue == NULL) {
-			val = pq_value_nil(ctx);
+	return pvalue == NULL ? NULL : (pq_value *)*pvalue;
+}
+static inline pq_value *_pq_overload_for_types_variadic(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types) {
+	Word_t *pvalue;
+	pq_type *argument_types_tuple;
+	Pvoid_t by_argnum_table = overload->variadic_function_table, by_type_table;
+	JLL(pvalue, by_argnum_table, n);
+	while(pvalue != NULL) {
+		by_type_table = (Pvoid_t)*pvalue;
+		argument_types_tuple = pq_get_tuple_type(ctx, n, types);
+		JLG(pvalue, by_type_table, (Word_t)argument_types_tuple);
+		if(pvalue != NULL) {
+			return (pq_value *)*pvalue;
 		}
-		else {
-			val = (pq_value *)*pvalue;
-		}
+		JLP(pvalue, by_argnum_table, n);
 	}
-	else {
-		val = (pq_value *)*pvalue;
+	return NULL;
+}
+static inline pq_value *_pq_overload_for_any_type(pq_overload *overload) {
+	Word_t *pvalue;
+	JLG(pvalue, overload->function_table, (Word_t)NULL);
+	return pvalue == NULL ? NULL : (pq_value *)*pvalue;
+}
+pq_value *pq_overload_for_types(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types) {
+	pq_value *val;
+	val = _pq_overload_for_types_non_variadic(ctx, overload, n, types);
+	if(val == NULL) {
+		val = _pq_overload_for_types_variadic(ctx, overload, n, types);
+		if(val == NULL) {
+			val = _pq_overload_for_any_type(overload);
+			if(val == NULL) {
+				val = pq_value_nil(ctx);
+			}
+		}
 	}
 	return val;
 }
