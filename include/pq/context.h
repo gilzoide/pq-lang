@@ -80,17 +80,20 @@ void pq_context_set(pq_context *ctx, const char *key, pq_value *val);
  */
 void pq_context_set_symbol(pq_context *ctx, pq_symbol symbol, pq_value *val);
 /**
- * Set a function Value in the local (topmost) Scope.
+ * Set a function Value in the global (bottommost) Scope.
  *
- * This aggregates functions with the same name in an Overload.
+ * This aggregates overloadable functions with the same name in an Overload.
  *
  * @return `val` if no more functions with the same name exist.
  * @return Overload corresponding to the name passed if more than one function
  *  is associated with it.
- * @return Error if `val` isn't a function or couldn't be added to Overload.
+ * @return Error if `val` isn't a function, was already registered by other
+ *  name or couldn't be added to Overload.
  */
 pq_value *pq_context_set_function(pq_context *ctx, const char *key, pq_value *val);
 pq_value *pq_context_set_function_symbol(pq_context *ctx, pq_symbol sym, pq_value *val);
+pq_value *pq_context_unset_function(pq_context *ctx, const char *key);
+pq_value *pq_context_unset_function_symbol(pq_context *ctx, pq_symbol sym);
 
 /**
  * Get the interned Symbol correspondent to the string.

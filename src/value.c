@@ -231,6 +231,7 @@ pq_value *pq_value_from_typed_c_function(pq_context *ctx, pq_c_function_ptr fptr
 		val->type = ctx->type_manager._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
 		cfunc->header.signature = (return_type && (argnum == 0 || argtypes)) ? pq_get_signature_type(ctx, return_type, argnum, argtypes, flags & PQ_VARIADIC) : NULL;
+		cfunc->header.symbol = PQ_SYMBOL_NIL;
 		cfunc->header.argnum = argnum;
 		cfunc->header.flags = flags;
 		cfunc->callable.function_ptr = fptr;
@@ -244,6 +245,7 @@ pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr ma
 		val->type = ctx->type_manager._c_function;
 		pq_c_function *cfunc = pq_value_get_data(val);
 		cfunc->header.signature = NULL;
+		cfunc->header.symbol = PQ_SYMBOL_NIL;
 		cfunc->header.argnum = argnum;
 		cfunc->header.flags = flags;
 		cfunc->callable.macro_ptr = macro_ptr;
@@ -260,6 +262,7 @@ pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *si
 		val->type = ctx->type_manager._native_function;
 		pq_native_function *native_func = pq_value_get_data(val);
 		native_func->header.signature = signature;
+		native_func->header.symbol = PQ_SYMBOL_NIL;
 		native_func->header.argnum = jit_type_num_params(jit_type_remove_tags(signature->jit_type));
 		native_func->header.flags = (jit_type_get_abi(signature->jit_type) == jit_abi_vararg ? PQ_VARIADIC : 0) | PQ_EVAL_ARGS;
 		native_func->function_ptr = fptr;
@@ -278,6 +281,7 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum p
 		val->type = ctx->type_manager._function;
 		pq_function *func = pq_value_get_data(val);
 		func->header.signature = NULL;
+		func->header.symbol = PQ_SYMBOL_NIL;
 		func->header.argnum = args.size - is_variadic;
 		func->header.flags = flags | (is_variadic * PQ_VARIADIC);
 		func->args = args;

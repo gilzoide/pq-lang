@@ -53,32 +53,34 @@ static inline Word_t *_pq_overload_variadic_function_pointer(pq_overload *overlo
 	return pvalue;
 }
 pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_value *func) {
-	if(func != NULL && pq_is_function(func)) {
-		Word_t *pvalue;
+	if(func != NULL && !pq_is_function(func)) {
+		return PQ_API_ERROR(ctx, "Cannot add non-function to overload");
+	}
+	else {
 		pq_function_metadata *metadata = pq_value_get_data(func);
+		if(!pq_function_may_be_overloaded(metadata)) return PQ_API_ERROR(ctx, "Overloaded functions must evaluate arguments");
+		Word_t *pvalue;
 		pq_type *signature = metadata->signature;
 		pq_type *argument_types_tuple = signature == NULL
 		                                ? NULL
 		                                : pq_get_tuple_type(ctx, pq_type_get_num_arguments(signature), pq_type_get_argument_types(signature));
-		if(signature != NULL && metadata->flags & PQ_VARIADIC) {
+		if(metadata->flags & PQ_VARIADIC) {
 			pvalue = _pq_overload_variadic_function_pointer(overload, metadata, argument_types_tuple);
 		}
 		else {
 			pvalue = _pq_overload_non_variadic_function_pointer(overload, argument_types_tuple);
 		}
+
 		if(pvalue == PJERR) {
-			func = pq_value_error(ctx, "Memory error in Judy insert");
+			func = PQ_API_ERROR(ctx, "Memory error in Judy insert");
 		}
 		else if(*pvalue != (Word_t)NULL) {
-			func = pq_value_error(ctx, "Duplicate signature argument types for overload");
+			func = PQ_API_ERROR(ctx, "Duplicate signature argument types for overload");
 		}
 		else {
 			*pvalue = (Word_t)func;
 		}
 		return func;
-	}
-	else {
-		return pq_value_error(ctx, "Cannot add non-function to overload");
 	}
 }
 
@@ -97,6 +99,10 @@ static inline pq_value *_pq_overload_for_types_variadic(pq_context *ctx, pq_over
 		by_type_table = (Pvoid_t)*pvalue;
 		argument_types_tuple = pq_get_tuple_type(ctx, n, types);
 		JLG(pvalue, by_type_table, (Word_t)argument_types_tuple);
+		if(pvalue != NULL) {
+			return (pq_value *)*pvalue;
+		}
+		JLG(pvalue, by_type_table, (Word_t)NULL);
 		if(pvalue != NULL) {
 			return (pq_value *)*pvalue;
 		}
@@ -122,5 +128,16 @@ pq_value *pq_overload_for_types(pq_context *ctx, pq_overload *overload, size_t n
 		}
 	}
 	return val;
+}
+
+int pq_function_may_be_overloaded(pq_function_metadata *func_md) {
+	return (func_md->flags & PQ_EVAL_ARGS) != 0;
+}
+
+int pq_overload_number_of_functions(pq_overload *overload) {
+	Word_t num_non_variadic, num_variadic;
+	JLC(num_non_variadic, overload->function_table, 0, -1);
+	JLC(num_variadic, overload->variadic_function_table, 0, -1);
+	return num_non_variadic + num_variadic;
 }
 

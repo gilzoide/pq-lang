@@ -65,12 +65,12 @@ pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compi
 pq_value *pq_return(pq_context *ctx, pq_value *ret) {
 	pq_scope *top = pq_scope_queue_pop(&ctx->scopes);
 	if(top == NULL) {
-		return pq_value_error(ctx, "cannot pop scope from empty queue");
+		return PQ_API_ERROR(ctx, "cannot pop scope from empty queue");
 	}
 	else if(ret && ret->parent_scope >= ctx->scopes.scopes.size) {
 		ret->parent_scope--;
 		if(!pq_scope_mark_value_for_destruction(top - 1, ret)) {
-			return pq_value_error(ctx, "memory error on scope destruction");
+			return PQ_API_ERROR(ctx, "memory error on scope destruction");
 		}
 	}
 	pq_scope_destroy(ctx, top);

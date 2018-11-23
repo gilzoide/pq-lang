@@ -27,6 +27,10 @@
 
 #include <stdlib.h>
 
+/// Default internal API error generator
+#define PQ_API_ERROR(ctx, fmt, ...) \
+	pq_value_ferror(ctx, "[%s] " fmt, __func__, ##__VA_ARGS__)
+
 /**
  * Dynamic list with constant growth rate.
  */
@@ -48,7 +52,7 @@ void *pq_vector_push(pq_vector *vec, size_t member_size);
 void *pq_vector_pop(pq_vector *vec, size_t member_size);
 #define pq_vector_pop_as(vec, type) \
 	((type *) pq_vector_pop(vec, sizeof(type)))
-void *pq_vector_peek(pq_vector *vec, size_t member_size);
+void *pq_vector_peek(const pq_vector *vec, size_t member_size);
 #define pq_vector_peek_as(vec, type) \
 	((type *) pq_vector_peek(vec, sizeof(type)))
 #define pq_vector_at(vec, i, type) \

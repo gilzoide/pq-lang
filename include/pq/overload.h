@@ -31,6 +31,7 @@
 typedef struct pq_context pq_context;
 typedef struct pq_type pq_type;
 typedef struct pq_value pq_value;
+typedef struct pq_function_metadata pq_function_metadata;
 
 typedef struct pq_overload {
 	Pvoid_t function_table;
@@ -60,6 +61,18 @@ pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_va
  * @return `nil` if no overloaded function is found.
  */
 pq_value *pq_overload_for_types(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types);
+
+/**
+ * Chack whether a function may be overloaded.
+ *
+ * For now, only functions that evaluate arguments may be overloaded.
+ */
+int pq_function_may_be_overloaded(pq_function_metadata *func_md);
+
+/**
+ * Number of functions currently added to an Overload.
+ */
+int pq_overload_number_of_functions(pq_overload *overload);
 
 #endif
 

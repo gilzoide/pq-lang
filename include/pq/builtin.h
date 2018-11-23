@@ -25,12 +25,9 @@
 #ifndef __PQ_BUILTIN_H__
 #define __PQ_BUILTIN_H__
 
-#include "function.h"
-#include "type.h"
-#include "value.h"
-
 // Forward declarations
 typedef struct pq_context pq_context;
+typedef struct pq_value pq_value;
 
 /**
  * Builtin stuff: just register'em all.

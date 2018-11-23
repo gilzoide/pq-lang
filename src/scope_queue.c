@@ -66,10 +66,18 @@ pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym) {
 }
 
 pq_value *pq_scope_queue_get_from_top(const pq_scope_queue *q, pq_symbol sym) {
-	return pq_scope_get(pq_vector_at(&q->scopes, q->scopes.size - 1, pq_scope), sym);
+	return pq_scope_get(pq_vector_peek_as(&q->scopes, pq_scope), sym);
+}
+
+pq_value *pq_scope_queue_get_from_bottom(const pq_scope_queue *q, pq_symbol sym) {
+	return pq_scope_get(pq_vector_at(&q->scopes, 0, pq_scope), sym);
 }
 
 void pq_scope_queue_set(pq_scope_queue *q, pq_symbol sym, pq_value *val) {
 	pq_scope_set(pq_vector_peek_as(&q->scopes, pq_scope), sym, val);
+}
+
+void pq_scope_queue_set_global(pq_scope_queue *q, pq_symbol sym, pq_value *val) {
+	pq_scope_set(pq_vector_at(&q->scopes, 0, pq_scope), sym, val);
 }
 

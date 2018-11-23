@@ -31,6 +31,7 @@ typedef struct pq_type pq_type;
 typedef struct pq_value pq_value;
 
 #include "list.h"
+#include "symbol.h"
 
 #include <jit/jit-function.h>
 
@@ -51,6 +52,7 @@ enum pq_function_flags {
  */
 typedef struct pq_function_metadata {
 	pq_type *signature;  ///< Function signature, may be NULL.
+	pq_symbol symbol;    ///< Optional symbol to which function was registered as.
 	uint8_t argnum;      ///< Number of arguments expected.
 	uint8_t flags;       ///< Flags from enum pq_function_flags.
 } pq_function_metadata;

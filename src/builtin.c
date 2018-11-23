@@ -153,8 +153,11 @@ static pq_value *_while(pq_context *ctx, jit_function_t jit_function, int argc, 
 	}
 	else {
 		pq_value *res = pq_value_nil(ctx);
+		int i;
 		while(pq_value_as_bool(pq_eval(ctx, argv[0])) && res->type->kind != PQ_ERROR) {
-			res = pq_eval(ctx, argv[1]);
+			for(i = 1; i < argc; i++) {
+				res = pq_eval(ctx, argv[i]);
+			}
 		}
 		return res;
 	}

@@ -58,7 +58,7 @@ void *pq_vector_pop(pq_vector *vec, size_t member_size) {
 	}
 }
 
-void *pq_vector_peek(pq_vector *vec, size_t member_size) {
+void *pq_vector_peek(const pq_vector *vec, size_t member_size) {
 	return vec->size > 0 ? vec->arr + (member_size * (vec->size - 1)) : NULL;
 }
 

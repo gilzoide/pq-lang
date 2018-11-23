@@ -60,16 +60,16 @@ pq_symbol pq_symbol_manager_symbol_from_lstring(pq_symbol_manager *symbol_manage
 	Word_t *pvalue;
 	JHSI(pvalue, symbol_manager->table, (unsigned char *)str, n);
 	if(pvalue == PJERR) {
-		return 0;
+		return PQ_SYMBOL_NIL;
 	}
 	else if(*pvalue == 0) {
 		if(symbol_manager->symbol_count + 1 >= symbol_manager->strings_table_capacity) {
 			if(!pq_double_table_capacity(symbol_manager)) {
-				return 0;
+				return PQ_SYMBOL_NIL;
 			}
 		}
 		if((symbol_manager->strings_table[symbol_manager->symbol_count] = strndup(str, n)) == NULL) {
-			return 0;
+			return PQ_SYMBOL_NIL;
 		}
 		*pvalue = ++symbol_manager->symbol_count;
 	}
@@ -77,7 +77,7 @@ pq_symbol pq_symbol_manager_symbol_from_lstring(pq_symbol_manager *symbol_manage
 }
 
 const char *pq_symbol_manager_string_from_symbol(pq_symbol_manager *symbol_manager, pq_symbol symbol) {
-	return symbol > 0 && symbol <= symbol_manager->symbol_count
+	return symbol > PQ_SYMBOL_NIL && symbol <= symbol_manager->symbol_count
 			? symbol_manager->strings_table[symbol - 1]
 			: NULL;
 }

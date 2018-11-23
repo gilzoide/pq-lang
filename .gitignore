@@ -10,8 +10,8 @@
 .ycm*
 
 # doxygen output
-html/
+html
 
 # builds
-build/
+build
 *.o

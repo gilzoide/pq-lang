@@ -68,6 +68,13 @@ static inline pq_value *_pq_find_overloaded_function_for_call(pq_context *ctx, p
 	return pq_overload_for_types(ctx, overload, argc, arg_types);
 }
 
+static inline pq_value *_pq_eval_arguments(pq_context *ctx, int argc, pq_value **argv, pq_value **evaluated) {
+	int i;
+	for(i = 0; i < argc; i++) {
+		if(pq_is_error(evaluated[i] = pq_eval(ctx, argv[i]))) return evaluated[i];
+	}
+	return NULL;
+}
 pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 	if(!func) {
 		return pq_value_error(ctx, "Can't call a null value");
@@ -76,10 +83,14 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 		return pq_value_ferror(ctx, "Can't call a value of type \"%s\"", func->type->name);
 	}
 	else {
-		if(pq_is_overload(func)) {
+		pq_value *evaluated[argc], *evaluation_error;
+		int is_overload = pq_is_overload(func);
+		if(is_overload) {
+			if((evaluation_error = _pq_eval_arguments(ctx, argc, argv, evaluated)) != NULL) return evaluation_error;
+			argv = evaluated;
 			pq_value *function_for_call = _pq_find_overloaded_function_for_call(ctx, (pq_overload *)pq_value_get_data(func), argc, argv);
 			if(pq_is_nil(function_for_call)) {
-				return pq_value_error(ctx, "No overload found");
+				return PQ_API_ERROR(ctx, "No overload found");
 			}
 			func = function_for_call;
 		}
@@ -91,12 +102,8 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 					is_variadic ? "at least " : "", func_md->argnum, argc);
 		}
 
-		pq_value *evaluated[argc];
-		if(func_md->flags & PQ_EVAL_ARGS) {
-			int i;
-			for(i = 0; i < argc; i++) {
-				if(pq_is_error(evaluated[i] = pq_eval(ctx, argv[i]))) return evaluated[i];
-			}
+		if(!is_overload && func_md->flags & PQ_EVAL_ARGS) {
+			if((evaluation_error = _pq_eval_arguments(ctx, argc, argv, evaluated)) != NULL) return evaluation_error;
 			argv = evaluated;
 		}
 		if(func_md->flags & PQ_PUSH_SCOPE) pq_push_scope(ctx);

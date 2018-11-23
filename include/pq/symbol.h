@@ -23,7 +23,10 @@
 
 #include <Judy.h>
 
+/// A symbol is just an int representing an interned string
 typedef Word_t pq_symbol;
+
+#define PQ_SYMBOL_NIL (0)
 
 /**
  * Manages the creation and interning of Symbols.

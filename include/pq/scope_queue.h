@@ -80,9 +80,17 @@ pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym);
  */
 pq_value *pq_scope_queue_get_from_top(const pq_scope_queue *q, pq_symbol sym);
 /**
+ * Get a Value from the root Scope.
+ */
+pq_value *pq_scope_queue_get_from_bottom(const pq_scope_queue *q, pq_symbol sym);
+/**
  * Set a Value in the local (topmost) Scope.
  */
-void pq_scope_queue_set(pq_scope_queue *q, pq_symbol key, pq_value *val);
+void pq_scope_queue_set(pq_scope_queue *q, pq_symbol sym, pq_value *val);
+/**
+ * Set a Value in the root (bottommost) Scope.
+ */
+void pq_scope_queue_set_global(pq_scope_queue *q, pq_symbol sym, pq_value *val);
 
 #endif
 

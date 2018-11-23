@@ -38,7 +38,7 @@
  */
 #define pq_assert_type(ctx, val, _type) \
 	if(!pq_is_ ## _type (val)) \
-		return pq_value_ferror(ctx, "Expected " #_type ", found %s", val->type->name)
+		return pq_value_ferror(ctx, "Type error: expected " #_type ", found %s", val->type->name)
 
 /**
  * Assert that the argument `i` of `argv` is of some type, using the
@@ -46,7 +46,7 @@
  */
 #define pq_assert_arg_type(ctx, argv, i, _type) \
 	if(!pq_is_ ## _type (argv[i])) \
-		return pq_value_ferror(ctx, "Invalid argument %d: expected " #_type ", found %s", \
+		return pq_value_ferror(ctx, "Invalid argument %d type: expected " #_type ", found %s", \
 				i, argv[i]->type->name)
 
 #endif

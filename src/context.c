@@ -45,8 +45,7 @@ void pq_context_destroy(pq_context *ctx) {
 }
 
 pq_value *pq_context_get(pq_context *ctx, const char *key) {
-	pq_symbol symbol = pq_symbol_from_string(ctx, key);
-	return pq_context_get_symbol(ctx, symbol);
+	return pq_context_get_symbol(ctx, pq_symbol_from_string(ctx, key));
 }
 
 pq_value *pq_context_get_symbol(pq_context *ctx, pq_symbol symbol) {
@@ -56,12 +55,15 @@ pq_value *pq_context_get_symbol(pq_context *ctx, pq_symbol symbol) {
 }
 
 void pq_context_set(pq_context *ctx, const char *key, pq_value *val) {
-	pq_symbol symbol = pq_symbol_from_string(ctx, key);
-	return pq_context_set_symbol(ctx, symbol, val);
+	return pq_context_set_symbol(ctx, pq_symbol_from_string(ctx, key), val);
 }
 
 void pq_context_set_symbol(pq_context *ctx, pq_symbol symbol, pq_value *val) {
 	pq_scope_queue_set(&ctx->scopes, symbol, val);
+}
+
+void pq_context_set_global_symbol(pq_context *ctx, pq_symbol sym, pq_value *val) {
+	pq_scope_queue_set_global(&ctx->scopes, sym, val);
 }
 
 pq_value *pq_context_set_function(pq_context *ctx, const char *key, pq_value *val) {
@@ -73,12 +75,40 @@ pq_value *pq_context_set_function_symbol(pq_context *ctx, pq_symbol sym, pq_valu
 	if(!pq_is_function(val)) {
 		return pq_value_error(ctx, "Value must be a function");
 	}
-	pq_value *overload = pq_scope_queue_get_from_top(&ctx->scopes, sym);
-	if(overload == NULL || !pq_is_overload(overload)) {
-		overload = pq_value_from_overload(ctx, pq_empty_overload(ctx));
-		pq_context_set_symbol(ctx, sym, overload);
+	pq_function_metadata *func_md = pq_value_get_data(val);
+	if(func_md->symbol != PQ_SYMBOL_NIL) {
+		return pq_value_ferror(ctx, "Trying to register function already registered as '%s'", pq_string_from_symbol(ctx, func_md->symbol));
 	}
-	return pq_overload_add_function(ctx, (pq_overload *)pq_value_get_data(overload), val);
+	func_md->symbol = sym;
+	int function_may_be_overloaded = pq_function_may_be_overloaded(func_md);
+	pq_value *previous_value = pq_scope_queue_get_from_bottom(&ctx->scopes, sym);
+	if(previous_value == NULL) {
+		pq_context_set_global_symbol(ctx, sym, val);
+		return val;
+	}
+	else if(pq_is_overload(previous_value)) {
+		return pq_overload_add_function(ctx, (pq_overload *)pq_value_get_data(previous_value), val);
+	}
+	else if(pq_is_function(previous_value)) { 
+		if(pq_function_may_be_overloaded(pq_value_get_data(previous_value))) {
+			pq_value *overload = pq_value_from_overload(ctx, pq_empty_overload(ctx));
+			pq_context_set_global_symbol(ctx, sym, overload);
+			return pq_overload_add_function(ctx, (pq_overload *)pq_value_get_data(overload), val);
+		}
+		else {
+			pq_context_unset_function_symbol(ctx, sym);
+		}
+	}
+	pq_context_set_global_symbol(ctx, sym, val);
+	return val;
+}
+
+pq_value *pq_context_unset_function(pq_context *ctx, const char *key) {
+	return pq_context_unset_function_symbol(ctx, pq_symbol_from_string(ctx, key));
+}
+
+pq_value *pq_context_unset_function_symbol(pq_context *ctx, pq_symbol sym) {
+	return pq_value_nil(ctx); //TODO
 }
 
 pq_symbol pq_symbol_from_string(pq_context *ctx, const char *str) {
