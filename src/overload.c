@@ -141,3 +141,55 @@ int pq_overload_number_of_functions(pq_overload *overload) {
 	return num_non_variadic + num_variadic;
 }
 
+pq_overload_iterator pq_overload_new_iterator(const pq_overload *overload) {
+	return (pq_overload_iterator) {
+		.signature_index = -1,
+		.argnum_index = -1,
+	};
+}
+
+static Pvoid_t _pq_overload_next_lookup_table(const pq_overload *overload, pq_overload_iterator *it) {
+	Word_t *pvalue;
+	if(it->argnum_index == -1) {
+		it->argnum_index = 0;
+		JLF(pvalue, overload->variadic_function_table, it->argnum_index);
+	}
+	else {
+		JLN(pvalue, overload->variadic_function_table, it->argnum_index);
+	}
+	it->signature_index = -1;
+	return pvalue ? (Pvoid_t)*pvalue : NULL;
+}
+static Pvoid_t _pq_overload_current_lookup_table(const pq_overload *overload, const pq_overload_iterator *it) {
+	if(it->argnum_index == -1) {
+		return overload->function_table;
+	}
+	else {
+		Word_t *pvalue;
+		JLG(pvalue, overload->variadic_function_table, it->argnum_index);
+		return pvalue ? (Pvoid_t)*pvalue : NULL;
+	}
+}
+pq_value *pq_overload_next_function(const pq_overload *overload, pq_overload_iterator *it) {
+	Word_t *pvalue;
+	Pvoid_t table;
+	table = _pq_overload_current_lookup_table(overload, it);
+	do {
+		if(it->signature_index == -1) {
+			it->signature_index = 0;
+			JLF(pvalue, table, it->signature_index);
+		}
+		else {
+			JLN(pvalue, table, it->signature_index);
+		}
+		if(pvalue) {
+			return (pq_value*)*pvalue;
+		}
+		else {
+			table = _pq_overload_next_lookup_table(overload, it);
+		}
+	} while(table);
+
+	return NULL;
+}
+

@@ -80,7 +80,6 @@ pq_value *pq_context_set_function_symbol(pq_context *ctx, pq_symbol sym, pq_valu
 		return pq_value_ferror(ctx, "Trying to register function already registered as '%s'", pq_string_from_symbol(ctx, func_md->symbol));
 	}
 	func_md->symbol = sym;
-	int function_may_be_overloaded = pq_function_may_be_overloaded(func_md);
 	pq_value *previous_value = pq_scope_stack_get_root(&ctx->scopes, sym);
 	if(previous_value == NULL) {
 		pq_context_set_global_symbol(ctx, sym, val);
@@ -91,9 +90,12 @@ pq_value *pq_context_set_function_symbol(pq_context *ctx, pq_symbol sym, pq_valu
 	}
 	else if(pq_is_function(previous_value)) { 
 		if(pq_function_may_be_overloaded(pq_value_get_data(previous_value))) {
-			pq_value *overload = pq_value_from_overload(ctx, pq_empty_overload(ctx));
-			pq_context_set_global_symbol(ctx, sym, overload);
-			return pq_overload_add_function(ctx, (pq_overload *)pq_value_get_data(overload), val);
+			pq_value *overload_value = pq_value_from_overload(ctx, pq_empty_overload(ctx));
+			pq_overload *overload = pq_value_get_data(overload_value);
+			overload->symbol = sym;
+			pq_overload_add_function(ctx, overload, previous_value);
+			pq_context_set_global_symbol(ctx, sym, overload_value);
+			return pq_overload_add_function(ctx, overload, val);
 		}
 		else {
 			pq_context_unset_function_symbol(ctx, sym);

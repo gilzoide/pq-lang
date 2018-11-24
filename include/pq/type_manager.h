@@ -131,6 +131,8 @@ enum pq_builtin_type {
 	PQ_BUILTIN_TYPE_MAX,
 };
 
+extern const char * const pq_builtin_type_names[];
+
 /**
  * Get a builtin type.
  */

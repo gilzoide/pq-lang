@@ -24,6 +24,40 @@
 
 #include <assert.h>
 
+const char * const pq_builtin_type_names[PQ_BUILTIN_TYPE_MAX] = {
+	"type",
+	"error",
+	"list",
+	"scope",
+	"nil-t",
+	"symbol",
+	"bool",
+	"i8",
+	"i16",
+	"i32",
+	"i64",
+	"u8",
+	"u16",
+	"u32",
+	"u64",
+	"sys-char",
+	"sys-short",
+	"sys-int",
+	"sys-long",
+	"sys-uchar",
+	"sys-ushort",
+	"sys-uint",
+	"sys-ulong",
+	"float",
+	"double",
+	"string",
+	"pointer",
+	"function",
+	"c-function",
+	"native-function",
+	"overload",
+};
+
 int pq_type_manager_initialize(pq_type_manager *type_manager) {
 	type_manager->tuple_table = NULL;
 	type_manager->signature_table = NULL;

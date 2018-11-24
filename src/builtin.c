@@ -68,56 +68,56 @@ int pq_register_builtin_types(pq_context *ctx) {
 	if(type = pq_register_type(ctx, "type", PQ_TYPE, NULL, NULL)) {
 		ctx->type_manager._type = type;
 		if(type_val = pq_value_from_type(ctx, type)) {
-			pq_context_set(ctx, "type", type_val);
+			pq_context_set(ctx, pq_builtin_type_names[PQ_TYPE_TYPE], type_val);
 		}
 		else return 0;
 	}
 	else return 0;
 
-#define register_type(builtin_var, name, kind, jit_type, val_dtor) \
-	if((type = pq_register_type(ctx, name, kind, jit_type, val_dtor)) && (type_val = pq_value_from_type(ctx, type))) { \
+#define register_type(builtin_var, builtin_type_index, kind, jit_type, val_dtor) \
+	if((type = pq_register_type(ctx, pq_builtin_type_names[builtin_type_index], kind, jit_type, val_dtor)) && (type_val = pq_value_from_type(ctx, type))) { \
 		ctx->type_manager. builtin_var = type; \
-		pq_context_set(ctx, name, type_val); \
+		pq_context_set(ctx, pq_builtin_type_names[builtin_type_index], type_val); \
 	} \
 	else return 0
 
-	register_type(_error,  "error-t",  PQ_ERROR,  NULL,                &_free_data);
-	register_type(_list,   "list-t",   PQ_LIST,   NULL, (pq_destructor)&pq_release_list);
-	register_type(_scope,  "scope-t",  PQ_SCOPE,  NULL, (pq_destructor)&pq_scope_destroy);
-	register_type(_nil,    "nil-t",    PQ_NIL,    jit_type_void,        NULL);
-	register_type(_symbol, "symbol-t", PQ_SYMBOL, jit_type_void_ptr,    NULL);
+	register_type(_error,  PQ_TYPE_ERROR,  PQ_ERROR,  NULL,                &_free_data);
+	register_type(_list,   PQ_TYPE_LIST,   PQ_LIST,   NULL, (pq_destructor)&pq_release_list);
+	register_type(_scope,  PQ_TYPE_SCOPE,  PQ_SCOPE,  NULL, (pq_destructor)&pq_scope_destroy);
+	register_type(_nil,    PQ_TYPE_NIL,    PQ_NIL,    jit_type_void,        NULL);
+	register_type(_symbol, PQ_TYPE_SYMBOL, PQ_SYMBOL, jit_type_void_ptr,    NULL);
 
-	register_type(_bool, "bool", PQ_BOOL, jit_type_sys_bool, NULL);
+	register_type(_bool, PQ_TYPE_BOOL, PQ_BOOL, jit_type_sys_bool, NULL);
 
-	register_type(_i8,   "i8",   PQ_INT, jit_type_sbyte,  NULL);
-	register_type(_i16,  "i16",  PQ_INT, jit_type_short,  NULL);
-	register_type(_i32,  "i32",  PQ_INT, jit_type_int,    NULL);
-	register_type(_i64,  "i64",  PQ_INT, jit_type_long,   NULL);
-	register_type(_u8,   "u8",   PQ_INT, jit_type_ubyte,  NULL);
-	register_type(_u16,  "u16",  PQ_INT, jit_type_ushort, NULL);
-	register_type(_u32,  "u32",  PQ_INT, jit_type_uint,   NULL);
-	register_type(_u64,  "u64",  PQ_INT, jit_type_ulong,  NULL);
+	register_type(_i8,  PQ_TYPE_I8,  PQ_INT, jit_type_sbyte,  NULL);
+	register_type(_i16, PQ_TYPE_I16, PQ_INT, jit_type_short,  NULL);
+	register_type(_i32, PQ_TYPE_I32, PQ_INT, jit_type_int,    NULL);
+	register_type(_i64, PQ_TYPE_I64, PQ_INT, jit_type_long,   NULL);
+	register_type(_u8,  PQ_TYPE_U8,  PQ_INT, jit_type_ubyte,  NULL);
+	register_type(_u16, PQ_TYPE_U16, PQ_INT, jit_type_ushort, NULL);
+	register_type(_u32, PQ_TYPE_U32, PQ_INT, jit_type_uint,   NULL);
+	register_type(_u64, PQ_TYPE_U64, PQ_INT, jit_type_ulong,  NULL);
 
-	register_type(_sys_char,   "sys-char",   PQ_INT, jit_type_sys_schar,  NULL);
-	register_type(_sys_short,  "sys-short",  PQ_INT, jit_type_sys_short,  NULL);
-	register_type(_sys_int,    "sys-int",    PQ_INT, jit_type_sys_int,    NULL);
-	register_type(_sys_long,   "sys-long",   PQ_INT, jit_type_sys_long,   NULL);
-	register_type(_sys_uchar,  "sys-uchar",  PQ_INT, jit_type_sys_uchar,  NULL);
-	register_type(_sys_ushort, "sys-ushort", PQ_INT, jit_type_sys_ushort, NULL);
-	register_type(_sys_uint,   "sys-uint",   PQ_INT, jit_type_sys_uint,   NULL);
-	register_type(_sys_ulong,  "sys-ulong",  PQ_INT, jit_type_sys_ulong,  NULL);
+	register_type(_sys_char,   PQ_TYPE_SYS_CHAR,           PQ_INT, jit_type_sys_schar,  NULL);
+	register_type(_sys_short,  PQ_TYPE_SYS_SHORT,          PQ_INT, jit_type_sys_short,  NULL);
+	register_type(_sys_int,    PQ_TYPE_SYS_INT,            PQ_INT, jit_type_sys_int,    NULL);
+	register_type(_sys_long,   PQ_TYPE_SYS_LONG,           PQ_INT, jit_type_sys_long,   NULL);
+	register_type(_sys_uchar,  PQ_TYPE_SYS_UNSIGNED_CHAR,  PQ_INT, jit_type_sys_uchar,  NULL);
+	register_type(_sys_ushort, PQ_TYPE_SYS_UNSIGNED_SHORT, PQ_INT, jit_type_sys_ushort, NULL);
+	register_type(_sys_uint,   PQ_TYPE_SYS_UNSIGNED_INT,   PQ_INT, jit_type_sys_uint,   NULL);
+	register_type(_sys_ulong,  PQ_TYPE_SYS_UNSIGNED_LONG,  PQ_INT, jit_type_sys_ulong,  NULL);
 
-	register_type(_float,  "float",  PQ_FLOAT, jit_type_sys_float,  NULL);
-	register_type(_double, "double", PQ_FLOAT, jit_type_sys_double, NULL);
+	register_type(_float,  PQ_TYPE_FLOAT,  PQ_FLOAT, jit_type_sys_float,  NULL);
+	register_type(_double, PQ_TYPE_DOUBLE, PQ_FLOAT, jit_type_sys_double, NULL);
 
-	register_type(_string, "string", PQ_STRING, NULL, &_free_data);
+	register_type(_string, PQ_TYPE_STRING, PQ_STRING, NULL, &_free_data);
 
-	register_type(_pointer, "pointer", PQ_POINTER, jit_type_void_ptr, NULL);
+	register_type(_pointer, PQ_TYPE_POINTER, PQ_POINTER, jit_type_void_ptr, NULL);
 
-	register_type(_function,        "function",        PQ_FUNCTION,        NULL, NULL);
-	register_type(_c_function,      "c-function",      PQ_C_FUNCTION,      NULL, NULL);
-	register_type(_native_function, "native-function", PQ_NATIVE_FUNCTION, NULL, NULL);
-	register_type(_overload,        "overload",        PQ_OVERLOAD,        NULL, (pq_destructor)&pq_overload_destroy);
+	register_type(_function,        PQ_TYPE_FUNCTION,        PQ_FUNCTION,        NULL, NULL);
+	register_type(_c_function,      PQ_TYPE_C_FUNCTION,      PQ_C_FUNCTION,      NULL, NULL);
+	register_type(_native_function, PQ_TYPE_NATIVE_FUNCTION, PQ_NATIVE_FUNCTION, NULL, NULL);
+	register_type(_overload,        PQ_TYPE_OVERLOAD,        PQ_OVERLOAD,        NULL, (pq_destructor)&pq_overload_destroy);
 #undef register_type
 	return 1;
 }
@@ -209,17 +209,20 @@ static pq_value *_macro(pq_context *ctx, int argc, pq_value **argv) {
 }
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "core/core.h"
+#include "cstd/ctype.c"
+
 int pq_register_builtin_functions(pq_context *ctx) {
-	pq_register_compiler_macro(ctx, "if", &_if, 3, PQ_COMPILER_MACRO);
-	pq_register_compiler_macro(ctx, "while", &_while, 2, PQ_COMPILER_MACRO);
-	pq_register_c_function(ctx, "let", &_let, 2, 0);
-	pq_register_c_function(ctx, "quote", &_quote, 1, 0);
-	pq_register_c_function(ctx, "eval", &_eval, 1, 0);
-	pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS);
-	pq_register_c_function(ctx, "quit", &_quit, 0, 0);
-	pq_register_c_function(ctx, "type-of", &_type_of, 1, PQ_EVAL_ARGS);
-	pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC);
-	pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC);
-	return 1;
+	return pq_register_compiler_macro(ctx, "if", &_if, 3, PQ_COMPILER_MACRO)
+	    && pq_register_compiler_macro(ctx, "while", &_while, 2, PQ_VARIADIC | PQ_COMPILER_MACRO)
+	    && pq_register_c_function(ctx, "let", &_let, 2, 0)
+	    && pq_register_c_function(ctx, "quote", &_quote, 1, 0)
+	    && pq_register_c_function(ctx, "eval", &_eval, 1, 0)
+	    && pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS)
+	    && pq_register_c_function(ctx, "quit", &_quit, 0, 0)
+	    && pq_register_c_function(ctx, "typeof", &_type_of, 1, PQ_EVAL_ARGS)
+	    && pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC)
+	    && pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC)
+	    && pq_register_core_int(ctx);
 }
 

@@ -21,6 +21,7 @@
 #include <pq/type.h>
 #include <pq/context.h>
 #include <pq/value.h>
+#include <pq/utils.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -30,7 +31,7 @@
 
 pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
                          jit_type_t jit_type, pq_destructor value_destructor) {
-	assert(kind >= PQ_INT && kind < PQ_TYPE_KIND_END && "Invalid type kind enum value");
+	PQ_ASSERT(kind >= PQ_INT && kind < PQ_TYPE_KIND_END, "Invalid type kind enum value");
 	pq_type *new_type;
 	if(new_type = malloc(sizeof(pq_type))) {
 		new_type->name = name ? strdup(name) : NULL;
@@ -43,7 +44,7 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
 
 pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
                                   pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes) {
-	assert(kind >= PQ_TYPE_FIRST_AGGREGATE && kind <= PQ_TYPE_LAST_AGGREGATE && "Invalid type kind enum value for aggregate type");
+	PQ_ASSERT(kind >= PQ_TYPE_FIRST_AGGREGATE && kind <= PQ_TYPE_LAST_AGGREGATE, "Invalid type kind enum value for aggregate type");
 	pq_aggregate_type *new_aggregate_type;
 	if(new_aggregate_type = malloc(sizeof(pq_aggregate_type) + (num_subtypes * sizeof(pq_type *)))) {
 		pq_type *new_type = &new_aggregate_type->type;
@@ -89,6 +90,12 @@ pq_type **pq_type_get_argument_types(pq_type *signature) {
 	return signature->kind == PQ_SIGNATURE
 	       ? ((pq_aggregate_type *) signature)->subtypes
 	       : NULL;
+}
+
+int pq_type_get_is_variadic(pq_type *signature) {
+	return signature->kind == PQ_SIGNATURE
+	       ? jit_type_get_abi(jit_type_remove_tags(signature->jit_type)) == jit_abi_vararg
+	       : -1;
 }
 
 

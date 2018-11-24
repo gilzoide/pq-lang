@@ -26,6 +26,7 @@
 #include "overload.h"
 #include "symbol.h"
 #include "type.h"
+#include "type_manager.h"
 
 #include <stdlib.h>
 #include <stdio.h>

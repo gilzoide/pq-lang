@@ -35,12 +35,12 @@ enum pq_parser_error {
 	PQ_PARSER_MAX,
 };
 const char *pq_parser_error_messages[] = {
-	"Expected closing )",
-	"Expected closing \"",
+	"Expected closing ')'",
+	"Expected closing '\"'",
 
 	"Unknown error",
 };
-const char *pq_parser_last_error;
+
 static void on_error(const char *str, size_t pos, int code, void *data) {
 	pq_context *ctx = data;
 	pq_parser *parser = &ctx->parser;

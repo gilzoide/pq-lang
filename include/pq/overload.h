@@ -28,14 +28,20 @@
 
 #include <Judy.h>
 
+#include "symbol.h"
+
 typedef struct pq_context pq_context;
 typedef struct pq_type pq_type;
 typedef struct pq_value pq_value;
 typedef struct pq_function_metadata pq_function_metadata;
 
+/**
+ * Aggregation of functions with the same identifier and different signatures.
+ */
 typedef struct pq_overload {
-	Pvoid_t function_table;
-	Pvoid_t variadic_function_table;
+	Pvoid_t function_table;  ///< Type -> Function table for non-variadic functions.
+	Pvoid_t variadic_function_table;  ///< Type -> Function table for variadic functions.
+	pq_symbol symbol;  ///< Optional symbol to which Overload was registered as.
 } pq_overload;
 
 /**
@@ -73,6 +79,29 @@ int pq_function_may_be_overloaded(pq_function_metadata *func_md);
  * Number of functions currently added to an Overload.
  */
 int pq_overload_number_of_functions(pq_overload *overload);
+
+
+////////////////////////////////////////////////////////////////////////////////
+////  Available functions iterator
+////////////////////////////////////////////////////////////////////////////////
+/**
+ * Iterator for Overload functions.
+ */
+typedef struct pq_overload_iterator {
+	Word_t signature_index;
+	Word_t argnum_index;
+} pq_overload_iterator;
+
+/**
+ * Start a new iterator over an Overload's registered Functions.
+ */
+pq_overload_iterator pq_overload_new_iterator(const pq_overload *overload);
+/**
+ * Iterate to the next Function registered in an Overload.
+ *
+ * @return Next function in Iterator, NULL if iteration ended.
+ */
+pq_value *pq_overload_next_function(const pq_overload *overload, pq_overload_iterator *it);
 
 #endif
 

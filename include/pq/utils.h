@@ -25,11 +25,16 @@
 #ifndef __PQ_UTILS_H__
 #define __PQ_UTILS_H__
 
+#include <assert.h>
 #include <stdlib.h>
 
 /// Default internal API error generator
 #define PQ_API_ERROR(ctx, fmt, ...) \
 	pq_value_ferror(ctx, "[%s] " fmt, __func__, ##__VA_ARGS__)
+
+/// API assert wrapper
+#define PQ_ASSERT(cond, msg) \
+	assert((cond) && (msg))
 
 /**
  * Dynamic list with constant growth rate.

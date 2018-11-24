@@ -153,6 +153,12 @@ int pq_type_get_num_arguments(pq_type *signature);
  * Returns NULL if type is not a Signature.
  */
 pq_type **pq_type_get_argument_types(pq_type *signature);
+/**
+ * Get if a Signature Type is variadic.
+ *
+ * Returns -1 if not a Signature.
+ */
+int pq_type_get_is_variadic(pq_type *signature);
 
 /**
  * Get the number of fields in a Tuple or Struct type.
