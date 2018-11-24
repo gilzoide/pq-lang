@@ -29,7 +29,7 @@ int pq_context_initialize(pq_context *ctx) {
 	       && pq_memory_manager_initialize(&ctx->memory_manager)
 	       && pq_type_manager_initialize(&ctx->type_manager)
 	       && pq_parser_initialize(&ctx->parser)
-	       && pq_scope_queue_initialize(&ctx->scopes, 0)
+	       && pq_scope_stack_initialize(&ctx->scopes, 0)
 	       && pq_scope_initialize(&ctx->env)
 	       && pq_register_builtin(ctx);
 }
@@ -37,7 +37,7 @@ int pq_context_initialize(pq_context *ctx) {
 void pq_context_destroy(pq_context *ctx) {
 	jit_context_destroy(ctx->jit);
 	pq_parser_destroy(&ctx->parser);
-	pq_scope_queue_destroy(ctx, &ctx->scopes);
+	pq_scope_stack_destroy(ctx, &ctx->scopes);
 	pq_scope_destroy(ctx, &ctx->env);
 	pq_memory_manager_destroy(ctx, &ctx->memory_manager);
 	pq_symbol_manager_destroy(&ctx->symbol_manager);
@@ -49,7 +49,7 @@ pq_value *pq_context_get(pq_context *ctx, const char *key) {
 }
 
 pq_value *pq_context_get_symbol(pq_context *ctx, pq_symbol symbol) {
-	pq_value *val = pq_scope_queue_get(&ctx->scopes, symbol);
+	pq_value *val = pq_scope_stack_get(&ctx->scopes, symbol);
 	return val ? val : pq_value_ferror(ctx, "couldn't find value for symbol \"%s\"",
 			pq_string_from_symbol(ctx, symbol));
 }
@@ -59,11 +59,11 @@ void pq_context_set(pq_context *ctx, const char *key, pq_value *val) {
 }
 
 void pq_context_set_symbol(pq_context *ctx, pq_symbol symbol, pq_value *val) {
-	pq_scope_queue_set(&ctx->scopes, symbol, val);
+	pq_scope_stack_set(&ctx->scopes, symbol, val);
 }
 
 void pq_context_set_global_symbol(pq_context *ctx, pq_symbol sym, pq_value *val) {
-	pq_scope_queue_set_global(&ctx->scopes, sym, val);
+	pq_scope_stack_set_root(&ctx->scopes, sym, val);
 }
 
 pq_value *pq_context_set_function(pq_context *ctx, const char *key, pq_value *val) {
@@ -81,7 +81,7 @@ pq_value *pq_context_set_function_symbol(pq_context *ctx, pq_symbol sym, pq_valu
 	}
 	func_md->symbol = sym;
 	int function_may_be_overloaded = pq_function_may_be_overloaded(func_md);
-	pq_value *previous_value = pq_scope_queue_get_from_bottom(&ctx->scopes, sym);
+	pq_value *previous_value = pq_scope_stack_get_root(&ctx->scopes, sym);
 	if(previous_value == NULL) {
 		pq_context_set_global_symbol(ctx, sym, val);
 		return val;
@@ -124,6 +124,6 @@ const char *pq_string_from_symbol(pq_context *ctx, pq_symbol symbol) {
 }
 
 void pq_push_scope(pq_context *ctx) {
-	pq_scope_queue_push(&ctx->scopes);
+	pq_scope_stack_push(&ctx->scopes);
 }
 

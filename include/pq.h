@@ -28,7 +28,7 @@
 #include "pq/memory_manager.h"
 #include "pq/parser.h"
 #include "pq/scope.h"
-#include "pq/scope_queue.h"
+#include "pq/scope_stack.h"
 #include "pq/type.h"
 #include "pq/value.h"
 

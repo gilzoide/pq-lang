@@ -18,8 +18,8 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#ifndef __PQ_SCOPE_QUEUE_H__
-#define __PQ_SCOPE_QUEUE_H__
+#ifndef __PQ_SCOPE_STACK_H__
+#define __PQ_SCOPE_STACK_H__
 
 #include "scope.h"
 #include "utils.h"
@@ -28,69 +28,69 @@
 #include <stdlib.h>
 
 /**
- * Dynamic Scope Queue.
+ * Dynamic Scope Stack.
  */
-typedef struct pq_scope_queue {
+typedef struct pq_scope_stack {
 	pq_vector scopes;
-} pq_scope_queue;
+} pq_scope_stack;
 
 /**
- * Initialize Scope Queue with some capacity.
+ * Initialize Scope Stack with some capacity.
  *
- * @param q                Scope Queue to be initialized.
- * @param initial_capacity Initial Queue array capacity.
+ * @param s                Scope Stack to be initialized.
+ * @param initial_capacity Initial Stack array capacity.
  *
  * @return 0 on allocation error, non-zero otherwise.
  */
-int pq_scope_queue_initialize(pq_scope_queue *q, size_t initial_capacity);
+int pq_scope_stack_initialize(pq_scope_stack *s, size_t initial_capacity);
 /**
- * Destroy a Scope Queue, freeing the memory used.
+ * Destroy a Scope Stack, freeing the memory used.
  */
-void pq_scope_queue_destroy(pq_context *ctx, pq_scope_queue *q);
+void pq_scope_stack_destroy(pq_context *ctx, pq_scope_stack *s);
 
 
 /**
- * Get the topmost Scope on Queue.
+ * Get the topmost Scope on Stack.
  */
-pq_scope *pq_scope_queue_peek(pq_scope_queue *q);
+pq_scope *pq_scope_stack_peek(pq_scope_stack *s);
 /**
- * Push a new initialized Scope into a Scope Queue, doubling it's capacity, if
+ * Push a new initialized Scope into a Scope Stack, doubling it's capacity, if
  * necessary.
  *
- * @note The original state of the Scope Queue is maintained in the case of
+ * @note The original state of the Scope Stack is maintained in the case of
  *       allocation error, so you still have do `destroy` it anyway.
  *
  * @return Newly allocated scope, or `NULL` on allocation error.
  */
-pq_scope *pq_scope_queue_push(pq_scope_queue *q);
+pq_scope *pq_scope_stack_push(pq_scope_stack *s);
 /**
- * Pops a Scope from the Queue, decreasing it's size.
+ * Pops a Scope from the Stack, decreasing it's size.
  *
  * @return Popped Scope, or `NULL` if there is none.
  */
-pq_scope *pq_scope_queue_pop(pq_scope_queue *q);
+pq_scope *pq_scope_stack_pop(pq_scope_stack *s);
 
 
 /**
  * Get a local Value, searching for it from local (topmost) to root Scope.
  */
-pq_value *pq_scope_queue_get(const pq_scope_queue *q, pq_symbol sym);
+pq_value *pq_scope_stack_get(const pq_scope_stack *s, pq_symbol sym);
 /**
- * Get a Value from the topmost Scope.
+ * Get a Value from the local (topmost) Scope.
  */
-pq_value *pq_scope_queue_get_from_top(const pq_scope_queue *q, pq_symbol sym);
+pq_value *pq_scope_stack_get_top(const pq_scope_stack *s, pq_symbol sym);
 /**
- * Get a Value from the root Scope.
+ * Get a Value from the root (bottommost) Scope.
  */
-pq_value *pq_scope_queue_get_from_bottom(const pq_scope_queue *q, pq_symbol sym);
+pq_value *pq_scope_stack_get_root(const pq_scope_stack *s, pq_symbol sym);
 /**
  * Set a Value in the local (topmost) Scope.
  */
-void pq_scope_queue_set(pq_scope_queue *q, pq_symbol sym, pq_value *val);
+void pq_scope_stack_set(pq_scope_stack *s, pq_symbol sym, pq_value *val);
 /**
  * Set a Value in the root (bottommost) Scope.
  */
-void pq_scope_queue_set_global(pq_scope_queue *q, pq_symbol sym, pq_value *val);
+void pq_scope_stack_set_root(pq_scope_stack *s, pq_symbol sym, pq_value *val);
 
 #endif
 

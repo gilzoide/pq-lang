@@ -31,7 +31,7 @@ pq_value *pq_new_value_with_size(pq_context *ctx, size_t data_size) {
 	pq_value *val;
 	if(val = malloc(sizeof(pq_value) + data_size)) {
 		val->parent_scope = ctx->scopes.scopes.size - 1;
-		pq_scope_mark_value_for_destruction(pq_scope_queue_peek(&ctx->scopes), val);
+		pq_scope_mark_value_for_destruction(pq_scope_stack_peek(&ctx->scopes), val);
 	}
 	return val;
 }

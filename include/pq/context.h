@@ -31,7 +31,7 @@
 #include "memory_manager.h"
 #include "parser.h"
 #include "scope.h"
-#include "scope_queue.h"
+#include "scope_stack.h"
 #include "type_manager.h"
 
 /**
@@ -40,7 +40,7 @@
 typedef struct pq_context {
 	jit_context_t jit;
 	pq_parser parser;
-	pq_scope_queue scopes;
+	pq_scope_stack scopes;
 	pq_scope env;
 	pq_builtin_values builtin_values;
 	pq_memory_manager memory_manager;

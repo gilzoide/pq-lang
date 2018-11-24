@@ -63,7 +63,7 @@ pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compi
 }
 
 pq_value *pq_return(pq_context *ctx, pq_value *ret) {
-	pq_scope *top = pq_scope_queue_pop(&ctx->scopes);
+	pq_scope *top = pq_scope_stack_pop(&ctx->scopes);
 	if(top == NULL) {
 		return PQ_API_ERROR(ctx, "cannot pop scope from empty queue");
 	}
