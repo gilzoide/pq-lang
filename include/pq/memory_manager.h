@@ -27,6 +27,7 @@
 #ifndef __PQ_MEMORY_MANAGER_H__
 #define __PQ_MEMORY_MANAGER_H__
 
+#include "array.h"
 #include "list.h"
 #include "value.h"
 
@@ -78,6 +79,15 @@ pq_list pq_new_list_with_size(pq_context *ctx, int size);
  * Release a List underlying value list.
  */
 void pq_release_list(pq_context *ctx, pq_list *lst);
+
+/**
+ * Acquire a new Array with the element type and size.
+ */
+pq_array pq_new_array_with_size(pq_context *ctx, int size, pq_type *type);
+/**
+ * Release an Array underlying data.
+ */
+void pq_release_array(pq_context *ctx, pq_array *arr);
 
 #endif
 

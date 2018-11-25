@@ -36,6 +36,22 @@
 #define PQ_ASSERT(cond, msg) \
 	assert((cond) && (msg))
 
+/// Number of elements in a static sized array
+#define ARRAY_SIZE(a) \
+	(sizeof(a) / sizeof(a[0]))
+
+#define SIZE_IN_BITS(c_type) \
+	(8 * sizeof(c_type))
+
+static inline int max_int(int a, int b) {
+	return a > b ? a : b;
+}
+static inline int min_int(int a, int b) {
+	return a < b ? a : b;
+}
+#define CLAMP_INT(value, min, max) \
+	(min_int(max_int((value), (min)), (max)))
+
 /**
  * Dynamic list with constant growth rate.
  */

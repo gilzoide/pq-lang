@@ -19,26 +19,41 @@
  */
 
 /** @file list.h
- * Pq list, used as code.
+ * List of values, used as code and as a general purpose list.
  */
 
 #ifndef __PQ_LIST_H__
 #define __PQ_LIST_H__
 
+#include "utils.h"
+
 // Forward declaration
 typedef struct pq_value pq_value;
-typedef struct pq_context pq_context;
 
+/**
+ * General purpose heterogenous list of values.
+ */
 typedef struct pq_list {
 	pq_value **values;
-	int size;
+	int size : SIZE_IN_BITS(int) - 1;
+	int owns_data : 1;
 } pq_list;
+
+/**
+ * Get the Value at the specified index of the List.
+ *
+ * Negative indexes refer to items in the end of the List.
+ *
+ * @return Value at index.
+ * @return `NULL` if `index` is out of list bounds.
+ */
+pq_value *pq_list_value_at(pq_list lst, int index);
 
 /**
  * Creates a slice of `lst` with the items starting in `from` until `to`
  * indexes.
  *
- * Negative indexes refer to items in the end of the list.
+ * Negative indexes refer to items in the end of the List.
  *
  * @warning This doesn't allocate memory for the internal array of the returned
  *  slice.

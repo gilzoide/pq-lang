@@ -18,29 +18,21 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-#include <pq/list.h>
-#include <pq/utils.h>
+/** @file array.h
+ * General purpose sequential array of elements with the same type.
+ */
 
-static inline int _pq_absolute_index(pq_list lst, int index) {
-	return ((index < 0) * lst.size) + index;
-}
-static inline int _pq_list_index_is_inbounds(pq_list lst, int index) {
-	return index >= 0 && index < lst.size;
-}
+#ifndef __PQ_ARRAY_H__
+#define __PQ_ARRAY_H__
 
-pq_value *pq_list_value_at(pq_list lst, int index) {
-	index = _pq_absolute_index(lst, index);
-	return _pq_list_index_is_inbounds(lst, index) ? lst.values[index] : NULL;
-}
+#include <stdint.h>
 
-pq_list pq_list_slice(pq_list lst, int from, int to) {
-	from = _pq_absolute_index(lst, from);
-	to = _pq_absolute_index(lst, to);
+typedef struct pq_array {
+	void *data;
+	int size : sizeof(int) - 1;
+	int8_t owns_data : 1;
+} pq_array;
 
-	return (pq_list){
-		.values = lst.values + max_int(0, from),
-		.size = CLAMP_INT(to - from, 0, lst.size - from),
-		.owns_data = 0,
-	};
-}
+#endif
+
 

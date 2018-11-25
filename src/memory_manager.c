@@ -51,14 +51,35 @@ pq_list pq_new_list_with_size(pq_context *ctx, int size) {
 	pq_list new_list;
 	new_list.values = malloc(size * sizeof(pq_value *));
 	new_list.size = (new_list.values != NULL) * size;
+	new_list.owns_data = 1;
 	return new_list;
 }
 
 void pq_release_list(pq_context *ctx, pq_list *lst) {
 	if(lst) {
-		free(lst->values);
+		if(lst->owns_data) {
+			free(lst->values);
+		}
 		lst->values = NULL;
 		lst->size = 0;
+	}
+}
+
+pq_array pq_new_array_with_size(pq_context *ctx, int size, pq_type *type) {
+	pq_array new_array;
+	new_array.data = malloc(size * pq_type_get_value_size(type));
+	new_array.size = (new_array.data != NULL) * size;
+	new_array.owns_data = 1;
+	return new_array;
+}
+
+void pq_release_array(pq_context *ctx, pq_array *arr) {
+	if(arr) {
+		if(arr->owns_data) {
+			free(arr->data);
+		}
+		arr->data = NULL;
+		arr->size = 0;
 	}
 }
 

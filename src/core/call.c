@@ -30,7 +30,7 @@ static inline pq_value *_pq_call_function(pq_context *ctx, pq_value *func, int i
 		pq_context_set_symbol(ctx, pq_value_as_symbol(f.args.values[i]), argv[i]);
 	}
 	if(is_variadic) {
-		pq_context_set_symbol(ctx, pq_value_as_symbol(f.args.values[i]), pq_value_list_from_values(ctx, argv + i, f.args.size - i));
+		pq_context_set_symbol(ctx, pq_value_as_symbol(f.args.values[i]), pq_value_list_from_values(ctx, f.args.size - i, argv + i));
 	}
 	pq_value *val;
 	for(i = 0; i < f.code.size; i++) {
@@ -123,10 +123,13 @@ pq_value *pq_call(pq_context *ctx, pq_value *func, int argc, pq_value **argv) {
 				break;
 
 			default:
-				return_value = NULL;
+				return_value = pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)", func->type->name);
 				break;
 		}
-		if(return_value == NULL) return_value = pq_value_ferror(ctx, "%s type cannot be called yet (not implemented)", func->type->name);
+		if(return_value == NULL) {
+			pq_symbol func_symbol = func_md->symbol;
+			return_value = pq_value_ferror(ctx, "Function %s%s returned NULL", func_symbol == PQ_SYMBOL_NIL ? "anonymous" : pq_string_from_symbol(ctx, func_symbol));
+		}
 		return func_md->flags & PQ_PUSH_SCOPE ? pq_return(ctx, return_value) : return_value;
 	}
 }

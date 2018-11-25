@@ -79,6 +79,8 @@ typedef struct pq_type_manager {
 
 	/// Type list -> Tuple type table.
 	Pvoid_t tuple_table;
+	/// Type -> Array type table.
+	Pvoid_t array_table;
 	/// Argument types + return type + is_variadic -> Function signature type table.
 	Pvoid_t signature_table;
 } pq_type_manager;
@@ -150,6 +152,13 @@ pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind k
  * This returns the same pointer for the same input types.
  */
 pq_type *pq_get_tuple_type(pq_context *ctx, size_t n, pq_type **types);
+
+/**
+ * Get the array type with elements of type `elem_type`.
+ *
+ * This returns the same pointer for the same input type.
+ */
+pq_type *pq_get_array_type(pq_context *ctx, pq_type *elem_type);
 
 /**
  * Get the signature type that contains the given `n` types in order.

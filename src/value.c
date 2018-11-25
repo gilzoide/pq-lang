@@ -115,6 +115,17 @@ pq_value *pq_value_from_i64(pq_context *ctx, int64_t i) {
 	return val;
 }
 
+pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, enum pq_builtin_type iN) {
+	PQ_ASSERT(iN >= 0 && iN < PQ_BUILTIN_TYPE_MAX, "Builtin type index out of range");
+	switch(iN) {
+		case PQ_TYPE_I8:  return pq_value_from_i8(ctx, i);
+		case PQ_TYPE_I16: return pq_value_from_i16(ctx, i);
+		case PQ_TYPE_I32: return pq_value_from_i32(ctx, i);
+		case PQ_TYPE_I64: return pq_value_from_i64(ctx, i);
+		default: return pq_value_ferror(ctx, "Expected one of the iN types, found %s", pq_builtin_type_names[iN]);
+	}
+}
+
 pq_value *pq_value_from_u8(pq_context *ctx, uint8_t u) {
 	pq_value *val;
 	if(val = pq_new_value(ctx, uint8_t)) {
@@ -205,13 +216,14 @@ pq_value *pq_value_from_list(pq_context *ctx, pq_list lst) {
 	return val;
 }
 
-pq_value *pq_value_list_from_values(pq_context *ctx, pq_value **values, int size) {
-	pq_value *val = NULL;
-	if(val = pq_new_value(ctx, pq_list)) {
-		pq_list lst = pq_new_list_with_size(ctx, size);
-		if(lst.size) {
-			memcpy(lst.values, values, size * sizeof(pq_value *));
-		}
+pq_value *pq_value_list_from_values(pq_context *ctx, int size, pq_value **values) {
+	pq_list lst = pq_new_list_with_size(ctx, size);
+	if(lst.size) {
+		memcpy(lst.values, values, size * sizeof(pq_value *));
+	}
+	pq_value *val;
+	if((val = pq_value_from_list(ctx, lst)) == NULL) {
+		pq_release_list(ctx, &lst);
 	}
 	return val;
 }
@@ -264,7 +276,7 @@ pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *si
 		native_func->header.signature = signature;
 		native_func->header.symbol = PQ_SYMBOL_NIL;
 		native_func->header.argnum = jit_type_num_params(jit_type_remove_tags(signature->jit_type));
-		native_func->header.flags = (jit_type_get_abi(signature->jit_type) == jit_abi_vararg ? PQ_VARIADIC : 0) | PQ_EVAL_ARGS;
+		native_func->header.flags = (pq_type_get_is_variadic(signature) ? PQ_VARIADIC : 0) | PQ_EVAL_ARGS;
 		native_func->function_ptr = fptr;
 	}
 	return val;
@@ -276,7 +288,7 @@ pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum p
 	for(i = 0; i < args.size; i++) {
 		pq_assert_arg_type(ctx, args.values, i, symbol);
 	}
-	int is_variadic = args.size && pq_value_as_symbol(args.values[args.size - 1]) == pq_symbol_from_string(ctx, "...");
+	int is_variadic = args.size && pq_value_as_symbol(pq_list_value_at(args, -1)) == pq_symbol_from_string(ctx, "...");
 	if(val = pq_new_value(ctx, pq_function)) {
 		val->type = ctx->type_manager._function;
 		pq_function *func = pq_value_get_data(val);

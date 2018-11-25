@@ -198,13 +198,13 @@ static pq_value *_type_of(pq_context *ctx, int argc, pq_value **argv) {
 static pq_value *_lambda(pq_context *ctx, int argc, pq_value **argv) {
 	pq_assert_arg_type(ctx, argv, 0, list);
 	pq_list args = pq_value_as_list(argv[0]);
-	pq_list code = (pq_list){ .values = argv + 1, .size = argc - 1 };
+	pq_list code = (pq_list){ .values = argv + 1, .size = argc - 1, .owns_data = 0 };
 	return pq_value_from_code(ctx, args, code, PQ_EVAL_ARGS | PQ_PUSH_SCOPE);
 }
 static pq_value *_macro(pq_context *ctx, int argc, pq_value **argv) {
 	pq_assert_arg_type(ctx, argv, 0, list);
 	pq_list args = pq_value_as_list(argv[0]);
-	pq_list code = (pq_list){ .values = argv + 1, .size = argc - 1 };
+	pq_list code = (pq_list){ .values = argv + 1, .size = argc - 1, .owns_data = 0 };
 	return pq_value_from_code(ctx, args, code, PQ_PUSH_SCOPE);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -223,6 +223,7 @@ int pq_register_builtin_functions(pq_context *ctx) {
 	    && pq_register_c_function(ctx, "typeof", &_type_of, 1, PQ_EVAL_ARGS)
 	    && pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC)
 	    && pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC)
-	    && pq_register_core_int(ctx);
+	    && pq_register_core_int(ctx)
+	    && pq_register_core_list(ctx);
 }
 

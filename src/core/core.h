@@ -25,8 +25,13 @@
 #ifndef __PQ_CORE_H__
 #define __PQ_CORE_H__
 
+// Forward declarations
+typedef struct pq_context pq_context;
+
 /// Register integer types functions.
 int pq_register_core_int(pq_context *ctx);
+/// Register list type functions.
+int pq_register_core_list(pq_context *ctx);
 
 #endif
 

@@ -54,6 +54,30 @@ void pq_type_fprint(pq_context *ctx, pq_type *type, FILE *output) {
 		default: fprintf(output, "%s", type->name); break;
 	}
 }
+void pq_function_fprint(pq_context *ctx, pq_function *func, FILE *output) {
+	fprintf(output, "(function ");
+	if(func->header.symbol != PQ_SYMBOL_NIL) {
+		fprintf(output, "'%s ", pq_string_from_symbol(ctx, func->header.symbol));
+	}
+	pq_list_fprint(ctx, func->args, output);
+	fputs("          ", output);
+	int i;
+	for(i = 0; i < func->code.size; i++) {
+		fputc(' ', output);
+		pq_fprint(ctx, func->code.values[i], output);
+	}
+	fputc(')', output);
+}
+void pq_c_function_fprint(pq_context *ctx, pq_c_function *func, FILE *output) {
+	fprintf(output, "(%s ", func->header.flags & PQ_COMPILER_MACRO ? "compiler-macro" : "c-function");
+	if(func->header.symbol != PQ_SYMBOL_NIL) {
+		fprintf(output, "'%s ", pq_string_from_symbol(ctx, func->header.symbol));
+	}
+	if(func->header.signature) {
+		pq_type_fprint(ctx, func->header.signature, output);
+	}
+	fprintf(output, "%p)", func->callable.function_ptr);
+}
 void pq_overload_fprint(pq_context *ctx, pq_overload *overload, FILE *output) {
 	pq_overload_iterator it = pq_overload_new_iterator(overload);
 	pq_value *val;
@@ -97,7 +121,7 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_SYMBOL:
-			fprintf(output, "%s", pq_string_from_symbol(ctx, pq_value_get_data_as(val, pq_symbol)));
+			fprintf(output, "'%s", pq_string_from_symbol(ctx, pq_value_get_data_as(val, pq_symbol)));
 			break;
 
 		case PQ_LIST:
@@ -112,17 +136,12 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			pq_type_fprint(ctx, pq_value_get_data_as(val, pq_type *), output);
 			break;
 
-		case PQ_FUNCTION: {
-				pq_function func = pq_value_get_data_as(val, pq_function);
-				fprintf(output, "(lambda ");
-				pq_list_fprint(ctx, func.args, output);
-				int i;
-				for(i = 0; i < func.code.size; i++) {
-					fputc(' ', output);
-					pq_fprint(ctx, func.code.values[i], output);
-				}
-				fputc(')', output);
-			}
+		case PQ_FUNCTION:
+			pq_function_fprint(ctx, pq_value_get_data(val), output);
+			break;
+
+		case PQ_C_FUNCTION:
+			pq_c_function_fprint(ctx, pq_value_get_data(val), output);
 			break;
 
 		case PQ_OVERLOAD:

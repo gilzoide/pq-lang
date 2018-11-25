@@ -51,14 +51,15 @@ typedef struct pq_value {
  * Just be sure you have allocated the right amount of memory.
  */
 static inline void *pq_value_get_data(pq_value *val) {
-	return (void *) val->data;
+	return (void *)val->data;
 }
 /**
  * Facility to get a Value data section derreferenced and cast to some C type.
  *
  * This may also be used directly for setting the Value data.
  */
-#define pq_value_get_data_as(val, c_type) (*((c_type *) pq_value_get_data(val)))
+#define pq_value_get_data_as(val, c_type) \
+	(*((c_type *)pq_value_get_data(val)))
 
 // Forward declarations
 typedef struct pq_context pq_context;
@@ -77,6 +78,7 @@ pq_value *pq_value_from_i8(pq_context *ctx, int8_t i);
 pq_value *pq_value_from_i16(pq_context *ctx, int16_t i);
 pq_value *pq_value_from_i32(pq_context *ctx, int32_t i);
 pq_value *pq_value_from_i64(pq_context *ctx, int64_t i);
+pq_value *pq_value_from_int(pq_context *ctx, intmax_t i, enum pq_builtin_type iN);
 
 pq_value *pq_value_from_u8(pq_context *ctx, uint8_t u);
 pq_value *pq_value_from_u16(pq_context *ctx, uint16_t u);
@@ -90,7 +92,7 @@ pq_value *pq_value_from_string(pq_context *ctx, const char *str);
 pq_value *pq_value_from_lstring(pq_context *ctx, const char *str, size_t n);
 pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol);
 pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
-pq_value *pq_value_list_from_values(pq_context *ctx, pq_value **values, int size);
+pq_value *pq_value_list_from_values(pq_context *ctx, int size, pq_value **values);
 
 pq_value *pq_value_nil(pq_context *ctx);
 

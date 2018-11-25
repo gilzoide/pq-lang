@@ -22,8 +22,6 @@
 #include <pq/context.h>
 #include <pq/function.h>
 
-#include <assert.h>
-
 const char * const pq_builtin_type_names[PQ_BUILTIN_TYPE_MAX] = {
 	"type",
 	"error",
@@ -60,6 +58,7 @@ const char * const pq_builtin_type_names[PQ_BUILTIN_TYPE_MAX] = {
 
 int pq_type_manager_initialize(pq_type_manager *type_manager) {
 	type_manager->tuple_table = NULL;
+	type_manager->array_table = NULL;
 	type_manager->signature_table = NULL;
 	return pq_vector_initialize_as(&type_manager->all_types, 32, pq_type *);
 }
@@ -77,7 +76,7 @@ void pq_type_manager_destroy(pq_type_manager *type_manager) {
 }
 
 pq_type *pq_get_builtin_type(pq_context *ctx, enum pq_builtin_type builtin_type) {
-	assert(builtin_type >= PQ_TYPE_TYPE && builtin_type < PQ_BUILTIN_TYPE_MAX && "Invalid builtin type enum value");
+	PQ_ASSERT(builtin_type >= PQ_TYPE_TYPE && builtin_type < PQ_BUILTIN_TYPE_MAX, "Invalid builtin type enum value");
 	return *pq_vector_at(&ctx->type_manager.all_types, builtin_type, pq_type *);
 }
 
@@ -127,6 +126,24 @@ pq_type *pq_get_tuple_type(pq_context *ctx, size_t n, pq_type **types) {
 			*pvalue = (Word_t) pq_register_aggregate_type(ctx, NULL, PQ_TUPLE, tuple_jit_type, NULL, n, types);
 		}
 		return (pq_type *) *pvalue;
+	}
+	else {
+		return NULL;
+	}
+}
+
+pq_type *pq_get_array_type(pq_context *ctx, pq_type *elem_type) {
+	Word_t *pvalue;
+	JLI(pvalue, ctx->type_manager.array_table, (Word_t)elem_type);
+	if(pvalue != PJERR) {
+		if(*pvalue == 0) {
+			jit_type_t field_types[] = {
+				jit_type_sys_int,
+			};
+			jit_type_t array_jit_type = jit_type_create_struct(field_types, ARRAY_SIZE(field_types), 1);
+			*pvalue = (Word_t)pq_register_aggregate_type(ctx, NULL, PQ_ARRAY, array_jit_type, elem_type, 0, NULL);
+		}
+		return (pq_type *)*pvalue;
 	}
 	else {
 		return NULL;

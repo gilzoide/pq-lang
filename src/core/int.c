@@ -31,13 +31,24 @@ static pq_value *_int_plus(pq_context *ctx, int argc, pq_value **argv) {
 	return pq_value_from_i64(ctx, result);
 }
 
+static pq_value *_int_minus(pq_context *ctx, int argc, pq_value **argv) {
+	int i;
+	intmax_t result = pq_value_as_int(argv[0]);
+	for(i = 1; i < argc; i++) {
+		pq_assert_arg_type(ctx, argv, i, int);
+		result -= pq_value_as_int(argv[i]);
+	}
+	return pq_value_from_i64(ctx, result);
+}
+
 int pq_register_core_int(pq_context *ctx) {
 	pq_type *ret_type, *arg_types[1];
 	int i, result = 1;
 	for(i = PQ_TYPE_I8; result && i <= PQ_TYPE_SYS_UNSIGNED_LONG; i++) {
 		ret_type = pq_get_builtin_type(ctx, i);
 		arg_types[0] = ret_type;
-		result = pq_register_typed_c_function(ctx, "+", &_int_plus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL;
+		result = pq_register_typed_c_function(ctx, "+", &_int_plus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL
+		         && pq_register_typed_c_function(ctx, "-", &_int_minus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL;
 	}
 	return result;
 }
