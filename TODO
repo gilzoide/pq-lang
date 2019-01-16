@@ -1,4 +1,5 @@
 Implement
+- Pointer/reference values
 - Struct types
 - Verify types passed to functions
 - Overloads with type kinds

@@ -11,19 +11,22 @@ Mas gilzoide, pq PQ?
 
 Mah que diabos? (features)
 --------------------------
-- muito funcional
-- permite programação estruturada (sequência de ações, xupa puridade)
-- currying a la haskell
-- código como listas a la Lisp (na real, o backend vai ter um Lisp correspondente)
+- linguagem de propósito geral, funcional e estruturada
+- tipagem forte, tipagem estática opcional
+- overloads de funções com mesmo nome
+- código como listas a la Lisp
 - ^ permite macros massas
-- overload de funções
-- tipos por protótipo como hash tables e notação de chamada de método (estilo Lua)
-- tipagem de parâmetros de funções
-- imutabilidade por padrão, mas haverão variáveis (_var_)
-- __algum dia__ funções que memoizam sozinho (_memoize_)
-- __talvez__ funções com _lazy evaluation_
-- containers padrão: listas e arrays (yup, C arrays, com direito a aritmética estilo de ponteiro)
+- ^ sintaxe super simples e extensível (read macros)
+- funções de primeira classe e closures
+- definição de funções e macros escritas em C, incluindo macros de compilação
+- linguagem livre de palavras reservadas, qualquer um pode criar uma função `if`
+  diferente da padrão, se quiser
+- API simples e completa pra usar do C, possibilitando o uso como linguagem de
+  script
+- chamada de funções em read time
+- variáveis de ambiente (escopo dinâmico), úteis como configurações opcionais
+  a chamadas de funções
+- possibilidade de criar ambientes sandbox com escopos e definições padrão
+  isoladas
+- JIT compilação pra código nativo e chamada a funções nativas
 
-Quero saber mais!
------------------
-Leia os documentos da pasta [design](design/index.md)
