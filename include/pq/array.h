@@ -25,12 +25,14 @@
 #ifndef __PQ_ARRAY_H__
 #define __PQ_ARRAY_H__
 
+#include "utils.h"
+
 #include <stdint.h>
 
 typedef struct pq_array {
 	void *data;
-	int size : sizeof(int) - 1;
-	int8_t owns_data : 1;
+	int size : SIZE_IN_BITS(int) - 1;
+	int owns_data : 1;
 } pq_array;
 
 #endif

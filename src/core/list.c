@@ -20,6 +20,7 @@
 
 #include "core.h"
 
+#include <pq/assert.h>
 #include <pq/context.h>
 #include <pq/list.h>
 
@@ -43,6 +44,18 @@ static pq_value *_pq_list_slice(pq_context *ctx, int argc, pq_value **argv) {
 	return slice.size ? pq_value_from_list(ctx, slice) : pq_value_nil(ctx);
 }
 
+static pq_value *_pq_list_each(pq_context *ctx, int argc, pq_value **argv) {
+	pq_assert_arg_type(ctx, argv, 0, list);
+	pq_assert_arg_type(ctx, argv, 1, callable);
+	pq_list lst = pq_value_get_data_as(argv[0], pq_list);
+	pq_value *callable = argv[1];
+	int i;
+	for(i = 0; i < lst.size; i++) {
+		pq_assert_not_error(pq_call(ctx, callable, 1, lst.values + i));
+	}
+	return pq_value_nil(ctx);
+}
+
 int pq_register_core_list(pq_context *ctx) {
 	pq_type *lst_type = pq_get_builtin_type(ctx, PQ_TYPE_LIST);
 	pq_type *i32_type = pq_get_builtin_type(ctx, PQ_TYPE_I32);
@@ -50,6 +63,7 @@ int pq_register_core_list(pq_context *ctx) {
 	    && pq_register_typed_c_function(ctx, "at", &_pq_list_at, NULL, 2, (pq_type*[]){ lst_type, i32_type }, PQ_EVAL_ARGS)
 	    && pq_register_typed_c_function(ctx, "size", &_pq_list_size, i32_type, 1, (pq_type*[]){ lst_type }, PQ_EVAL_ARGS)
 	    && pq_register_typed_c_function(ctx, "slice", &_pq_list_slice, lst_type, 2, (pq_type*[]){ lst_type, i32_type }, PQ_EVAL_ARGS)
-	    && pq_register_typed_c_function(ctx, "slice", &_pq_list_slice, lst_type, 3, (pq_type*[]){ lst_type, i32_type, i32_type }, PQ_EVAL_ARGS);
+	    && pq_register_typed_c_function(ctx, "slice", &_pq_list_slice, lst_type, 3, (pq_type*[]){ lst_type, i32_type, i32_type }, PQ_EVAL_ARGS)
+	    && pq_register_c_function(ctx, "each", &_pq_list_each, 2, PQ_EVAL_ARGS);
 }
 

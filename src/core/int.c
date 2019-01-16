@@ -38,6 +38,7 @@ static pq_value *_int_minus(pq_context *ctx, int argc, pq_value **argv) {
 		pq_assert_arg_type(ctx, argv, i, int);
 		result -= pq_value_as_int(argv[i]);
 	}
+	if(argc == 1) result = -result;
 	return pq_value_from_i64(ctx, result);
 }
 

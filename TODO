@@ -1,0 +1,12 @@
+Implement
+- Struct types
+- Verify types passed to functions
+- Overloads with type kinds
+- Module scopes and `import`
+- Environment variables
+- Compilation
+- Read macros
+
+Design
+- Decide how to refer to specific overloads in documentation
+
