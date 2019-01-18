@@ -26,30 +26,17 @@
 
 int pq_symbol_manager_initialize(pq_symbol_manager *symbol_manager) {
 	symbol_manager->table = NULL;
-	symbol_manager->symbol_count = 0;
-	symbol_manager->strings_table_capacity = PQ_STRING_TABLE_INICIAL_CAPACITY;
-	return (symbol_manager->strings_table = malloc(PQ_STRING_TABLE_INICIAL_CAPACITY * sizeof(char *))) != NULL;
+	return pq_vector_initialize_as(&symbol_manager->strings_table, PQ_STRING_TABLE_INICIAL_CAPACITY, char *);
 }
 
 void pq_symbol_manager_destroy(pq_symbol_manager *symbol_manager) {
 	Word_t ret;
 	JHSFA(ret, symbol_manager->table);
 	int i;
-	for(i = 0; i < symbol_manager->symbol_count; i++) {
-		free(symbol_manager->strings_table[i]);
+	for(i = 0; i < symbol_manager->strings_table.size; i++) {
+		free(*pq_vector_at(&symbol_manager->strings_table, i, char *));
 	}
-	free(symbol_manager->strings_table);
-}
-
-/// Doubles the capacity of the Strings table when needed.
-static int pq_double_table_capacity(pq_symbol_manager *symbol_manager) {
-	unsigned int new_capacity = 2 * symbol_manager->strings_table_capacity;
-	char **new_strings_table;
-	if(new_strings_table = realloc(symbol_manager->strings_table, new_capacity * sizeof(char *))) {
-		symbol_manager->strings_table = new_strings_table;
-		symbol_manager->strings_table_capacity = new_capacity;
-	}
-	return new_strings_table != NULL;
+	pq_vector_destroy(&symbol_manager->strings_table);
 }
 
 pq_symbol pq_symbol_manager_symbol_from_string(pq_symbol_manager *symbol_manager, const char *str) {
@@ -63,22 +50,20 @@ pq_symbol pq_symbol_manager_symbol_from_lstring(pq_symbol_manager *symbol_manage
 		return PQ_SYMBOL_NIL;
 	}
 	else if(*pvalue == 0) {
-		if(symbol_manager->symbol_count + 1 >= symbol_manager->strings_table_capacity) {
-			if(!pq_double_table_capacity(symbol_manager)) {
-				return PQ_SYMBOL_NIL;
-			}
+		char **new_string_entry = pq_vector_push_as(&symbol_manager->strings_table, char *);
+		if(new_string_entry != NULL && (*new_string_entry = strndup(str, n)) != NULL) {
+			*pvalue = symbol_manager->strings_table.size;
 		}
-		if((symbol_manager->strings_table[symbol_manager->symbol_count] = strndup(str, n)) == NULL) {
+		else {
 			return PQ_SYMBOL_NIL;
 		}
-		*pvalue = ++symbol_manager->symbol_count;
 	}
 	return *pvalue;
 }
 
 const char *pq_symbol_manager_string_from_symbol(pq_symbol_manager *symbol_manager, pq_symbol symbol) {
-	return symbol > PQ_SYMBOL_NIL && symbol <= symbol_manager->symbol_count
-			? symbol_manager->strings_table[symbol - 1]
+	return symbol > PQ_SYMBOL_NIL && symbol <= symbol_manager->strings_table.size
+			? *(pq_vector_at(&symbol_manager->strings_table, symbol - 1, const char *))
 			: NULL;
 }
 

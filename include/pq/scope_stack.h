@@ -31,7 +31,7 @@
  * Dynamic Scope Stack.
  */
 typedef struct pq_scope_stack {
-	pq_vector scopes;
+	pq_vector_(pq_scope) scopes;
 } pq_scope_stack;
 
 /**

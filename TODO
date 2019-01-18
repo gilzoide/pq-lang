@@ -3,8 +3,9 @@ Implement
 - Struct types
 - Verify types passed to functions
 - Overloads with type kinds
-- Module scopes and `import`
+- File type
 - Environment variables
+- Module scopes and `import`
 - Compilation
 - Read macros
 

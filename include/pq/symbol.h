@@ -21,6 +21,8 @@
 #ifndef __PQ_SYMBOL_H__
 #define __PQ_SYMBOL_H__
 
+#include "utils.h"
+
 #include <Judy.h>
 
 /// A symbol is just an int representing an interned string
@@ -33,9 +35,7 @@ typedef Word_t pq_symbol;
  */
 typedef struct pq_symbol_manager {
 	Pvoid_t table;  ///< The internal table that relates String -> Symbol.
-	unsigned long symbol_count;  ///< The number of Symbols managed.
-	char **strings_table;  ///< The internal table that relates Symbol -> String.
-	unsigned long strings_table_capacity;  ///< The capacity of the strings table.
+	pq_vector_(char *) strings_table;  ///< The internal table that relates Symbol -> String.
 } pq_symbol_manager;
 
 /**

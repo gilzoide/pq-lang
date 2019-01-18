@@ -52,6 +52,9 @@ static inline int min_int(int a, int b) {
 #define CLAMP_INT(value, min, max) \
 	(min_int(max_int((value), (min)), (max)))
 
+////////////////////////////////////////////////////////////////////////////////
+//  Internal dynamic array
+////////////////////////////////////////////////////////////////////////////////
 /**
  * Dynamic list with constant growth rate.
  */
@@ -63,21 +66,29 @@ typedef struct pq_vector {
 
 #define PQ_POINTER_VECTOR_GROWTH_RATE 1.5
 
+#define pq_vector_(c_type) pq_vector
+
 int pq_vector_initialize(pq_vector *vec, size_t initial_capacity, size_t member_size);
 #define pq_vector_initialize_as(vec, initial_capacity, type) \
 	(pq_vector_initialize(vec, initial_capacity, sizeof(type)))
+
 void pq_vector_destroy(pq_vector *vec);
+
 void *pq_vector_push(pq_vector *vec, size_t member_size);
 #define pq_vector_push_as(vec, type) \
 	((type *) pq_vector_push(vec, sizeof(type)))
+
 void *pq_vector_pop(pq_vector *vec, size_t member_size);
 #define pq_vector_pop_as(vec, type) \
 	((type *) pq_vector_pop(vec, sizeof(type)))
+
 void *pq_vector_peek(const pq_vector *vec, size_t member_size);
 #define pq_vector_peek_as(vec, type) \
 	((type *) pq_vector_peek(vec, sizeof(type)))
+
 #define pq_vector_at(vec, i, type) \
 	(((type *) (vec)->arr) + i)
+
 
 #endif
 

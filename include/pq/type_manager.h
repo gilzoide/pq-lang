@@ -75,7 +75,7 @@ typedef struct pq_type_manager {
 	pq_type *_native_function;  ///< The Native function type.
 	pq_type *_overload;  ///< The overloaded type.
 
-	pq_vector all_types;
+	pq_vector_(pq_type *) all_types;  ///< Vector with all types, for ease of memory management.
 
 	/// Type list -> Tuple type table.
 	Pvoid_t tuple_table;
@@ -133,6 +133,9 @@ enum pq_builtin_type {
 	PQ_BUILTIN_TYPE_MAX,
 };
 
+/**
+ * String constants referent to the values of #pq_builtin_type
+ */
 extern const char * const pq_builtin_type_names[];
 
 /**
