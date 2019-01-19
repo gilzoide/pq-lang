@@ -126,19 +126,6 @@ int pq_register_builtin_types(pq_context *ctx) {
 //  Builtin functions
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Print all values given.
-static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
-	FILE *output = stdout;
-	const char *sep = " ";
-	const char *end = "\n";
-	int i;
-	for(i = 0; i < argc; i++) {
-		pq_fprint(ctx, argv[i], output);
-		fputs(sep, output);
-	}
-	fputs(end, output);
-	return pq_value_nil(ctx);
-}
 static pq_value *_if(pq_context *ctx, jit_function_t jit_function, int argc, pq_value **argv) {
 	if(jit_function) {
 		return pq_value_error(ctx, "compiled `if` is not yet implemented");
@@ -218,12 +205,12 @@ int pq_register_builtin_functions(pq_context *ctx) {
 	    && pq_register_c_function(ctx, "let", &_let, 2, 0)
 	    && pq_register_c_function(ctx, "quote", &_quote, 1, 0)
 	    && pq_register_c_function(ctx, "eval", &_eval, 1, 0)
-	    && pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS)
 	    && pq_register_c_function(ctx, "quit", &_quit, 0, 0)
 	    && pq_register_c_function(ctx, "typeof", &_type_of, 1, PQ_EVAL_ARGS)
 	    && pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC)
 	    && pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC)
 	    && pq_register_core_int(ctx)
-	    && pq_register_core_list(ctx);
+	    && pq_register_core_list(ctx)
+	    && pq_register_core_print(ctx);
 }
 

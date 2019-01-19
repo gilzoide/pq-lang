@@ -18,6 +18,8 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
+#include "core.h"
+
 #include <pq/context.h>
 #include <pq/value.h>
 
@@ -157,3 +159,21 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 void pq_print(pq_context *ctx, pq_value *val) {
 	pq_fprint(ctx, val, stdout);
 }
+
+/// Print all values given.
+static pq_value *_print(pq_context *ctx, int argc, pq_value **argv) {
+	FILE *output = stdout; // TODO: use environment
+	const char *sep = " ";
+	const char *end = "\n";
+	int i;
+	for(i = 0; i < argc; i++) {
+		pq_fprint(ctx, argv[i], output);
+		fputs(sep, output);
+	}
+	fputs(end, output);
+	return pq_value_nil(ctx);
+}
+int pq_register_core_print(pq_context *ctx) {
+	return pq_register_c_function(ctx, "print", &_print, 1, PQ_VARIADIC | PQ_EVAL_ARGS) !=  NULL;
+}
+

@@ -32,6 +32,8 @@ typedef struct pq_context pq_context;
 int pq_register_core_int(pq_context *ctx);
 /// Register list type functions.
 int pq_register_core_list(pq_context *ctx);
+/// Register print function.
+int pq_register_core_print(pq_context *ctx);
 
 #endif
 
