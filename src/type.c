@@ -43,10 +43,11 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
 }
 
 pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
-                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes) {
+                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
+                                  int metadata_size, void *metadata) {
 	PQ_ASSERT(kind >= PQ_TYPE_FIRST_AGGREGATE && kind <= PQ_TYPE_LAST_AGGREGATE, "Invalid type kind enum value for aggregate type");
 	pq_aggregate_type *new_aggregate_type;
-	if(new_aggregate_type = malloc(sizeof(pq_aggregate_type) + (num_subtypes * sizeof(pq_type *)))) {
+	if(new_aggregate_type = malloc(sizeof(pq_aggregate_type) + (num_subtypes * sizeof(pq_type *)) + metadata_size)) {
 		pq_type *new_type = &new_aggregate_type->type;
 		new_type->name = name ? strdup(name) : NULL;
 		new_type->kind = kind;
@@ -56,8 +57,11 @@ pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_
 		new_aggregate_type->main_subtype = main_subtype;
 		new_aggregate_type->num_subtypes = num_subtypes;
 		memcpy(new_aggregate_type->subtypes, subtypes, num_subtypes * sizeof(pq_type *));
+        if(metadata_size > 0) {
+            memcpy(pq_aggregate_type_get_metadata(new_aggregate_type), metadata, metadata_size);
+        }
 	}
-	return (pq_type *) new_aggregate_type;
+	return (pq_type *)new_aggregate_type;
 }
 
 void pq_type_destroy(pq_type *type) {

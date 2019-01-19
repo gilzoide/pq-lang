@@ -51,6 +51,7 @@ int pq_register_builtin_values(pq_context *ctx) {
 	register_value(_false, "false", pq_value_from_bool(ctx, 0));
 	register_value(_true, "true", pq_value_from_bool(ctx, 1));
 	register_value(_nan, "nan", pq_value_from_double(ctx, NAN));
+	register_value(_inf, "inf", pq_value_from_double(ctx, INFINITY));
 #undef register_value
 	return 1;
 }
@@ -113,6 +114,14 @@ int pq_register_builtin_types(pq_context *ctx) {
 	register_type(_string, PQ_TYPE_STRING, PQ_STRING, NULL, &_free_data);
 
 	register_type(_pointer, PQ_TYPE_POINTER, PQ_POINTER, jit_type_void_ptr, NULL);
+    Word_t *pvalue;
+    JLI(pvalue, ctx->type_manager.pointer_table, (Word_t)NULL);
+	if(pvalue != PJERR) {
+		*pvalue = (Word_t)type_val;
+	}
+	else {
+		return 0;
+	}
 
 	register_type(_function,        PQ_TYPE_FUNCTION,        PQ_FUNCTION,        NULL, NULL);
 	register_type(_c_function,      PQ_TYPE_C_FUNCTION,      PQ_C_FUNCTION,      NULL, NULL);
@@ -148,22 +157,6 @@ static pq_value *_while(pq_context *ctx, jit_function_t jit_function, int argc, 
 		}
 		return res;
 	}
-}
-static pq_value *_let(pq_context *ctx, int argc, pq_value **argv) {
-	pq_symbol sym;
-	pq_value *val = pq_eval(ctx, argv[1]);
-	pq_assert_not_error(val);
-	switch(argv[0]->type->kind) {
-		case PQ_SYMBOL:
-			sym = pq_value_get_data_as(argv[0], pq_symbol);
-			pq_context_set_symbol(ctx, sym, val);
-			break;
-
-		default:
-			return pq_value_ferror(ctx, "Invalid argument 1: expected symbol, found %s",
-					argv[0]->type->name);
-	}
-	return val;
 }
 /// Just return the evaluation of the evaluated argument.
 static pq_value *_eval(pq_context *ctx, int argc, pq_value **argv) {
@@ -202,13 +195,13 @@ static pq_value *_macro(pq_context *ctx, int argc, pq_value **argv) {
 int pq_register_builtin_functions(pq_context *ctx) {
 	return pq_register_compiler_macro(ctx, "if", &_if, 3, PQ_COMPILER_MACRO)
 	    && pq_register_compiler_macro(ctx, "while", &_while, 2, PQ_VARIADIC | PQ_COMPILER_MACRO)
-	    && pq_register_c_function(ctx, "let", &_let, 2, 0)
 	    && pq_register_c_function(ctx, "quote", &_quote, 1, 0)
 	    && pq_register_c_function(ctx, "eval", &_eval, 1, 0)
 	    && pq_register_c_function(ctx, "quit", &_quit, 0, 0)
 	    && pq_register_c_function(ctx, "typeof", &_type_of, 1, PQ_EVAL_ARGS)
 	    && pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC)
 	    && pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC)
+	    && pq_register_core_value(ctx)
 	    && pq_register_core_int(ctx)
 	    && pq_register_core_list(ctx)
 	    && pq_register_core_print(ctx);

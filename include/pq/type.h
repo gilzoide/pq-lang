@@ -90,6 +90,10 @@ typedef struct pq_type {
 /**
  * Pq Aggregate Types: types with subtypes: Tuples, Arrays, Pointers, Structs
  * and Signatures.
+ *
+ * Metadata may be appended after `aggregate_type.subtypes + num_subtypes`,
+ * just allocate enough memory for it and be careful. Structs use this to store 
+ * fields' names.
  */
 typedef struct pq_aggregate_type {
 	pq_type type;
@@ -97,6 +101,15 @@ typedef struct pq_aggregate_type {
 	int num_subtypes;
 	pq_type *subtypes[0];
 } pq_aggregate_type;
+
+/**
+ * Get the metadata section of an Aggregate Type, which may contain anything.
+ *
+ * Just be sure you have allocated the right amount of memory.
+ */
+static inline void *pq_aggregate_type_get_metadata(pq_aggregate_type *aggregate_type) {
+	return (void *)aggregate_type->subtypes + aggregate_type->num_subtypes;
+}
 
 /**
  * Create a Type.
@@ -115,7 +128,8 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
  * This will be primarily used by the pq interpreter itself.
  */
 pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
-                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes);
+                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
+                                  int metadata_size, void *metadata);
 
 /**
  * Destroy a Type.

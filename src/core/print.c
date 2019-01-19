@@ -35,25 +35,37 @@ void pq_list_fprint(pq_context *ctx, pq_list lst, FILE *output) {
 	fputc(')', output);
 }
 void pq_type_fprint(pq_context *ctx, pq_type *type, FILE *output) {
-	switch(type->kind) {
-		case PQ_SIGNATURE: {
-			   int i, num_args = pq_type_get_num_arguments(type);
-			   pq_type *ret_type = pq_type_get_return_type(type);
-			   pq_type **arg_types = pq_type_get_argument_types(type);
-			   int is_variadic = pq_type_get_is_variadic(type);
-			   fputc('[', output);
-			   pq_type_fprint(ctx, ret_type, output);
-			   for(i = 0; i < num_args; i++) {
-				   fputc(' ', output);
-				   pq_type_fprint(ctx, arg_types[i], output);
-			   }
-			   if(is_variadic) {
-				   fputs(" ...", output);
-			   }
-			   fputc(']', output);
-			}
-			break;
-		default: fprintf(output, "%s", type->name); break;
+	if(type->name) {
+		fputs(type->name, output);
+	}
+	else {
+		switch(type->kind) {
+			case PQ_SIGNATURE: {
+				   int i, num_args = pq_type_get_num_arguments(type);
+				   pq_type *ret_type = pq_type_get_return_type(type);
+				   pq_type **arg_types = pq_type_get_argument_types(type);
+				   int is_variadic = pq_type_get_is_variadic(type);
+				   fputc('[', output);
+				   pq_type_fprint(ctx, ret_type, output);
+				   for(i = 0; i < num_args; i++) {
+					   fputc(' ', output);
+					   pq_type_fprint(ctx, arg_types[i], output);
+				   }
+				   if(is_variadic) {
+					   fputs(" ...", output);
+				   }
+				   fputc(']', output);
+				}
+				break;
+
+			case PQ_POINTER:
+				fprintf(output, "(pointer ");
+				pq_type_fprint(ctx, pq_type_get_underlying_type(type), output);
+				fputc(')', output);
+				break;
+
+			default: fputs("[no print for type yet]", output); break;
+		}
 	}
 }
 void pq_function_fprint(pq_context *ctx, pq_function *func, FILE *output) {
@@ -148,6 +160,10 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 
 		case PQ_OVERLOAD:
 			pq_overload_fprint(ctx, pq_value_get_data(val), output);
+			break;
+
+		case PQ_POINTER:
+			fprintf(output, "%p", pq_value_get_data_as(val, void *));
 			break;
 
 		default:

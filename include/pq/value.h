@@ -94,6 +94,9 @@ pq_value *pq_value_from_symbol(pq_context *ctx, pq_symbol symbol);
 pq_value *pq_value_from_list(pq_context *ctx, pq_list lst);
 pq_value *pq_value_list_from_values(pq_context *ctx, int size, pq_value **values);
 
+pq_value *pq_value_from_pointer(pq_context *ctx, void *ptr, pq_type *pointee_type);
+pq_value *pq_value_pointer_for_value(pq_context *ctx, pq_value *val);
+
 pq_value *pq_value_nil(pq_context *ctx);
 
 pq_value *pq_value_from_c_function(pq_context *ctx, pq_c_function_ptr fptr, uint8_t argnum, enum pq_function_flags flags);
@@ -127,6 +130,7 @@ int pq_is_nil(pq_value *val);
 int pq_is_symbol(pq_value *val);
 int pq_is_string(pq_value *val);
 int pq_is_list(pq_value *val);
+int pq_is_pointer(pq_value *val);
 
 // General operations
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output);

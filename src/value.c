@@ -228,6 +228,19 @@ pq_value *pq_value_list_from_values(pq_context *ctx, int size, pq_value **values
 	return val;
 }
 
+pq_value *pq_value_from_pointer(pq_context *ctx, void *ptr, pq_type *pointee_type) {
+	pq_value *val;
+	if(val = pq_new_value(ctx, void *)) {
+		val->type = pq_get_pointer_type(ctx, pointee_type);
+		pq_value_get_data_as(val, void *) = ptr;
+	}
+	return val;
+}
+
+pq_value *pq_value_pointer_for_value(pq_context *ctx, pq_value *val) {
+	return pq_value_from_pointer(ctx, pq_value_get_data(val), val->type);
+}
+
 pq_value *pq_value_nil(pq_context *ctx) {
 	return ctx->builtin_values._nil;
 }
@@ -447,5 +460,10 @@ int pq_is_string(pq_value *val) {
 int pq_is_list(pq_value *val) {
 	int kind = val->type->kind;
 	return kind == PQ_LIST;
+}
+
+int pq_is_pointer(pq_value *val) {
+	int kind = val->type->kind;
+	return kind == PQ_POINTER;
 }
 
