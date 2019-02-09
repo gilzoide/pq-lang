@@ -324,6 +324,26 @@ pq_value *pq_value_from_overload(pq_context *ctx, pq_overload overload) {
 	return val;
 }
 
+pq_value *pq_value_tuple_from_values(pq_context *ctx, int size, pq_value **values) {
+    pq_type *value_types[size];
+    unsigned int i;
+    for(i = 0; i < size; i++) {
+        value_types[i] = values[i]->type;
+    }
+    pq_type *tuple_type = pq_get_tuple_type(ctx, size, value_types);
+    if(!tuple_type) return pq_value_error(ctx, "Error getting value types for tuple creation");
+    pq_value *val;
+    if(val = pq_value_list_from_values(ctx, size, values)) {
+        // warning: don't do this at home!
+        val->type = tuple_type;
+    }
+    return val;
+}
+
+pq_value *pq_value_tuple_from_list(pq_context *ctx, pq_list lst) {
+    return pq_value_tuple_from_values(ctx, lst.size, lst.values);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //  Value native representation
 ////////////////////////////////////////////////////////////////////////////////
@@ -392,15 +412,26 @@ pq_list pq_value_as_list(pq_value *val) {
 ////////////////////////////////////////////////////////////////////////////////
 //  Variables
 ////////////////////////////////////////////////////////////////////////////////
-pq_value *pq_new_variable(pq_context *ctx, pq_type *type) {
+pq_value *pq_new_uninitialized_value(pq_context *ctx, pq_type *type) {
 	if(type->kind == PQ_NIL) {
 		return pq_value_nil(ctx);
 	}
-	pq_value *variable;
-	if(variable = pq_new_value_with_size(ctx, pq_type_get_value_size(type))) {
-		variable->type = type;
+	pq_value *val;
+	if(val = pq_new_value_with_size(ctx, pq_type_get_value_size(type))) {
+		val->type = type;
 	}
-	return variable;
+	return val;
+}
+
+pq_value *pq_new_initialized_variable(pq_context *ctx, pq_type *type, void *src) {
+    pq_value *val;
+    if(val = pq_new_uninitialized_value(ctx, type)) {
+        size_t copy_size = pq_type_get_value_size(type);
+        if(copy_size > 0) {
+            memcpy(pq_value_get_data(val), src, copy_size);
+        }
+    }
+    return val;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -435,11 +466,7 @@ int pq_is_overload(pq_value *val) {
 
 int pq_is_callable(pq_value *val) {
 	int kind = val->type->kind;
-	return kind == PQ_FUNCTION
-	       | kind == PQ_C_FUNCTION
-	       | kind == PQ_NATIVE_FUNCTION
-	       | kind == PQ_OVERLOAD
-	       | kind == PQ_TYPE;
+	return kind & PQ_KIND_CALLABLE;
 }
 
 int pq_is_nil(pq_value *val) {

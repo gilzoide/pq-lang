@@ -18,26 +18,11 @@
  * Any bugs should be reported to <gilzoide@gmail.com>
  */
 
-/** @file core.h
- * Core functions register functions.
- */
+#include "core.h"
+#include <pq/value.h>
 
-#ifndef __PQ_CORE_H__
-#define __PQ_CORE_H__
-
-// Forward declarations
-typedef struct pq_context pq_context;
-
-/// Register value builtin functions.
-int pq_register_core_value(pq_context *ctx);
-/// Register integer types functions.
-int pq_register_core_int(pq_context *ctx);
-/// Register list type functions.
-int pq_register_core_list(pq_context *ctx);
-/// Register tuple type functions.
-int pq_register_core_tuple(pq_context *ctx);
-/// Register print function.
-int pq_register_core_print(pq_context *ctx);
-
-#endif
+int pq_register_core_tuple(pq_context *ctx) {
+    return pq_register_c_function(ctx, "tuple", &pq_value_tuple_from_values, 1, PQ_VARIADIC | PQ_EVAL_ARGS)
+        && 1;
+}
 

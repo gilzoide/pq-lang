@@ -34,6 +34,17 @@ void pq_list_fprint(pq_context *ctx, pq_list lst, FILE *output) {
 	}
 	fputc(')', output);
 }
+void pq_tuple_fprint(pq_context *ctx, pq_list lst, FILE *output) {
+	int i;
+	fputc('{', output);
+	for(i = 0; i < lst.size; i++) {
+		pq_fprint(ctx, lst.values[i], output);
+		if(i < lst.size - 1) {
+			fputc(' ', output);
+		}
+	}
+	fputc('}', output);
+}
 void pq_type_fprint(pq_context *ctx, pq_type *type, FILE *output) {
 	if(type->name) {
 		fputs(type->name, output);
@@ -89,6 +100,7 @@ void pq_c_function_fprint(pq_context *ctx, pq_c_function *func, FILE *output) {
 	}
 	if(func->header.signature) {
 		pq_type_fprint(ctx, func->header.signature, output);
+	    fputc(' ', output);
 	}
 	fprintf(output, "%p)", func->callable.function_ptr);
 }
@@ -165,6 +177,10 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 		case PQ_POINTER:
 			fprintf(output, "%p", pq_value_get_data_as(val, void *));
 			break;
+
+        case PQ_TUPLE:
+            pq_tuple_fprint(ctx, pq_value_get_data_as(val, pq_list), output);
+            break;
 
 		default:
 			fprintf(output, "[no print for type \"%s\"]", val->type->name);

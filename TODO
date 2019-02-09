@@ -1,5 +1,5 @@
 Implement
-- Pointer/reference values
+- Pointer/reference values -- chamar free
 - Struct types
 - Verify types passed to functions
 - Overloads with type kinds

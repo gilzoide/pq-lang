@@ -36,19 +36,29 @@ void pq_overload_destroy(pq_context *ctx, pq_overload *overload) {
 		JLN(pvalue, overload->variadic_function_table, index);
 	}
 	JLFA(bytes, overload->variadic_function_table);
+
+	JLF(pvalue, overload->function_table, index);
+	while(pvalue != NULL) {
+		table = (Pvoid_t)*pvalue;
+		JLFA(bytes, table);
+		JLN(pvalue, overload->function_table, index);
+	}
 	JLFA(bytes, overload->function_table);
 }
 
-static inline Word_t *_pq_overload_non_variadic_function_pointer(pq_overload *overload, pq_type *argument_types_tuple) {
+static inline Word_t *_pq_overload_non_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *signature) {
 	Word_t *pvalue;
-	JLI(pvalue, overload->function_table, (Word_t)argument_types_tuple);
+	JLI(pvalue, overload->function_table, metadata->argnum);
+	if(pvalue != PJERR) {
+		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)signature, PJE0);
+	}
 	return pvalue;
 }
-static inline Word_t *_pq_overload_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *argument_types_tuple) {
+static inline Word_t *_pq_overload_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *signature) {
 	Word_t *pvalue;
 	JLI(pvalue, overload->variadic_function_table, metadata->argnum);
 	if(pvalue != PJERR) {
-		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)argument_types_tuple, PJE0);
+		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)signature, PJE0);
 	}
 	return pvalue;
 }
@@ -61,14 +71,11 @@ pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_va
 		if(!pq_function_may_be_overloaded(metadata)) return PQ_API_ERROR(ctx, "Overloaded functions must evaluate arguments");
 		Word_t *pvalue;
 		pq_type *signature = metadata->signature;
-		pq_type *argument_types_tuple = signature == NULL
-		                                ? NULL
-		                                : pq_get_tuple_type(ctx, pq_type_get_num_arguments(signature), pq_type_get_argument_types(signature));
 		if(metadata->flags & PQ_VARIADIC) {
-			pvalue = _pq_overload_variadic_function_pointer(overload, metadata, argument_types_tuple);
+			pvalue = _pq_overload_variadic_function_pointer(overload, metadata, signature);
 		}
 		else {
-			pvalue = _pq_overload_non_variadic_function_pointer(overload, argument_types_tuple);
+			pvalue = _pq_overload_non_variadic_function_pointer(overload, metadata, signature);
 		}
 
 		if(pvalue == PJERR) {
@@ -84,11 +91,53 @@ pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_va
 	}
 }
 
+/**
+ * Calculate a score for how much `types` match the given `signature`.
+ * The bigger the value, a better match. A negative score means no match.
+ */
+static inline int _pq_signature_match_score(pq_type *signature, size_t n, pq_type **types) {
+	int i, expected_argnum = pq_type_get_num_arguments(signature);
+	pq_type **sig_types = pq_type_get_argument_types(signature);
+	PQ_ASSERT(n >= expected_argnum, "[_pq_signature_match_score] Not enough types given for matching signature");
+	PQ_ASSERT(sig_types, "[_pq_signature_match_score] NULL signature types");
+	int score = 0;
+	for(i = 0; i < expected_argnum; i++) {
+		pq_type *expected = sig_types[i], *found = types[i];
+		switch(pq_type_get_match(expected, found)) {
+			case PQ_TYPE_MATCH_EQUAL:
+				score += 3;
+				break;
+			case PQ_TYPE_MATCH_KIND:
+				score += 1;
+				break;
+			case PQ_TYPE_MATCH_NONE: 
+			default:
+				return -1;
+		}
+	}
+	return score;
+}
 static inline pq_value *_pq_overload_for_types_non_variadic(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types) {
 	Word_t *pvalue;
-	pq_type *argument_types_tuple = pq_get_tuple_type(ctx, n, types);
-	JLG(pvalue, overload->function_table, (Word_t)argument_types_tuple);
-	return pvalue == NULL ? NULL : (pq_value *)*pvalue;
+	pq_value *best_match;
+	int best_score = -1, score;
+	Pvoid_t by_argnum_table = overload->function_table, by_type_table;
+	JLG(pvalue, by_argnum_table, n);
+	if(pvalue != NULL && pvalue != PJERR ) {
+		by_type_table = (Pvoid_t)*pvalue;
+		Word_t index = 0;
+		JLF(pvalue, by_type_table, index);
+		while(pvalue != NULL) {
+			score = _pq_signature_match_score((pq_type *)index, n, types);
+			if(score > best_score) {
+				best_score = score;
+				best_match = (pq_value *)*pvalue;
+			}
+			JLN(pvalue, by_type_table, index);
+		}
+		if(best_score >= 0) return best_match;
+	}
+	return NULL;
 }
 static inline pq_value *_pq_overload_for_types_variadic(pq_context *ctx, pq_overload *overload, size_t n, pq_type **types) {
 	Word_t *pvalue;

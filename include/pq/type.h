@@ -33,34 +33,42 @@
  * Kinds of types in pq.
  */
 enum pq_type_kind {
-	PQ_INT,
-	PQ_FLOAT,
-	PQ_STRING,
+	PQ_NIL             = 0,
+	PQ_BOOL            = (1 << 0),
+	
+	PQ_INT             = (1 << 1),
+	PQ_FLOAT           = (1 << 2),
 
-	PQ_NIL,
-	PQ_BOOL,
-	PQ_LIST,
-	PQ_TYPE,
-	PQ_SCOPE,
-	PQ_SYMBOL,
-	PQ_ERROR,
+	PQ_SYMBOL          = (1 << 3),
+	PQ_STRING          = (1 << 4),
+	PQ_ERROR           = (1 << 5),
+	PQ_SCOPE           = (1 << 6),
 
-	PQ_STRUCT,
-	PQ_TUPLE,
-	PQ_ARRAY,
-	PQ_POINTER,
-	PQ_SIGNATURE,
+	PQ_LIST            = (1 << 7),
+	PQ_TUPLE           = (1 << 8),
+	PQ_STRUCT          = (1 << 9),
+	PQ_POINTER         = (1 << 10),
+	PQ_ARRAY           = (1 << 11),
+	PQ_SIGNATURE       = (1 << 12),
 
-	PQ_FUNCTION,
-	PQ_C_FUNCTION,
-	PQ_NATIVE_FUNCTION,
-	PQ_OVERLOAD,
+	PQ_FUNCTION        = (1 << 13),
+	PQ_C_FUNCTION      = (1 << 14),
+	PQ_NATIVE_FUNCTION = (1 << 15),
+	PQ_OVERLOAD        = (1 << 16),
 
-	PQ_TYPE_KIND_END,
+	PQ_TYPE            = (1 << 17),
+	PQ_TYPE_KIND       = (1 << 18),
 
-	// index reference enum values
-	PQ_TYPE_FIRST_AGGREGATE = PQ_STRUCT,
-	PQ_TYPE_LAST_AGGREGATE = PQ_SIGNATURE,
+	// Kind groups
+	PQ_KIND_SCALAR = PQ_BOOL | PQ_INT | PQ_FLOAT,
+	PQ_KIND_REPRESENTED_BY_LIST = PQ_LIST | PQ_TUPLE | PQ_STRUCT,
+	PQ_KIND_HAVE_FIELDS = PQ_TUPLE | PQ_STRUCT,
+	PQ_KIND_AGGREGATE_SINGLE_SUBTYPE = PQ_POINTER | PQ_ARRAY,
+	PQ_KIND_AGGREGATE_MULTIPLE_SUBTYPES = PQ_TUPLE | PQ_STRUCT | PQ_SIGNATURE,
+	PQ_KIND_AGGREGATE_TYPE = PQ_KIND_AGGREGATE_SINGLE_SUBTYPE | PQ_KIND_AGGREGATE_MULTIPLE_SUBTYPES,
+	PQ_KIND_CALLABLE = PQ_FUNCTION | PQ_C_FUNCTION | PQ_NATIVE_FUNCTION | PQ_OVERLOAD,
+
+	PQ_KIND_VALID = 0b1111111111111111111,
 };
 
 // Forward declarations
@@ -127,9 +135,9 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
  *
  * This will be primarily used by the pq interpreter itself.
  */
-pq_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
-                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
-                                  int metadata_size, void *metadata);
+pq_aggregate_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
+                                            pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
+                                            int metadata_size, void *metadata);
 
 /**
  * Destroy a Type.
@@ -145,6 +153,19 @@ size_t pq_type_get_value_size(pq_type *type);
  * Get the Type associated with a JIT type.
  */
 pq_type *pq_type_from_jit(jit_type_t jit_type);
+
+/**
+ * Values with how a type matches another.
+ */
+enum pq_type_match_result {
+	PQ_TYPE_MATCH_NONE,
+	PQ_TYPE_MATCH_EQUAL,
+	PQ_TYPE_MATCH_KIND,
+};
+/**
+ * Try to match `type` against `against`.
+ */
+enum pq_type_match_result pq_type_get_match(pq_type *against, pq_type *type);
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Accessing aggregate type information
@@ -186,6 +207,12 @@ int pq_type_get_num_fields(pq_type *aggregate);
  * Returns NULL if not a Tuple or Struct type.
  */
 pq_type **pq_type_get_field_types(pq_type *aggregate);
+/**
+ * Get the field offset for a Tuple or Struct type.
+ *
+ * Returns -1 if not a Tuple or Struct type.
+ */
+unsigned int pq_type_get_field_offset(pq_type *aggregate, unsigned int field_index);
 
 /**
  * Get the underlying type for an Array or Pointer type.

@@ -61,6 +61,7 @@ int pq_type_manager_initialize(pq_type_manager *type_manager) {
     type_manager->array_table = NULL;
     type_manager->tuple_table = NULL;
     type_manager->signature_table = NULL;
+    type_manager->type_kind_table = NULL;
     return pq_vector_initialize_as(&type_manager->all_types, 32, pq_type *);
 }
 
@@ -68,6 +69,7 @@ void pq_type_manager_destroy(pq_type_manager *type_manager) {
     Word_t rc_word;
     JLFA(rc_word, type_manager->pointer_table);
     JLFA(rc_word, type_manager->array_table);
+    JLFA(rc_word, type_manager->type_kind_table);
     JHSFA(rc_word, type_manager->tuple_table);
     JHSFA(rc_word, type_manager->signature_table);
 
@@ -81,6 +83,13 @@ void pq_type_manager_destroy(pq_type_manager *type_manager) {
 pq_type *pq_get_builtin_type(pq_context *ctx, enum pq_builtin_type builtin_type) {
     PQ_ASSERT(builtin_type >= PQ_TYPE_TYPE && builtin_type < PQ_BUILTIN_TYPE_MAX, "Invalid builtin type enum value");
     return *pq_vector_at(&ctx->type_manager.all_types, builtin_type, pq_type *);
+}
+
+pq_type *pq_get_type_kind_type(pq_context *ctx, enum pq_type_kind kind) {
+    PQ_ASSERT(kind == PQ_NIL || kind & PQ_KIND_VALID, "Invalid type kind enum value");
+	Word_t *pvalue;
+	JLG(pvalue, ctx->type_manager.type_kind_table, (Word_t)kind);
+	return pvalue != NULL && pvalue != PJERR ? (pq_type *)*pvalue : NULL;
 }
 
 pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind kind,
@@ -99,18 +108,18 @@ pq_type *pq_register_type(pq_context *ctx, const char *name, enum pq_type_kind k
     return new_type;
 }
 
-pq_type *pq_register_aggregate_type(pq_context *ctx, const char *name, enum pq_type_kind kind, jit_type_t jit_type,
+pq_aggregate_type *pq_register_aggregate_type(pq_context *ctx, const char *name, enum pq_type_kind kind, jit_type_t jit_type,
                                     pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
                                     int metadata_size, void *metadata) {
-    pq_type *new_type;
+    pq_aggregate_type *new_type;
     if(new_type = pq_create_aggregate_type(name, kind, jit_type, main_subtype,
                                            num_subtypes, subtypes, metadata_size, metadata)) {
         pq_type **new_type_ptr;
         if(new_type_ptr = pq_vector_push_as(&ctx->type_manager.all_types, pq_type *)) {
-            *new_type_ptr = new_type;
+            *new_type_ptr = (pq_type *)new_type;
         }
         else {
-            pq_type_destroy(new_type);
+            pq_type_destroy((pq_type *)new_type);
             return NULL;
         }
     }
@@ -144,7 +153,8 @@ pq_type *pq_get_array_type(pq_context *ctx, pq_type *elem_type) {
     if(pvalue != PJERR) {
         if(*pvalue == 0) {
             jit_type_t field_types[] = {
-                jit_type_sys_int,
+				jit_type_create_pointer(elem_type->jit_type, 1),
+                jit_type_nint,
             };
             jit_type_t array_jit_type = jit_type_create_struct(field_types, ARRAY_SIZE(field_types), 1);
             *pvalue = (Word_t)pq_register_aggregate_type(ctx, NULL, PQ_ARRAY, array_jit_type,
@@ -181,8 +191,13 @@ pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
         size_t total_size = (1 + n) * sizeof(pq_type *) + (is_variadic != 0);
         uint8_t index[total_size];
         ((pq_type **)index)[0] = return_type;
+		pq_type *arg_type;
         for(i = 0; i < n; i++) {
-            ((pq_type **)index)[i + 1] = argument_types[i];
+			if((arg_type = argument_types[i]) == NULL) {
+
+				return NULL;
+			}
+            ((pq_type **)index)[i + 1] = arg_type;
         }
         if(is_variadic) {
             index[total_size - 1] = PQ_VARIADIC;
@@ -206,5 +221,17 @@ pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
     else {
         return NULL;
     }
+}
+
+pq_type *pq_create_struct_type(pq_context *ctx, const char *name,
+                               size_t n, pq_type **field_types, pq_symbol *field_names) {
+    pq_type *tuple_type = pq_get_tuple_type(ctx, n, field_types);
+    if(tuple_type) {
+        pq_aggregate_type *struct_type = pq_register_aggregate_type(ctx, name, PQ_STRUCT, tuple_type->jit_type,
+                                                                    tuple_type, 0, NULL, n * sizeof(pq_symbol), field_types);
+        /* pq_register_c_function */
+        return (pq_type *)struct_type;
+    }
+    else return NULL;
 }
 

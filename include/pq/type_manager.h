@@ -26,6 +26,7 @@
 #define __PQ_TYPE_MANAGER_H__
 
 #include "type.h"
+#include "symbol.h"
 #include "utils.h"
 
 #include <Judy.h>
@@ -85,6 +86,9 @@ typedef struct pq_type_manager {
 	Pvoid_t tuple_table;
 	/// Argument types + return type + is_variadic -> Function signature type table.
 	Pvoid_t signature_table;
+
+	/// Type Kind -> Type table.
+	Pvoid_t type_kind_table;
 } pq_type_manager;
 
 /**
@@ -144,6 +148,10 @@ extern const char * const pq_builtin_type_names[];
  * Get a builtin type.
  */
 pq_type *pq_get_builtin_type(pq_context *ctx, enum pq_builtin_type builtin_type);
+/**
+ * Get the Type object associated with the provided Type Kind.
+ */
+pq_type *pq_get_type_kind_type(pq_context *ctx, enum pq_type_kind kind);
 
 /**
  * Register a new Type in the Context.
@@ -181,6 +189,15 @@ pq_type *pq_get_array_type(pq_context *ctx, pq_type *elem_type);
  */
 pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
                                size_t n, pq_type **argument_types, uint8_t is_variadic);
+
+/**
+ * Creates a new struct type with named fields.
+ *
+ * Structs are associated with the tuple type containing the field types, so
+ * creating several structs with the same layout don't cost extra memory.
+ */
+pq_type *pq_create_struct_type(pq_context *ctx, const char *name,
+                               size_t n, pq_type **field_types, pq_symbol *field_names);
 
 #endif
 

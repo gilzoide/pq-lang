@@ -106,6 +106,9 @@ pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *si
 pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags);
 pq_value *pq_value_from_overload(pq_context *ctx, pq_overload overload);
 
+pq_value *pq_value_tuple_from_values(pq_context *ctx, int size, pq_value **values);
+pq_value *pq_value_tuple_from_list(pq_context *ctx, pq_list lst);
+
 // Value native getters
 int pq_value_as_bool(pq_value *val);
 intmax_t pq_value_as_int(pq_value *val);
@@ -115,7 +118,9 @@ pq_symbol pq_value_as_symbol(pq_value *val);
 pq_list pq_value_as_list(pq_value *val);
 
 /// Create a new Value with uninitialised memory with the specified Type.
-pq_value *pq_new_variable(pq_context *ctx, pq_type *type);
+pq_value *pq_new_uninitialized_value(pq_context *ctx, pq_type *type);
+/// Create a new Value with memory initialised from a source pointer with the specified Type.
+pq_value *pq_new_initialized_value(pq_context *ctx, pq_type *type, void *src);
 
 // Value type checks
 
