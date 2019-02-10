@@ -240,6 +240,7 @@ int pq_register_builtin_functions(pq_context *ctx) {
         && pq_register_c_function(ctx, "lambda", &_lambda, 2, PQ_VARIADIC)
         && pq_register_c_function(ctx, "macro", &_macro, 2, PQ_VARIADIC)
         && pq_register_core_value(ctx)
+        && pq_register_core_type(ctx)
         && pq_register_core_int(ctx)
         && pq_register_core_list(ctx)
         && pq_register_core_print(ctx);

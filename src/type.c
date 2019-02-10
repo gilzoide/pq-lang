@@ -30,7 +30,7 @@
 #define PQ_TYPE_METADATA_TAG_KIND 1
 
 pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
-                         jit_type_t jit_type, pq_destructor value_destructor) {
+                        jit_type_t jit_type, pq_destructor value_destructor) {
     PQ_ASSERT(kind == PQ_NIL || kind & PQ_KIND_VALID, "Invalid type kind enum value");
     pq_type *new_type;
     if(new_type = malloc(sizeof(pq_type))) {
@@ -43,8 +43,8 @@ pq_type *pq_create_type(const char *name, enum pq_type_kind kind,
 }
 
 pq_aggregate_type *pq_create_aggregate_type(const char *name, enum pq_type_kind kind, jit_type_t jit_type,
-                                  pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
-                                  int metadata_size, void *metadata) {
+                                            pq_type *main_subtype, unsigned int num_subtypes, pq_type **subtypes,
+                                            int metadata_size, void *metadata) {
     PQ_ASSERT(kind & PQ_KIND_AGGREGATE_TYPE, "Invalid type kind enum value for aggregate type");
     pq_aggregate_type *new_aggregate_type;
     if(new_aggregate_type = malloc(sizeof(pq_aggregate_type) + (num_subtypes * sizeof(pq_type *)) + metadata_size)) {

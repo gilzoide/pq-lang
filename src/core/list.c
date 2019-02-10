@@ -28,7 +28,7 @@ static pq_value *_pq_list_at(pq_context *ctx, int argc, pq_value **argv) {
 	pq_list lst = pq_value_get_data_as(argv[0], pq_list);
 	int index = pq_value_as_int(argv[1]);
 	pq_value *result = pq_list_value_at(lst, index);
-	return result ? result : pq_value_ferror(ctx, "List index %d out of bounds for list of size %d", index, lst.size);
+	return result ? result : pq_value_ferror(ctx, "Index %d out of bounds for list of size %d", index, lst.size);
 }
 
 static pq_value *_pq_list_size(pq_context *ctx, int argc, pq_value **argv) {

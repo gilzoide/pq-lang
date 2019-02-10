@@ -70,6 +70,7 @@ typedef struct pq_function {
  * Registers a pq Function into pq Context.
  */
 pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list args, pq_list code, enum pq_function_flags flags);
+pq_value *pq_register_function_symbol(pq_context *ctx, pq_symbol sym, pq_list args, pq_list code, enum pq_function_flags flags);
 
 /// C Function prototype.
 typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value **argv);
@@ -90,8 +91,11 @@ typedef struct pq_c_function {
  * Registers a C Function into pq Context.
  */
 pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_register_c_function_symbol(pq_context *ctx, pq_symbol sym, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags);
 pq_value *pq_register_typed_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, pq_type *return_type, uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags);
+pq_value *pq_register_typed_c_function_symbol(pq_context *ctx, pq_symbol sym, pq_c_function_ptr func, pq_type *return_type, uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags);
 pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags);
+pq_value *pq_register_compiler_macro_symbol(pq_context *ctx, pq_symbol sym, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags);
 
 
 /**
@@ -105,6 +109,7 @@ typedef struct pq_native_function {
  * Registers a Native function into pq Context.
  */
 pq_value *pq_register_native_function(pq_context *ctx, const char *name, void *fptr, pq_type *signature);
+pq_value *pq_register_native_function_symbol(pq_context *ctx, pq_symbol sym, void *fptr, pq_type *signature);
 
 
 /**

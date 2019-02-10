@@ -30,6 +30,8 @@ typedef struct pq_context pq_context;
 
 /// Register value builtin functions.
 int pq_register_core_value(pq_context *ctx);
+/// Register type builtin functions.
+int pq_register_core_type(pq_context *ctx);
 /// Register integer types functions.
 int pq_register_core_int(pq_context *ctx);
 /// Register list type functions.

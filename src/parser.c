@@ -185,7 +185,7 @@ int pq_parser_initialize(pq_parser *parser) {
 }
 #include <pega-texto/macro-off.h>
 
-pq_value *pq_read(pq_context *ctx, const char *str) {
+pq_value *pq_read(pq_context *ctx, const char *str, int *num_read_chars) {
     pq_parser *parser = &ctx->parser;
     parser->last_error = NULL;
     parser->last_error_line = 0;
@@ -196,10 +196,13 @@ pq_value *pq_read(pq_context *ctx, const char *str) {
     pt_match_result res = pt_match_grammar(parser->grammar, str, &opts);
 
     switch(res.matched) {
+        case PT_NO_MATCH:
         case PT_MATCHED_ERROR:
+            if(num_read_chars) *num_read_chars = 0;
             return pq_value_error(ctx, "Parser error!");
 
         default:
+            if(num_read_chars) *num_read_chars = res.matched;
             return res.data.p ? res.data.p : pq_value_nil(ctx);
     }
 }

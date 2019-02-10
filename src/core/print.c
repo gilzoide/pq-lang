@@ -135,7 +135,7 @@ void pq_fprint(pq_context *ctx, pq_value *val, FILE *output) {
 			break;
 
 		case PQ_STRING:
-			fprintf(output, "\"%s\"", pq_value_get_data_as(val, char *));
+			fprintf(output, "%s", pq_value_get_data_as(val, char *));
 			break;
 
 		case PQ_NIL:

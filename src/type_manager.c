@@ -194,7 +194,6 @@ pq_type *pq_get_signature_type(pq_context *ctx, pq_type *return_type,
 		pq_type *arg_type;
         for(i = 0; i < n; i++) {
 			if((arg_type = argument_types[i]) == NULL) {
-
 				return NULL;
 			}
             ((pq_type **)index)[i + 1] = arg_type;

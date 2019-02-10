@@ -23,41 +23,61 @@
 #include <pq/context.h>
 
 pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list args, pq_list code, enum pq_function_flags flags) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, name);
+	return pq_register_function_symbol(ctx, symbol, args, code, flags);
+}
+pq_value *pq_register_function_symbol(pq_context *ctx, pq_symbol sym, pq_list args, pq_list code, enum pq_function_flags flags) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_code(ctx, args, code, flags)) {
-		pq_context_set_function(ctx, name, func_val);
+		pq_context_set_function_symbol(ctx, sym, func_val);
 	}
 	return func_val;
 }
 
 pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, name);
+	return pq_register_c_function_symbol(ctx, symbol, func, argnum, flags);
+}
+pq_value *pq_register_c_function_symbol(pq_context *ctx, pq_symbol sym, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_c_function(ctx, func, argnum, flags)) {
-		pq_context_set_function(ctx, name, func_val);
+		pq_context_set_function_symbol(ctx, sym, func_val);
 	}
 	return func_val;
 }
 
 pq_value *pq_register_typed_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, pq_type *return_type, uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, name);
+	return pq_register_typed_c_function_symbol(ctx, symbol, func, return_type, argnum, argtypes, flags);
+}
+pq_value *pq_register_typed_c_function_symbol(pq_context *ctx, pq_symbol sym, pq_c_function_ptr func, pq_type *return_type, uint8_t argnum, pq_type **argtypes, enum pq_function_flags flags) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_typed_c_function(ctx, func, return_type, argnum, argtypes, flags)) {
-		pq_context_set_function(ctx, name, func_val);
+		pq_context_set_function_symbol(ctx, sym, func_val);
 	}
 	return func_val;
 }
 
 pq_value *pq_register_native_function(pq_context *ctx, const char *name, void *fptr, pq_type *signature) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, name);
+	return pq_register_native_function_symbol(ctx, symbol, fptr, signature);
+}
+pq_value *pq_register_native_function_symbol(pq_context *ctx, pq_symbol sym, void *fptr, pq_type *signature) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_native_function(ctx, fptr, signature)) {
-		pq_context_set_function(ctx, name, func_val);
+		pq_context_set_function_symbol(ctx, sym, func_val);
 	}
 	return func_val;
 }
 
 pq_value *pq_register_compiler_macro(pq_context *ctx, const char *name, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, name);
+	return pq_register_compiler_macro_symbol(ctx, symbol, macro, argnum, flags);
+}
+pq_value *pq_register_compiler_macro_symbol(pq_context *ctx, pq_symbol sym, pq_compiler_macro_ptr macro, uint8_t argnum, enum pq_function_flags flags) {
 	pq_value *func_val;
 	if(func_val = pq_value_from_compiler_macro(ctx, macro, argnum, flags)) {
-		pq_context_set_function(ctx, name, func_val);
+		pq_context_set_function_symbol(ctx, sym, func_val);
 	}
 	return func_val;
 }

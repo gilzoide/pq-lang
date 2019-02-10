@@ -494,3 +494,8 @@ int pq_is_pointer(pq_value *val) {
 	return kind == PQ_POINTER;
 }
 
+int pq_is_type(pq_value *val) {
+	int kind = val->type->kind;
+	return kind == PQ_TYPE;
+}
+

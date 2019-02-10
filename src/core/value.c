@@ -89,7 +89,6 @@ static pq_value *_set(pq_context *ctx, int argc, pq_value **argv) {
 int pq_register_core_value(pq_context *ctx) {
 	return pq_register_c_function(ctx, "let", &_let, 2, 0)
 	       && pq_register_c_function(ctx, "ref", &_ref, 1, 0)
-	       && pq_register_c_function(ctx, "set", &_set, 2, 0)
-	       && pq_register_c_function(ctx, "tuple", &pq_value_tuple_from_values, 1, PQ_EVAL_ARGS | PQ_VARIADIC);
+	       && pq_register_c_function(ctx, "set", &_set, 2, 0);
 }
 

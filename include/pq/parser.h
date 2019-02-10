@@ -53,7 +53,7 @@ void pq_parser_destroy(pq_parser *parser);
 /**
  * Read an expression, returning the parsed Value.
  */
-pq_value *pq_read(pq_context *ctx, const char *str);
+pq_value *pq_read(pq_context *ctx, const char *str, int *num_read_chars);
 
 #endif
 

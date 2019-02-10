@@ -136,6 +136,7 @@ int pq_is_symbol(pq_value *val);
 int pq_is_string(pq_value *val);
 int pq_is_list(pq_value *val);
 int pq_is_pointer(pq_value *val);
+int pq_is_type(pq_value *val);
 
 // General operations
 void pq_fprint(pq_context *ctx, pq_value *val, FILE *output);

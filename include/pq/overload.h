@@ -90,6 +90,7 @@ int pq_overload_number_of_functions(pq_overload *overload);
 typedef struct pq_overload_iterator {
 	Word_t signature_index;
 	Word_t argnum_index;
+	int iterating_non_variadic : 1;
 } pq_overload_iterator;
 
 /**

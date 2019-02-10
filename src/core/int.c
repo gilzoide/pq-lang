@@ -45,13 +45,10 @@ static pq_value *_int_minus(pq_context *ctx, int argc, pq_value **argv) {
 int pq_register_core_int(pq_context *ctx) {
 	pq_type *ret_type, *arg_types[1];
     pq_type *int_type_kind = pq_get_type_kind_type(ctx, PQ_INT);
-	int i, result = 1;
 
     ret_type = pq_get_builtin_type(ctx, PQ_TYPE_I64);
     arg_types[0] = int_type_kind;
-    result = pq_register_typed_c_function(ctx, "+", &_int_plus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL
-             && pq_register_typed_c_function(ctx, "-", &_int_minus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL;
-
-	return result;
+    return pq_register_typed_c_function(ctx, "+", &_int_plus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL
+        && pq_register_typed_c_function(ctx, "-", &_int_minus, ret_type, 1, arg_types, PQ_EVAL_ARGS | PQ_VARIADIC) != NULL;
 }
 

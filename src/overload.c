@@ -27,8 +27,9 @@ pq_overload pq_empty_overload(pq_context *ctx) {
 }
 
 void pq_overload_destroy(pq_context *ctx, pq_overload *overload) {
-	Word_t bytes, index = 0, *pvalue;
+	Word_t bytes, index, *pvalue;
 	Pvoid_t table;
+	index = 0;
 	JLF(pvalue, overload->variadic_function_table, index);
 	while(pvalue != NULL) {
 		table = (Pvoid_t)*pvalue;
@@ -37,6 +38,7 @@ void pq_overload_destroy(pq_context *ctx, pq_overload *overload) {
 	}
 	JLFA(bytes, overload->variadic_function_table);
 
+	index = 0;
 	JLF(pvalue, overload->function_table, index);
 	while(pvalue != NULL) {
 		table = (Pvoid_t)*pvalue;
@@ -46,19 +48,19 @@ void pq_overload_destroy(pq_context *ctx, pq_overload *overload) {
 	JLFA(bytes, overload->function_table);
 }
 
-static inline Word_t *_pq_overload_non_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *signature) {
+static inline Word_t *_pq_overload_non_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *arguments_tuple_type) {
 	Word_t *pvalue;
 	JLI(pvalue, overload->function_table, metadata->argnum);
 	if(pvalue != PJERR) {
-		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)signature, PJE0);
+		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)arguments_tuple_type, PJE0);
 	}
 	return pvalue;
 }
-static inline Word_t *_pq_overload_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *signature) {
+static inline Word_t *_pq_overload_variadic_function_pointer(pq_overload *overload, pq_function_metadata *metadata, pq_type *arguments_tuple_type) {
 	Word_t *pvalue;
 	JLI(pvalue, overload->variadic_function_table, metadata->argnum);
 	if(pvalue != PJERR) {
-		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)signature, PJE0);
+		pvalue = (Word_t *)JudyLIns((PPvoid_t)pvalue, (Word_t)arguments_tuple_type, PJE0);
 	}
 	return pvalue;
 }
@@ -71,11 +73,14 @@ pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_va
 		if(!pq_function_may_be_overloaded(metadata)) return PQ_API_ERROR(ctx, "Overloaded functions must evaluate arguments");
 		Word_t *pvalue;
 		pq_type *signature = metadata->signature;
+		pq_type *argument_types_tuple = signature == NULL
+                                        ? NULL
+                                        : pq_get_tuple_type(ctx, pq_type_get_num_arguments(signature), pq_type_get_argument_types(signature));
 		if(metadata->flags & PQ_VARIADIC) {
-			pvalue = _pq_overload_variadic_function_pointer(overload, metadata, signature);
+			pvalue = _pq_overload_variadic_function_pointer(overload, metadata, argument_types_tuple);
 		}
 		else {
-			pvalue = _pq_overload_non_variadic_function_pointer(overload, metadata, signature);
+			pvalue = _pq_overload_non_variadic_function_pointer(overload, metadata, argument_types_tuple);
 		}
 
 		if(pvalue == PJERR) {
@@ -92,17 +97,17 @@ pq_value *pq_overload_add_function(pq_context *ctx, pq_overload *overload, pq_va
 }
 
 /**
- * Calculate a score for how much `types` match the given `signature`.
+ * Calculate a score for how much `types` match the expected argument types.
  * The bigger the value, a better match. A negative score means no match.
  */
-static inline int _pq_signature_match_score(pq_type *signature, size_t n, pq_type **types) {
-	int i, expected_argnum = pq_type_get_num_arguments(signature);
-	pq_type **sig_types = pq_type_get_argument_types(signature);
+static inline int _pq_signature_match_score(pq_type *argument_types_tuple, size_t n, pq_type **types) {
+	int i, expected_argnum = pq_type_get_num_fields(argument_types_tuple);
+	pq_type **expected_types = pq_type_get_field_types(argument_types_tuple);
 	PQ_ASSERT(n >= expected_argnum, "[_pq_signature_match_score] Not enough types given for matching signature");
-	PQ_ASSERT(sig_types, "[_pq_signature_match_score] NULL signature types");
+	PQ_ASSERT(expected_types, "[_pq_signature_match_score] NULL signature types");
 	int score = 0;
 	for(i = 0; i < expected_argnum; i++) {
-		pq_type *expected = sig_types[i], *found = types[i];
+		pq_type *expected = expected_types[i], *found = types[i];
 		switch(pq_type_get_match(expected, found)) {
 			case PQ_TYPE_MATCH_EQUAL:
 				score += 3;
@@ -193,31 +198,36 @@ int pq_overload_number_of_functions(pq_overload *overload) {
 pq_overload_iterator pq_overload_new_iterator(const pq_overload *overload) {
 	return (pq_overload_iterator) {
 		.signature_index = -1,
-		.argnum_index = -1,
+		.argnum_index = 0,
+		.iterating_non_variadic = 1,
 	};
 }
 
 static Pvoid_t _pq_overload_next_lookup_table(const pq_overload *overload, pq_overload_iterator *it) {
+	Pvoid_t table = it->iterating_non_variadic ? overload->function_table : overload->variadic_function_table;
 	Word_t *pvalue;
 	if(it->argnum_index == -1) {
 		it->argnum_index = 0;
-		JLF(pvalue, overload->variadic_function_table, it->argnum_index);
+		JLF(pvalue, table, it->argnum_index);
 	}
 	else {
-		JLN(pvalue, overload->variadic_function_table, it->argnum_index);
+		JLN(pvalue, table, it->argnum_index);
 	}
 	it->signature_index = -1;
-	return pvalue ? (Pvoid_t)*pvalue : NULL;
+
+	if(pvalue) return (Pvoid_t)*pvalue;
+	else if(it->iterating_non_variadic) {
+		it->iterating_non_variadic = 0;
+		it->argnum_index = -1;
+		return _pq_overload_next_lookup_table(overload, it);
+	}
+	else return NULL;
 }
 static Pvoid_t _pq_overload_current_lookup_table(const pq_overload *overload, const pq_overload_iterator *it) {
-	if(it->argnum_index == -1) {
-		return overload->function_table;
-	}
-	else {
-		Word_t *pvalue;
-		JLG(pvalue, overload->variadic_function_table, it->argnum_index);
-		return pvalue ? (Pvoid_t)*pvalue : NULL;
-	}
+	Pvoid_t table = it->iterating_non_variadic ? overload->function_table : overload->variadic_function_table;
+	Word_t *pvalue;
+	JLG(pvalue, table, it->argnum_index);
+	return pvalue ? (Pvoid_t)*pvalue : NULL;
 }
 pq_value *pq_overload_next_function(const pq_overload *overload, pq_overload_iterator *it) {
 	Word_t *pvalue;
@@ -232,7 +242,7 @@ pq_value *pq_overload_next_function(const pq_overload *overload, pq_overload_ite
 			JLN(pvalue, table, it->signature_index);
 		}
 		if(pvalue) {
-			return (pq_value*)*pvalue;
+			return (pq_value *)*pvalue;
 		}
 		else {
 			table = _pq_overload_next_lookup_table(overload, it);
