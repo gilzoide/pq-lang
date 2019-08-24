@@ -158,7 +158,7 @@ static pt_data character(const char *str, size_t start, size_t end, int argc, pt
  * Int <- Sign Digits
  * Float <- Sign (FloatDot FloatExp? / \d+ FloatExp)
  * FloatDot <- \d* "." Digits
- * FloatExp <- [eE] Signal Digits
+ * FloatExp <- [eE] Sign Digits
  *
  * String <- '"' (!'"' Character)* '"'
  * Character <- "\" [abfnrtv'"[]\]
