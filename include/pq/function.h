@@ -71,6 +71,8 @@ typedef struct pq_function {
  */
 pq_value *pq_register_function(pq_context *ctx, const char *name, pq_list args, pq_list code, enum pq_function_flags flags);
 pq_value *pq_register_function_symbol(pq_context *ctx, pq_symbol sym, pq_list args, pq_list code, enum pq_function_flags flags);
+pq_value *pq_register_typed_function(pq_context *ctx, const char *name, pq_list args, pq_list code, pq_type *return_type, pq_type **argtypes, enum pq_function_flags flags);
+pq_value *pq_register_typed_function_symbol(pq_context *ctx, pq_symbol sym, pq_list args, pq_list code, pq_type *return_type, pq_type **argtypes, enum pq_function_flags flags);
 
 /// C Function prototype.
 typedef pq_value *(*pq_c_function_ptr)(pq_context *ctx, int argc, pq_value **argv);

@@ -296,18 +296,23 @@ pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *si
 }
 
 pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags) {
+	return pq_value_from_typed_code(ctx, args, code, NULL, NULL, flags);
+}
+
+pq_value *pq_value_from_typed_code(pq_context *ctx, pq_list args, pq_list code, pq_type *return_type, pq_type **argtypes, enum pq_function_flags flags) {
 	pq_value *val;
 	int i;
 	for(i = 0; i < args.size; i++) {
 		pq_assert_arg_type(ctx, args.values, i, symbol);
 	}
 	int is_variadic = args.size && pq_value_as_symbol(pq_list_value_at(args, -1)) == pq_symbol_from_string(ctx, "...");
+	int argnum = args.size - is_variadic;
 	if(val = pq_new_value(ctx, pq_function)) {
 		val->type = ctx->type_manager._function;
 		pq_function *func = pq_value_get_data(val);
-		func->header.signature = NULL;
+		func->header.signature = (return_type && (argnum == 0 || argtypes)) ? pq_get_signature_type(ctx, return_type, argnum, argtypes, is_variadic) : NULL;
 		func->header.symbol = PQ_SYMBOL_NIL;
-		func->header.argnum = args.size - is_variadic;
+		func->header.argnum = argnum;
 		func->header.flags = flags | (is_variadic * PQ_VARIADIC);
 		func->args = args;
 		func->code = code;

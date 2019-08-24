@@ -104,6 +104,7 @@ pq_value *pq_value_from_typed_c_function(pq_context *ctx, pq_c_function_ptr fptr
 pq_value *pq_value_from_compiler_macro(pq_context *ctx, pq_compiler_macro_ptr macro_ptr, uint8_t argnum, enum pq_function_flags flags);
 pq_value *pq_value_from_native_function(pq_context *ctx, void *fptr, pq_type *signature);
 pq_value *pq_value_from_code(pq_context *ctx, pq_list args, pq_list code, enum pq_function_flags flags);
+pq_value *pq_value_from_typed_code(pq_context *ctx, pq_list args, pq_list code, pq_type *return_type, pq_type **argtypes, enum pq_function_flags flags);
 pq_value *pq_value_from_overload(pq_context *ctx, pq_overload overload);
 
 pq_value *pq_value_tuple_from_values(pq_context *ctx, int size, pq_value **values);

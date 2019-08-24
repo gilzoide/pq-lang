@@ -34,6 +34,18 @@ pq_value *pq_register_function_symbol(pq_context *ctx, pq_symbol sym, pq_list ar
 	return func_val;
 }
 
+pq_value *pq_register_typed_function(pq_context *ctx, const char *name, pq_list args, pq_list code, pq_type *return_type, pq_type **argtypes, enum pq_function_flags flags) {
+	pq_symbol symbol = pq_symbol_from_string(ctx, name);
+	return pq_register_typed_function_symbol(ctx, symbol, args, code, return_type, argtypes, flags);
+}
+pq_value *pq_register_typed_function_symbol(pq_context *ctx, pq_symbol sym, pq_list args, pq_list code, pq_type *return_type, pq_type **argtypes, enum pq_function_flags flags) {
+	pq_value *func_val;
+	if(func_val = pq_value_from_typed_code(ctx, args, code, return_type, argtypes, flags)) {
+		pq_context_set_function_symbol(ctx, sym, func_val);
+	}
+	return func_val;
+}
+
 pq_value *pq_register_c_function(pq_context *ctx, const char *name, pq_c_function_ptr func, uint8_t argnum, enum pq_function_flags flags) {
 	pq_symbol symbol = pq_symbol_from_string(ctx, name);
 	return pq_register_c_function_symbol(ctx, symbol, func, argnum, flags);

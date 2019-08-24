@@ -34,6 +34,10 @@ static pq_value *_pq_type_size(pq_context *ctx, int argc, pq_value **argv) {
     return pq_value_from_i64(ctx, pq_type_get_value_size(type));
 }
 
+/* static pq_value *_pq_type_create_struct(pq_context *ctx, int argc, pq_value **argv) { */
+/*  */
+/* } */
+
 int pq_register_core_type(pq_context *ctx) {
     pq_type *i64_type = pq_get_builtin_type(ctx, PQ_TYPE_I64);
     pq_type *type_types = pq_get_type_kind_type(ctx, PQ_TYPE);

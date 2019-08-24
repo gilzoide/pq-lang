@@ -60,15 +60,15 @@ static inline int min_int(int a, int b) {
  */
 typedef struct pq_vector {
 	void *arr;
-	size_t size;
-	size_t capacity;
+	int size;
+	int capacity;
 } pq_vector;
 
 #define PQ_POINTER_VECTOR_GROWTH_RATE 1.5
 
 #define pq_vector_(c_type) pq_vector
 
-int pq_vector_initialize(pq_vector *vec, size_t initial_capacity, size_t member_size);
+int pq_vector_initialize(pq_vector *vec, int initial_capacity, size_t member_size);
 #define pq_vector_initialize_as(vec, initial_capacity, type) \
 	(pq_vector_initialize(vec, initial_capacity, sizeof(type)))
 

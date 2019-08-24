@@ -30,12 +30,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 enum pq_parser_error {
     PQ_PARSER_EXPECTED_PARENTHESIS = 0,
+    PQ_PARSER_EXPECTED_BRACES,
     PQ_PARSER_EXPECTED_DOUBLE_QUOTE,
 
     PQ_PARSER_MAX,
 };
 const char *pq_parser_error_messages[] = {
     "Expected closing ')'",
+    "Expected closing '}'",
     "Expected closing '\"'",
 
     "Unknown error",
@@ -82,6 +84,11 @@ static pt_data read_list(const char *str, size_t start, size_t end, int argc, pt
         list.values[i] = argv[i].p;
     }
     return (pt_data){ .p = pq_value_from_list(ctx, list) };
+}
+
+static pt_data read_line(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
+	if(argc == 1) return (pt_data){ .p = argv[0].p };
+	else return read_list(str, start, end, argc, argv, data);
 }
 
 pt_data read_string(const char *str, size_t start, size_t end, int argc, pt_data *argv, void *data) {
@@ -135,11 +142,16 @@ static pt_data character(const char *str, size_t start, size_t end, int argc, pt
 /* PQ Expression Grammar
  * =====================
  *
- * Axiom <- Sp (!. / Expr)
- * Expr <- SExpr / Atom
+ * Axiom <- Sp (!. / Line)
+ *
+ * Line  <- (Expr SpLine)+
+ * Expr <- Block / SExpr / Atom
+ *
+ * Block <- "{" Sp (Line Sp)* "}"
  * SExpr <- "(" Sp (Expr Sp)* ")"
- * Atom <- Float / Int / Symbol
- * Symbol <- [^();\s]+
+ *
+ * Atom <- Float / Int / String / Symbol
+ * Symbol <- [^(){};\s]+
  *
  * Digits <- \d+
  * Sign <- [+-]?
@@ -148,17 +160,29 @@ static pt_data character(const char *str, size_t start, size_t end, int argc, pt
  * FloatDot <- \d* "." Digits
  * FloatExp <- [eE] Signal Digits
  *
+ * String <- '"' (!'"' Character)* '"'
+ * Character <- "\" [abfnrtv'"[]\]
+ *            / "\" [0-2] [0-7] [0-7]
+ *            / "\" [0-7] [0-7]?
+ *            / .
+ *
  * Comment <- ";" [^\n]*
- * Sp <- (\s / Comment)*
+ * Space <- \s / Comment
+ * Sp <- Space*
+ * SpLine <- (!"\n" Space)*
  */
 #include <pega-texto/macro-on.h>
 int pq_parser_initialize(pq_parser *parser) {
     pt_rule rules[] = {
-        { "Axiom", SEQ(V("Sp"), OR(NOT(ANY), V("Expr"))) },
-        { "Expr", OR(V("SExpr"), V("Atom")) },
+        { "Axiom", SEQ(V("Sp"), OR(NOT(ANY), V("Line"))) },
+		{ "Line", SEQ_(&read_line, Q(SEQ(V("Expr"), V("SpLine")), 1)) },
+        { "Expr", OR(/*V("Block"),*/ V("SExpr"), V("Atom")) },
+
+        { "Block", SEQ_(&read_line, L("{"), V("Sp"), Q(SEQ(V("Line"), V("Sp")), 0), OR(L("}"), E(PQ_PARSER_EXPECTED_BRACES, NULL))) },
         { "SExpr", SEQ_(&read_list, L("("), V("Sp"), Q(SEQ(V("Expr"), V("Sp")), 0), OR(L(")"), E(PQ_PARSER_EXPECTED_PARENTHESIS, NULL))) },
+
         { "Atom", OR(V("Float"), V("Int"), V("String"), V("Symbol")) },
-        { "Symbol", Q_(&read_symbol, BUT(OR(S("();"), C(isspace))), 1) },
+        { "Symbol", Q_(&read_symbol, BUT(OR(S("(){};"), C(isspace))), 1) },
         // numbers
         { "Digits", Q(C(isdigit), 1) },
         { "Sign", Q(S("+-"), 0) },
@@ -176,7 +200,9 @@ int pq_parser_initialize(pq_parser *parser) {
                            ANY) },
         // skip
         { "Comment", SEQ(L(";"), Q(BUT(L("\n")), 0)) },
-        { "Sp", Q(OR(C(isspace), V("Comment")), 0) },
+		{ "Space", OR(C(isspace), V("Comment")), },
+        { "Sp", Q(V("Space"), 0) },
+        { "SpLine", Q(SEQ(NOT(L("\n")), V("Space")), 0) },
         { NULL, NULL },
     };
     parser->grammar = pt_create_grammar(rules, 0);

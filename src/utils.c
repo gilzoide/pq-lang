@@ -21,7 +21,7 @@
 #include <pq/utils.h>
 
 
-int pq_vector_initialize(pq_vector *vec, size_t initial_capacity, size_t member_size) {
+int pq_vector_initialize(pq_vector *vec, int initial_capacity, size_t member_size) {
 	vec->size = 0;
 	if(vec->arr = malloc(initial_capacity * member_size)) {
 		vec->capacity = initial_capacity;

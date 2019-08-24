@@ -228,7 +228,18 @@ pq_type *pq_create_struct_type(pq_context *ctx, const char *name,
     if(tuple_type) {
         pq_aggregate_type *struct_type = pq_register_aggregate_type(ctx, name, PQ_STRUCT, tuple_type->jit_type,
                                                                     tuple_type, 0, NULL, n * sizeof(pq_symbol), field_types);
-        /* pq_register_c_function */
+		pq_value *at_symbol = pq_value_from_symbol(ctx, pq_symbol_from_string(ctx, "at"));
+		pq_value *obj_symbol = pq_value_from_symbol(ctx, pq_symbol_from_string(ctx, "obj"));
+		pq_list arglist = pq_new_list_with_size(ctx, 1);
+		arglist.values[0] = obj_symbol;
+		int i;
+		for(i = 0; i < n; i++) {
+			pq_list code = pq_new_list_with_size(ctx, 3);
+			code.values[0] = at_symbol;
+			code.values[1] = obj_symbol;
+			code.values[2] = pq_value_from_i32(ctx, i);
+			pq_register_typed_function_symbol(ctx, field_names[i], arglist, code, field_types[i], (pq_type *[]){ (pq_type *)struct_type }, PQ_EVAL_ARGS);
+		}
         return (pq_type *)struct_type;
     }
     else return NULL;

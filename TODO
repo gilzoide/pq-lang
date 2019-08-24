@@ -1,8 +1,8 @@
 Implement
 - Pointer/reference values -- chamar free
 - Struct types
-- Verify types passed to functions
-- Overloads with type kinds
++ Verify types passed to functions
++ Overloads with type kinds
 - File type
 - Environment variables
 - Module scopes and `import`
