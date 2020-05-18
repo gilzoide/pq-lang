@@ -1,38 +1,30 @@
-local lpeg = require 'lpeglabel'
-local re = require 'relabel'
+local Parser = {}
+Parser.__index = Parser
 
-local parser = re.compile([=[
-Axiom <- Sp (!. / Line)
+function Parser.new()
+    return setmetatable({
 
-Line  <- {| (Expr SpLine)+ |}
-Expr <- Block / SExpr / Atom
+    }, Parser)
+end
 
-Block <- "{" Sp (Line Sp)* "}"
-SExpr <- "(" Sp (Expr Sp)* ")"
+function Parser:parse(text)
+    local code = {}
+    local start = 1
+    local last = 1
 
-Atom <- { Float / Int / String / Symbol }
-Symbol <- [^(){};%s]+
+    for i = 1, #text + 1 do
+        local char = string.sub(text, i, i)
+        if char == '' or string.match(char, "[ \t]") then
+            local token = string.sub(text, start, i - 1)
+            if #token > 0 then
+                table.insert(code, token)
+            end
+            start = i + 1
+        end
+    end
 
-Digits <- %d+
-Sign <- [+-]?
-Int <- (Sign Digits) -> tonumber
-Float <- (Sign (FloatDot FloatExp? / %d+ FloatExp)) -> tonumber
-FloatDot <- %d* "." Digits
-FloatExp <- [eE] Sign Digits
+    return code
+end
 
-String <- '"' (!'"' Character)* '"'
-Character <- "\" [abfnrtv'"]
-           / "\" [0-2] [0-7] [0-7]
-           / "\" [0-7] [0-7]?
-           / .
-
-Comment <- ";" [^%nl]*
-Space <- %s / Comment
-Sp <- Space*
-SpLine <- (!%nl Space)*
-]=], {
-	tonumber = tonumber,
-})
-
-return parser
+return Parser
 

@@ -1,11 +1,11 @@
 local utils = require 'utils'
-local parser = require 'parser'
+local Parser = require 'parser'
 
 local Context = {}
 Context.__index = Context
 
 function Context:parse(text)
-	return parser:match(text)
+	return self.parser:parse(text)
 end
 
 function Context:get(key)
@@ -47,5 +47,6 @@ return function()
 	return setmetatable({
 		scopes = { {} },
 		env = {},
+        parser = Parser.new(),
 	}, Context)
 end
