@@ -27,20 +27,29 @@ function AtomRuleBetween.new(prefix, suffix, escape)
 end
 
 function AtomRuleBetween:read(text)
-    local prefix_length = #self.prefix
     local escape_length = #self.escape
-    local search_start = prefix_length + 1
+    local search_start = #self.prefix + 1
     local suffix_start, suffix_end
-    repeat
+
+    local components = {}
+    while true do
         suffix_start, suffix_end = string.find(text, self.suffix, search_start)
         Utils.fassert(
             suffix_start,
             "Expected closing %q for atom starting with %q",
             self.suffix, self.prefix
         )
-        search_start = suffix_end + 1
-    until string.sub(text, suffix_start - escape_length, suffix_start - 1) ~= self.escape
-    return string.sub(text, prefix_length + 1, suffix_start - 1), suffix_end
+        local component = string.sub(text, search_start, suffix_start - 1)
+        if string.sub(component, -escape_length) == self.escape then
+            table.insert(components, string.sub(component, 1, -escape_length - 1))
+            search_start = suffix_end + 1
+        else
+            table.insert(components, component)
+            break
+        end
+    end
+
+    return table.concat(components, self.suffix), suffix_end
 end
 
 --- Module handler for rule creation

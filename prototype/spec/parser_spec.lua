@@ -29,9 +29,14 @@ describe("When parsing input,", function()
         local res = parser:parse(text)
         assert.are.same({'first', 'second and still second', 'third'}, res)
 
-        text = [[first 'second\'escaped' thir]]
+        text = [[first 'second\'escaped' third]]
         res = parser:parse(text)
         assert.are.same({'first', "second'escaped", 'third'}, res)
+    end)
+
+    it("single quotes delimiter must be closed", function()
+        local text = [[this 'is an error\']]
+        assert.has.errors(function() parser:parse(text) end)
     end)
 
     it("parenthesized atoms become sublist #NYI", function()
