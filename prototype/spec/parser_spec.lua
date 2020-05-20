@@ -3,7 +3,7 @@ local Parser = require 'parser'
 describe("When parsing input,", function()
     local parser = Parser.new()
 
-    it("returns list of tokens in line", function()
+    it("returns list of atoms in line", function()
         local text = "1 2 3   +4'\tfive"
         local res = parser:parse(text)
         assert.are.same({'1', '2', '3', '+4\'', 'five'}, res)
@@ -22,6 +22,16 @@ describe("When parsing input,", function()
             {'per', 'line'},
             {'skips', 'empty', 'lines'},
         }, res)
+    end)
+
+    it("unescaped single quotes delimit a single atom", function()
+        local text = "first 'second and still second' third"
+        local res = parser:parse(text)
+        assert.are.same({'first', 'second and still second', 'third'}, res)
+
+        text = [[first 'second\'escaped' thir]]
+        res = parser:parse(text)
+        assert.are.same({'first', "second'escaped", 'third'}, res)
     end)
 
     it("parenthesized atoms become sublist #NYI", function()
