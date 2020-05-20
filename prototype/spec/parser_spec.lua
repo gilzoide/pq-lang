@@ -11,6 +11,7 @@ describe("When parsing input,", function()
 
     it("returns one list per non-empty line", function()
         local text = [[
+
         one
         per line
 

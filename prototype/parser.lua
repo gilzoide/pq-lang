@@ -1,11 +1,17 @@
-local AtomRules = require 'atom_rules'
+local AtomRules = require 'parser.atom_rules'
+local Grammar = require 'parser.grammar'
 local Utils = require 'utils'
+
+local re = require 'relabel'
 
 local Parser = {}
 Parser.__index = Parser
 
 function Parser.new()
+    local base_grammar = Grammar.create_base()
     local parser = setmetatable({
+        grammar = base_grammar,
+        compiled_grammar = base_grammar:compile(),
         prefixes = {},
         token_rules_between = {},
     }, Parser)
@@ -34,44 +40,13 @@ local function sort_prefix(a, b)
 end
 
 function Parser:parse(text)
-    local stack = { {} }
-    local start = 1
-    local last = 1
-
-    local i = 1
-    while i <= #text do
-        local suffix = string.sub(text, i)
-        local whitespace = string.match(suffix, "^%s+")
-        if whitespace then
-            -- TODO treat newlines
-            i = i + #whitespace
-            goto continue
-        end
-
-        local first_char = string.sub(suffix, 1, 1)
-        local token, advance
-        if self.prefixes[first_char] then
-            for prefix, rule in Utils.sorted_pairs(self.prefixes[first_char], sort_prefix) do
-                if string.sub(suffix, 1, #prefix) == prefix then
-                    token, advance = rule:read(suffix)
-                    break
-                end
-            end
-        end
-        
-        if token == nil then
-            token, advance = string.match(suffix, "(%S+)()")
-        end
-
-        if #token > 0 then
-            table.insert(stack[#stack], token)
-        end
-        i = i + advance
-
-        ::continue::
+    local res, err, pos = self.compiled_grammar:match(text)
+    if not res then
+        local line, col = re.calcline(text, pos)
+        local msg = "Error at line " .. line .. " (col " .. col .. "): "
+        error(msg .. err)
     end
-    if #stack == 1 then stack = stack[1] end
-    return stack
+    return res
 end
 
 return Parser
