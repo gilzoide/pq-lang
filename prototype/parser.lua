@@ -46,6 +46,7 @@ function Parser:parse(text)
         local msg = "Error at line " .. line .. " (col " .. col .. "): "
         error(msg .. err)
     end
+    if #res == 1 then res = res[1] end
     return res
 end
 
