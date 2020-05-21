@@ -4,12 +4,12 @@ local Grammar = {}
 Grammar.__index = Grammar
 
 --[[
--- Chunk <- Space {| (Line Space)* |} !.
--- Line <- {| (Expr SpaceButEOL)+ |}
+-- Chunk <- Space {| (Line Space)* |} -> flatten_single_table !.
+-- Line <- {| (Expr SpaceButEOL)+ |} -> flatten_single_table
 -- Expr <- Block / SExpr / Atom
 --
 -- Block <- '{' Space (Line Space)* '}'^ErrClosingBlock
--- SExpr <- '(' Space (Expr Space)* ')'^ErrClosingParentheses
+-- SExpr <- '(' Space {| (Expr Space)* |} ')'^ErrClosingParentheses
 -- Atom <- { PrefixedAtom / GenericAtom }
 --
 -- Space <- [ \t\r\n]*
@@ -19,12 +19,20 @@ Grammar.__index = Grammar
 -- PrefixedAtom -- user defined, by default just fails
 --]]
 
+local function flatten_single_table(t)
+    if #t == 1 and type(t[1]) == 'table' then
+        return t[1]
+    else
+        return t
+    end
+end
+
 local Space = lpeg.S(" \t\r\n")^0
 local SpaceButEOL = lpeg.S(" \t\r")^0
 local GenericAtom = (1 - lpeg.S(" \t\r\n(){}"))^1
 
-local Chunk = Space * lpeg.Ct((lpeg.V("Line") * Space)^0) * (-1)
-local Line = lpeg.Ct((lpeg.V("Expr") * SpaceButEOL)^1)
+local Chunk = Space * lpeg.Ct((lpeg.V("Line") * Space)^0) / flatten_single_table * (-1)
+local Line = lpeg.Ct((lpeg.V("Expr") * SpaceButEOL)^1) / flatten_single_table
 local Expr = lpeg.V("Block") + lpeg.V("SExpr") + lpeg.V("Atom")
 
 local Block =
@@ -35,7 +43,7 @@ local Block =
 local SExpr =
     lpeg.P("(")
     * Space
-    * (lpeg.V("Expr") * Space)^0
+    * lpeg.Ct((lpeg.V("Expr") * Space)^0)
     * (lpeg.P(")") + lpeg.T('ErrClosingParentheses'))
 local Atom = lpeg.C(lpeg.V("PrefixedAtom") + GenericAtom)
 

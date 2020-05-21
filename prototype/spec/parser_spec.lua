@@ -40,13 +40,30 @@ describe("When parsing input,", function()
         assert.has.errors(function() parser:parse(text) end)
     end)
 
-    it("parenthesized atoms become sublist #NYI", function()
+    it("parenthesized atoms become sublist", function()
         local text = "outside (inside)  (another inside one)"
         local res = parser:parse(text)
         assert.are.same({'outside', {'inside'}, {'another', 'inside', 'one'}}, res)
     end)
 
-    it("parenthesis across multiple lines become a single list #NYI", function()
+    it("whole parenthesized line counts as a single list", function()
+        local text = [[
+
+        (first line)
+        
+
+        (second line) with outside atoms
+        third line
+        ]]
+        local res = parser:parse(text)
+        assert.are.same({
+            {'first', 'line'},
+            {{'second', 'line'}, 'with', 'outside', 'atoms'},
+            {'third', 'line'},
+        }, res)
+    end)
+
+    it("parenthesis across multiple lines become a single list", function()
         local text = [[
         (this is 
             a single
@@ -65,7 +82,7 @@ describe("When parsing input,", function()
         }, res)
     end)
 
-    describe("errors with unbalanced parenthesis #NYI", function()
+    describe("errors with unbalanced parenthesis", function()
         local lines = {
             "(",
             ")",

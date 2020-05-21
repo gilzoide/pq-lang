@@ -11,7 +11,8 @@ function Parser.new()
     local base_grammar = Grammar.create_base()
     local parser = setmetatable({
         grammar = base_grammar,
-        compiled_grammar = base_grammar:compile(),
+        compiled_grammar = nil,
+        dirty = true,
         prefixes = {},
         token_rules_between = {},
     }, Parser)
@@ -40,13 +41,16 @@ local function sort_prefix(a, b)
 end
 
 function Parser:parse(text)
+    if self.dirty then
+        self.compiled_grammar = self.grammar:compile()
+    end
+
     local res, err, pos = self.compiled_grammar:match(text)
     if not res then
         local line, col = re.calcline(text, pos)
         local msg = "Error at line " .. line .. " (col " .. col .. "): "
         error(msg .. err)
     end
-    if #res == 1 then res = res[1] end
     return res
 end
 
