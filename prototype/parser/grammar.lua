@@ -10,7 +10,7 @@ Grammar.__index = Grammar
 --
 -- Block <- '{' Space (Line Space)* '}'^ErrClosingBlock
 -- SExpr <- '(' Space {| (Expr Space)* |} ')'^ErrClosingParentheses
--- Atom <- { PrefixedAtom / GenericAtom }
+-- Atom <- {: PrefixedAtom / GenericAtom :}
 --
 -- Space <- [ \t\r\n]*
 -- SpaceButEOL <- [ \t\r]*
@@ -45,7 +45,7 @@ local SExpr =
     * Space
     * lpeg.Ct((lpeg.V("Expr") * Space)^0)
     * (lpeg.P(")") + lpeg.T('ErrClosingParentheses'))
-local Atom = lpeg.C(lpeg.V("PrefixedAtom") + GenericAtom)
+local Atom = lpeg.Cs(lpeg.V("PrefixedAtom") + GenericAtom)
 
 local PrefixedAtom_default = lpeg.P(false)
 
@@ -66,6 +66,14 @@ end
 
 function Grammar:compile()
     return lpeg.P(self.rules)
+end
+
+function Grammar:set_prefixed_atom_rules(rules)
+    local prefixed_atom = PrefixedAtom_default
+    for i, rule in ipairs(rules) do
+        prefixed_atom = prefixed_atom + rule:pattern()
+    end
+    self.rules.PrefixedAtom = prefixed_atom
 end
 
 return Grammar
