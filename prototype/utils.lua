@@ -9,6 +9,17 @@ function Utils.sublist(t, from, to)
 	return sub
 end
 
+function Utils.chain(...)
+    local tables = {...}
+    return coroutine.wrap(function()
+        for _, t in ipairs(tables) do
+            for _, value in ipairs(t) do
+                coroutine.yield(value)
+            end
+        end
+    end)
+end
+
 function Utils.fassert(cond, fmt, ...)
     return assert(cond, string.format(fmt, ...))
 end

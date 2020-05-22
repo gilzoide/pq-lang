@@ -1,10 +1,30 @@
 local Utils = require 'utils'
 local lpeg = require 'lpeglabel'
 
+local locale = lpeg.locale()
+
 --- Module handler for rule creation
 local AtomRules = {}
 
 --- Prefix atom rule
+local AtomRulePrefix = {}
+AtomRulePrefix.__index = AtomRulePrefix
+
+AtomRulePrefix.kind = 'prefix'
+
+function AtomRulePrefix.new(prefix, atom_pattern)
+    assert(type(prefix) == 'string' and #prefix > 0, "Atom rule prefix must be a non-empty string")
+    if atom_pattern == nil then atom_pattern = lpeg.C((1 - locale.space)^1) end
+
+    return setmetatable({
+        prefix = prefix,
+        atom_pattern = atom_pattern,
+    }, AtomRulePrefix)
+end
+
+function AtomRulePrefix:pattern()
+    return lpeg.P(self.prefix) * lpeg.P(self.atom_pattern)
+end
 
 --- Suffix atom rule
 
@@ -17,11 +37,11 @@ AtomRuleBetween.__index = AtomRuleBetween
 AtomRuleBetween.kind = 'between'
 
 function AtomRuleBetween.new(prefix, suffix, escape)
-    assert(type(prefix) == 'string' and #prefix > 0, "Token rule prefix must be a non-empty string")
+    assert(type(prefix) == 'string' and #prefix > 0, "Atom rule prefix must be a non-empty string")
     suffix = suffix or prefix
-    assert(type(suffix) == 'string' and #suffix > 0, "Token rule suffix must be a non-empty string")
+    assert(type(suffix) == 'string' and #suffix > 0, "Atom rule suffix must be a non-empty string")
     escape = escape or '\\'
-    assert(type(escape) == 'string' and #escape > 0, "Token rule escape must be a non-empty string")
+    assert(type(escape) == 'string' and #escape > 0, "Atom rule escape must be a non-empty string")
 
     return setmetatable({
         prefix = prefix,
@@ -42,9 +62,8 @@ end
 --- AtomRules definitions
 AtomRules.label_unmatched_suffix = 'ErrUnmatchedSuffix_'
 
-function AtomRules.new_between(prefix, suffix, escape)
-    return AtomRuleBetween.new(prefix, suffix, escape)
-end
+AtomRules.new_prefix = AtomRulePrefix.new
+AtomRules.new_between = AtomRuleBetween.new
 
 return AtomRules
 
