@@ -15,9 +15,11 @@ function Parser.new()
         dirty = true,
         atom_rules_prefix = {},
         atom_rules_between = {},
+        expr_rules_block = {},
     }, Parser)
 
     parser:add_atom_rule_between("'", "'", "\\")
+    parser:add_expr_rule_block('{', '}')
 
     return parser
 end
@@ -32,13 +34,22 @@ function Parser:add_atom_rule_between(prefix, suffix, escape)
     table.insert(self.atom_rules_between, rule)
 end
 
+function Parser:add_expr_rule_block(prefix, suffix)
+    local rule = AtomRules.new_block(prefix, suffix)
+    table.insert(self.expr_rules_block, rule)
+end
+
 local function sort_prefix(a, b)
     return #a.key > #b.key
 end
 
 function Parser:parse(text)
     if self.dirty then
-        self.grammar:set_prefixed_atom_rules(self.atom_rules_prefix, self.atom_rules_between)
+        self.grammar:set_prefixed_atom_rules(
+            self.expr_rules_block,
+            self.atom_rules_prefix,
+            self.atom_rules_between
+        )
         self.compiled_grammar = self.grammar:compile()
     end
 

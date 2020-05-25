@@ -96,4 +96,29 @@ describe("When parsing input,", function()
             end)
         end
     end)
+
+    it("groups blocks lines", function()
+        local text = [[
+        block {
+            first line
+            second line
+            (third
+                line)
+        }
+
+        after
+        ]]
+        local res = parser:parse(text)
+        assert.are.same({
+            {
+                'block',
+                {
+                    {'first', 'line'},
+                    {'second', 'line'},
+                    {'third', 'line'},
+                },
+            },
+            {'after'},
+        }, res)
+    end)
 end)

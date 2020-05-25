@@ -29,23 +29,34 @@ local function flatten_single_table(t)
     end
 end
 
+local function append_values(t, ...)
+    local n = select('#', ...)
+    if n == 1 then table.insert(t, ...)
+    elseif n == 2 then rawset(t, ...)
+    else
+        local key = ...
+        local values = { select(2, ...) }
+        rawset(t, key, values)
+    end
+    return t
+end
+
+local function capture_atoms(pattern)
+    return lpeg.Cf(lpeg.Ct('') * pattern, append_values)
+end
+
 local Space = lpeg.S(" \t\r\n")^0
 local SpaceButEOL = lpeg.S(" \t\r")^0
 local GenericAtom = (1 - lpeg.S(" \t\r\n(){}"))^1
 
 local Chunk = Space * lpeg.Ct((lpeg.V("Line") * Space)^0) / flatten_single_table * (-1)
-local Line = lpeg.Ct((lpeg.V("Expr") * SpaceButEOL)^1) / flatten_single_table
-local Expr = lpeg.V("Block") + lpeg.V("SExpr") + lpeg.V("Atom")
+local Line = capture_atoms((lpeg.V("Expr") * SpaceButEOL)^1) / flatten_single_table
+local Expr = lpeg.V("SExpr") + lpeg.V("Atom")
 
-local Block =
-    lpeg.P("{")
-    * Space
-    * (lpeg.V("Line") * Space)^0
-    * (lpeg.P("}") + lpeg.T('ErrClosingBlock'))
 local SExpr =
     lpeg.P("(")
     * Space
-    * lpeg.Ct((lpeg.V("Expr") * Space)^0)
+    * capture_atoms((lpeg.V("Expr") * Space)^0)
     * (lpeg.P(")") + lpeg.T('ErrClosingParentheses'))
 local Atom = lpeg.V("PrefixedAtom") + lpeg.C(GenericAtom)
 

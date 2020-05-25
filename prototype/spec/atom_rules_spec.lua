@@ -27,7 +27,7 @@ describe("AtomRulePrefix", function()
 end)
 
 describe("AtomRuleBetween", function()
-    local default_rule = atom_rules.new_between("'")
+    local default_rule = atom_rules.new_between("'", "'", '\\')
     local default_pattern = default_rule:pattern()
 
     it("uses prefix as suffix, if ommited", function()
@@ -41,7 +41,7 @@ describe("AtomRuleBetween", function()
         end
         assert.has_no.errors(create_between('prefix', 'suffix', 'escape'))
         assert.has.errors(create_between(0, 'suffix', 'escape'))
-        assert.has.errors(create_between('prefix', 1, 'escape'))
+        assert.has_no.errors(create_between('prefix', 1, 'escape'))
         assert.has.errors(create_between('prefix', 'suffix', 2))
         assert.has.errors(create_between(nil))
     end)
